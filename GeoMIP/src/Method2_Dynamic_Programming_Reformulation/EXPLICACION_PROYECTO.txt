@@ -1,0 +1,72 @@
+========================================================================
+                     PROYECTO GeoMIP - Análisis de SIA
+========================================================================
+
+Este proyecto, denominado GeoMIP, es una herramienta avanzada para el 
+Análisis de Irreducibilidad del Sistema (SIA - System Irreducibility 
+Analysis). Su objetivo principal es descomponer sistemas complejos 
+representados por Matrices de Probabilidad de Transición (TPM) para 
+identificar cómo se integra la información dentro de ellos.
+
+CARACTERÍSTICAS PRINCIPALES:
+---------------------------
+1. Análisis de Particiones:
+   El núcleo del proyecto consiste en encontrar la "Partición de Mínima 
+   Información" (MIP). Esto implica dividir el sistema en partes de 
+   manera que la pérdida de información causal sea mínima.
+
+2. Estrategia Geométrica (Method 2):
+   Utiliza una reformulación basada en programación dinámica y conceptos 
+   geométricos para optimizar la búsqueda de particiones. En lugar de 
+   fuerza bruta, calcula costos de transición entre estados para 
+   identificar los cortes más eficientes.
+
+3. K-Particiones (Extensión):
+   Permite dividir el sistema no solo en dos partes (bipartición), sino 
+   en 'k' grupos (k=3, 4, 5). Para esto, implementa dos heurísticas:
+   - Greedy (Voraz): Divide el sistema de forma recursiva buscando la 
+     mínima pérdida en cada paso.
+   - Clustering (Agrupamiento): Utiliza algoritmos de agrupamiento 
+     jerárquico sobre una matriz de costos aumentada para identificar 
+     nodos que funcionan como unidades integradas.
+
+4. Métricas de Pérdida (EMD):
+   Utiliza la Distancia del Movedor de Tierra (Earth Mover's Distance - 
+   EMD) para cuantificar la diferencia entre la distribución de 
+   probabilidad del sistema original y el sistema particionado.
+
+ESTRUCTURA TÉCNICA:
+------------------
+- Modelos (NCube, System): Representan las estructuras de datos n-dimensionales 
+  para operar eficientemente con las probabilidades.
+- Controladores (Strategies): Implementan los algoritmos de búsqueda 
+  (Geometric, KPartition, BruteForce, Q-Nodes).
+- Procesamiento Batch: Automatizado mediante scripts (run_kpart.py) que 
+  leen configuraciones desde Excel y procesan múltiples sistemas en paralelo.
+
+MAPA DE ARCHIVOS PRINCIPALES:
+----------------------------
+1. Puntos de Entrada y Control:
+   - run_kpart.py: Ejecución masiva de simulaciones k-partición.
+   - debug_kpart.py: Depuración y pruebas de casos específicos.
+   - src/main.py: Coordinador general (Excel -> Algoritmo -> Resultados).
+
+2. Lógica Core (Algoritmos):
+   - src/controllers/strategies/kpartition.py: Heurísticas Greedy y Clustering.
+   - src/controllers/strategies/geometric.py: Estrategia de búsqueda geométrica.
+
+3. Modelos de Datos:
+   - src/models/core/system.py: Gestión de sistemas y operaciones de partición.
+   - src/models/core/ncube.py: Manejo de datos n-dimensionales.
+
+4. Funciones y Constantes:
+   - src/funcs/base.py: Cálculos de EMD y métricas matemáticas.
+   - src/funcs/format.py: Formateo visual de particiones en texto.
+   - src/constants/base.py: Constantes globales y rutas de archivos.
+
+USO:
+----
+El sistema toma archivos .csv (TPMs) y un archivo Maestro de Excel 
+(Pruebas_Metodo2.xlsx) como entrada, y genera reportes detallados con 
+las particiones encontradas, los valores de pérdida y los tiempos de 
+ejecución.

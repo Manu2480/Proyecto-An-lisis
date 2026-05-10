@@ -21,8 +21,8 @@ STR_ONE: str = str(INT_ONE)
 
 EMPTY_STR: str = ""
 COLON_DELIM: str = ","
-VOID_STR: str = "∅"
-SMALL_PHI_STR: str = "φ"
+VOID_STR: str = "Empty"
+SMALL_PHI_STR: str = "phi"
 ABC_START: str = "A"
 
 EQUIV_SYM: str = "≡"

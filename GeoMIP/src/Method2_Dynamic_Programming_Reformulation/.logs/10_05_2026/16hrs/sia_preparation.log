@@ -1,0 +1,6 @@
+2026-05-10 16:27:45 [sia_preparation] CRITICAL Process-1800: Original creado.
+2026-05-10 16:27:45 [sia_preparation] CRITICAL Process-1800: Original:
+2026-05-10 16:27:45 [sia_preparation] CRITICAL Process-1800: Candidato creado.
+2026-05-10 16:27:45 [sia_preparation] CRITICAL Process-1800: Subsistema creado.
+2026-05-10 16:27:45 [sia_preparation] CRITICAL Process-1800: empieza.
+2026-05-10 16:27:45 [sia_preparation] CRITICAL Process-1800: Clustering heuristics failed: The condensed distance matrix must contain only finite values.
