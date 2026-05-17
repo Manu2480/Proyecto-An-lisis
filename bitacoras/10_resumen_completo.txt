@@ -1,0 +1,96 @@
+BITÁCORA 10 — Resumen completo del proyecto
+Fecha: 16/05/2026
+Sesión: Implementación completa K-QGMIP
+
+===================================================================
+ESTADO FINAL DE TODAS LAS FASES
+===================================================================
+
+FASE 0 (Diagnóstico — sesión anterior):
+  [✓] geometric.py valida Tabla 4.2 GeoMIP (N3C, error < 1e-4)
+  [✓] BruteForce corregido: faltaba arg 'tpm' en sia_preparar_subsistema
+  [✓] np.infty → np.inf (force.py Method2 y Method3)
+  [✓] CSVs N3C, N6B, N17-N22 A/B copiados a GeoMIP/data/samples/
+  [✓] generate_large_tpms.py copiado a GeoMIP/data/
+
+FASE 1 (Refactorización):
+  [✓] 1.1: hyper-v*.py y result_viejos movidos a _archive/
+  [✓] 1.2: Solution estandarizada (n_nodos, k, tiempo_ms) en Method2 y QNodes
+      - geometric.py y kpartition.py pasan n_nodos y k al construir Solution
+      - q_nodes.py Method2: corregido mismo bug que BruteForce
+  [✓] 1.3: 34 tests en tests/ — 100% de paso
+      - test_emd.py (7 tests)
+      - test_geometric_n3.py (10 tests: Tabla 4.2 + cross-val BruteForce)
+      - test_kpart_coherence.py (6 tests: coherencia, inviable, k/n correcto)
+      - test_solutions.py (11 tests: campos mínimos en todas las estrategias)
+
+FASE 2 (Datasets):
+  [✓] 27 TPMs validados: todos OK (validate_tpms.py)
+      - Binarias: N3A/C, N4A/C, N5-N22 A/B
+      - Probabilísticas: N3B, N4B, N15A/B
+  [pendiente] generate_large_tpms.py para n=23,24,25 (script listo)
+
+FASE 3 (Benchmark):
+  [✓] benchmark.py creado con:
+      - 49 casos para n=10, 49 para n=15, 7 para n=20, 5 para n=22
+      - Timeout real via threading (Windows-compatible)
+      - Métricas: perdida_emd, tiempo_ms, memoria_mb, convergio
+      - Salida xlsx en GeoMIP/results/
+  [en curso] Benchmark n=10, timeout=60s (ejecutándose en background)
+      - Casos pequeños (1-7): convergen ~2-30s
+      - Casos grandes (8+): TIMEOUT esperado (subsistema 9 nodos → >60s)
+
+FASE 4 (Optimizaciones):
+  [✓] README.md completamente reescrito con:
+      - Tabla de límites prácticos por estrategia
+      - Tabla de datasets disponibles
+      - Instrucciones de uso completas
+      - Nomenclatura KGeoMIP/KQNodes
+  [pendiente] GPU/multicore: solo si benchmark lo justifica (ver ADDENDUM)
+
+FASE 5 (Manual Técnico):
+  [✓] docs/ManualTecnico_KQMIP.tex creado con:
+      - Portada, resumen ejecutivo, fundamentos teóricos
+      - Diagramas TikZ: paquetes + clases UML
+      - Pseudocódigo GeometricSIA y KPartitionSIA
+      - Tablas de complejidad y Stirling
+      - Análisis de resultados (esqueleto, tablas se insertan con \input{})
+      - Apéndices: EMD analítica, Plan GPU, Uso de IA
+  [✓] docs/gen_tables.py: genera tablas LaTeX desde benchmark xlsx
+  [✓] docs/tables/ creado con placeholder
+
+===================================================================
+ARCHIVOS NUEVOS CREADOS EN ESTA SESIÓN
+===================================================================
+bitacoras/                                    (9 entradas previas + esta)
+tests/conftest.py
+tests/test_emd.py
+tests/test_geometric_n3.py
+tests/test_kpart_coherence.py
+tests/test_solutions.py
+GeoMIP/data/validate_tpms.py
+GeoMIP/src/benchmark.py
+docs/ManualTecnico_KQMIP.tex
+docs/gen_tables.py
+docs/tables/benchmark_n10.tex               (placeholder)
+
+===================================================================
+ARCHIVOS MODIFICADOS EN ESTA SESIÓN
+===================================================================
+README.md                                    (reescrito completo)
+GeoMIP/.../src/models/core/solution.py       (n_nodos, k, tiempo_ms)
+QNodes/src/models/core/solution.py           (n_nodos, k, tiempo_ms)
+GeoMIP/.../strategies/geometric.py           (propaga n_nodos, k)
+GeoMIP/.../strategies/kpartition.py          (propaga n_nodos, k)
+GeoMIP/.../strategies/q_nodes.py             (corregido tpm bug)
+tests/conftest.py                            (fix orden sys.path)
+tests/test_emd.py                            (corregido formato inputs)
+tests/test_kpart_coherence.py                (umbral correcto, k>total_nodos)
+tests/test_solutions.py                      (k=7 para test inviable)
+
+===================================================================
+ARCHIVOS MOVIDOS A _archive/
+===================================================================
+Method2/src/video/hyper-v0..8.py  → Method2/_archive/video/
+Method3/src/video/hyper-v0..8.py  → Method3/_archive/video/
+GeoMIP/results/result viejos/      → GeoMIP/results/_archive/result_viejos/

@@ -1,0 +1,30 @@
+BITÁCORA 03 — Fase 1.2: Estandarización de Solution
+Fecha: 16/05/2026
+Fase: 1.2 — Estandarización de entrada/salida
+
+ACCIONES:
+  Se añadieron los campos n_nodos, k y la propiedad tiempo_ms a la clase
+  Solution en ambas ramas (QNodes y Method2/3) sin romper llamadas existentes
+  (parámetros opcionales con valores por defecto).
+
+ARCHIVOS MODIFICADOS:
+  QNodes/src/models/core/solution.py
+    + parámetro n_nodos: int = 0
+    + parámetro k: int = 2
+    + propiedad tiempo_ms (retorna tiempo_ejecucion * 1000)
+
+  GeoMIP/src/Method2_Dynamic_Programming_Reformulation/src/models/core/solution.py
+    + parámetro n_nodos: int = 0
+    + parámetro k: int = 2
+    + propiedad tiempo_ms
+
+  GeoMIP/src/Method2_Dynamic_Programming_Reformulation/src/controllers/strategies/geometric.py
+    + pasa n_nodos=len(estado_inicial), k=2 al construir Solution
+
+  GeoMIP/src/Method2_Dynamic_Programming_Reformulation/src/controllers/strategies/kpartition.py
+    + pasa n_nodos=len(estado_inicial), k=self.k al construir Solution (ambos)
+
+NOTA:
+  BruteForce y QNodes en Method2 también devuelven Solution pero sus campos
+  n_nodos/k quedarán en 0/2 por defecto hasta que sean llamados por el benchmark
+  que sí conoce el n. El benchmark los llenará post-hoc.

@@ -104,6 +104,8 @@ class Solution:
         tiempo_total: float = FLOAT_ZERO,
         quiere_hablar: bool = True,
         voz: Optional[str] = None,
+        n_nodos: int = 0,
+        k: int = 2,
     ) -> None:
         """
         Inicializa una nueva instancia de Solution.
@@ -128,6 +130,13 @@ class Solution:
         self.tiempo_ejecucion = tiempo_total
         self.id_voz = voz
         self.hablar = quiere_hablar
+        self.n_nodos = n_nodos
+        self.k = k
+
+    @property
+    def tiempo_ms(self) -> float:
+        """Tiempo de ejecución en milisegundos."""
+        return self.tiempo_ejecucion * 1000.0
 
     def __obtener_voz_espanol(self, motor: Engine) -> Optional[str]:
         """

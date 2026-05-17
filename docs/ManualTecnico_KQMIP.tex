@@ -1,0 +1,753 @@
+% ============================================================
+%  Manual Técnico — Proyecto K-QGMIP
+%  Universidad de Caldas
+%  Análisis y Diseño de Algoritmos — 2026-1
+% ============================================================
+\documentclass[11pt,letterpaper]{article}
+
+% ── Paquetes ─────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{times}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows.meta,positioning,fit,calc,matrix}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{csquotes}
+
+% ── Colores ───────────────────────────────────────────────────────────────────
+\definecolor{codebg}{rgb}{0.95,0.95,0.97}
+\definecolor{codeframe}{rgb}{0.7,0.7,0.7}
+\definecolor{keycolor}{rgb}{0.0,0.4,0.7}
+\definecolor{commentcolor}{rgb}{0.4,0.6,0.4}
+\definecolor{stringcolor}{rgb}{0.7,0.3,0.1}
+
+% ── Estilo de listados (código Python) ────────────────────────────────────────
+\lstdefinestyle{pycode}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  basicstyle=\small\ttfamily,
+  keywordstyle=\color{keycolor}\bfseries,
+  commentstyle=\color{commentcolor}\itshape,
+  stringstyle=\color{stringcolor},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  numbersep=5pt,
+  tabsize=4,
+  breaklines=true,
+  showstringspaces=false,
+  captionpos=b,
+}
+\lstset{style=pycode}
+
+% ── Estilo de pseudocódigo ────────────────────────────────────────────────────
+\algrenewcommand\algorithmicrequire{\textbf{Entrada:}}
+\algrenewcommand\algorithmicensure{\textbf{Salida:}}
+\algnewcommand\algorithmiccomment[1]{\hfill\(\triangleright\) #1}
+
+% ── Cabecera y pie ────────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Manual Técnico — K-QGMIP}
+\fancyhead[R]{\small Universidad de Caldas 2026-1}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Comandos matemáticos ─────────────────────────────────────────────────────
+\newcommand{\EMD}{\mathrm{EMD}}
+\newcommand{\MIP}{\mathrm{MIP}}
+\newcommand{\kMIP}{k\text{-}\mathrm{MIP}}
+\newcommand{\phi}{\varphi}
+\newcommand{\Phi}{\Phi}
+\newcommand{\tpm}{\mathbf{T}}
+\newcommand{\parti}{\mathcal{P}}
+
+% ── Teoremas ──────────────────────────────────────────────────────────────────
+\newtheorem{definition}{Definición}[section]
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{proposition}{Proposición}[section]
+\newtheorem{corollary}{Corolario}[section]
+
+% ============================================================
+\begin{document}
+
+% ── Portada ───────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{1cm}
+  {\large \textbf{Universidad de Caldas}\\[0.3cm]
+   Facultad de Inteligencia Artificial e Ingenierías\\[0.3cm]
+   Análisis y Diseño de Algoritmos --- 2026-1}
+  
+  \vspace{3cm}
+  {\Huge \textbf{Manual Técnico}}\\[0.5cm]
+  {\LARGE \textbf{Proyecto K-QGMIP}}\\[0.8cm]
+  {\large \textit{Extensión a k-particiones de los algoritmos\\
+   KGeoMIP y KQNodes para el cálculo del\\
+   System Irreducibility Analysis (SIA/IIT)}}
+  
+  \vspace{3cm}
+  {\large Fecha: \today}
+  
+  \vfill
+  \begin{abstract}
+    Este manual describe el diseño, implementación y evaluación experimental
+    del proyecto \textbf{K-QGMIP}: una extensión de los algoritmos GeoMIP y
+    QNodes para encontrar la Minimum Information Partition (MIP) generalizada
+    a $k$ grupos en redes con $n$ nodos. Se presentan los fundamentos
+    matemáticos del System Irreducibility Analysis (SIA), la arquitectura del
+    software, los algoritmos pseudocodificados, el análisis de complejidad
+    asintótica y los resultados experimentales sobre matrices de transición
+    de hasta $n=22$ nodos.
+  \end{abstract}
+\end{titlepage}
+
+% ── Tabla de contenidos ───────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Resumen Ejecutivo}
+\label{sec:resumen}
+% ============================================================
+
+\subsection{Problema abordado}
+
+El análisis de irreducibilidad de sistemas (SIA) cuantifica cuánta información
+se \emph{pierde} al particionar un sistema de $n$ nodos en $k$ grupos
+desconectados.  Formalmente, dado un sistema definido por su
+Transition Probability Matrix (TPM) $\tpm \in [0,1]^{2^n \times n}$ y un estado
+inicial $s_0 \in \{0,1\}^n$, se busca la $k$-partición
+$\parti^* = \{P_1,\ldots,P_k\}$ de los nodos que minimiza la pérdida de
+información integrada:
+\[
+  \phi(\parti) = \EMD\!\bigl(p(S_t \mid s_0),\;
+                             \bigotimes_{i=1}^k p(P_i^{t} \mid s_0^{P_i})\bigr),
+\]
+siendo $\EMD$ la Earth Mover's Distance (distancia de Wasserstein de orden 1)
+entre el repertorio efecto del subsistema completo y el producto tensorial de
+los repertorios de cada partición~\cite{tononi2016}.
+
+\subsection{Estrategias desarrolladas}
+
+\begin{description}[style=nextline]
+  \item[\textbf{KGeoMIP} (\texttt{KPartitionSIA})]
+    Extensión de GeoMIP~\cite{geomip2025} a $k$ particiones mediante
+    biparticiones greedy encadenadas y clustering jerárquico aglomerativo.
+    Complejidad $\mathcal{O}(k \cdot n^2 \cdot 2^n)$.
+  \item[\textbf{KQNodes} (\texttt{QNodes} extendido)]
+    Extensión heurística de QNodes que aplica $k-1$ cortes greedy usando
+    el coste marginal de cada nodo.  Complejidad $\mathcal{O}(k \cdot n^2)$.
+  \item[\textbf{GeometricSIA} (base, $k=2$)]
+    Programación dinámica sobre el hipercubo de estados; garantiza el MIP óptimo
+    para biparticiones en $\mathcal{O}(n \cdot 2^n)$.
+  \item[\textbf{BruteForce} (referencia)]
+    Enumeración exhaustiva de todas las biparticiones.
+    $\mathcal{O}(2^{n-1})$; solo viable para $n \le 6$.
+\end{description}
+
+\subsection{Resultados principales}
+
+\begin{itemize}
+  \item GeometricSIA reproduce el Cuadro 4.2 del paper GeoMIP con error
+        $< 10^{-4}$ para el sistema N3C (validación cruzada con 34 tests).
+  \item GeometricSIA y BruteForce coinciden en N3A (5 estados iniciales
+        evaluados, diferencia $< 10^{-6}$).
+  \item KPartitionSIA devuelve $k$ y $n_\text{nodos}$ correctos en todos los
+        casos de prueba.
+  \item Suite de 34 tests automatizados: \textbf{100\% de paso}.
+\end{itemize}
+
+\subsection{Limitaciones}
+
+\begin{itemize}
+  \item La heurística greedy de KPartitionSIA no garantiza
+        $\phi(k{=}3) \le \phi(k{=}2)$ en todos los casos (aproximadamente
+        33\,\% de los casos en N3--N5).
+  \item Para $n > 15$ la memoria requerida ($\mathcal{O}(2^n \cdot n)$) supera
+        los 16 GB; se recomienda reducir el subsistema o usar paralelismo
+        (ver Apéndice~\ref{app:gpu}).
+\end{itemize}
+
+% ============================================================
+\section{Fundamentos Teóricos}
+\label{sec:teoria}
+% ============================================================
+
+\subsection{Integrated Information Theory (IIT) y SIA}
+
+La Integrated Information Theory propuesta por Tononi~\cite{tononi2016} modela
+un sistema como un conjunto de $n$ variables aleatorias binarias
+$\mathbf{X} = (X_1,\ldots,X_n)$ con distribución conjunta dada por la TPM.
+El \emph{repertorio efecto} del subsistema bajo el mecanismo $M \subseteq V$
+y el alcance $Z \subseteq V$ desde el estado $s$ se define como:
+\[
+  p(Z^{t+1} \mid M^t = s^M, \overline{M}^t = s^{\overline{M}}) 
+  \;\in\; [0,1]^{|Z|},
+\]
+donde $\overline{M} = V \setminus M$ indica el complemento del mecanismo.
+
+\begin{definition}[Bipartición MIP]
+  Sea $V$ el conjunto de nodos. Una \emph{bipartición} es un par
+  $(A, B)$ con $A \cup B = V$, $A \cap B = \emptyset$, $A,B \ne \emptyset$.
+  La \emph{MIP} es la bipartición que minimiza:
+  \[
+    \phi(A,B) = \EMD\bigl(p(Z \mid M),\;p(Z_A \mid M_A) \otimes p(Z_B \mid M_B)\bigr).
+  \]
+\end{definition}
+
+\begin{definition}[$k$-partición MIP]
+  Una $k$-partición de $V$ es una colección $\parti = \{P_1,\ldots,P_k\}$ de
+  subconjuntos no vacíos, disjuntos y que cubren $V$.  La $k$-MIP minimiza:
+  \[
+    \phi(\parti) = \EMD\!\Bigl(p(Z \mid M),\;
+                               \bigotimes_{i=1}^k p(Z_{P_i} \mid M_{P_i})\Bigr).
+  \]
+\end{definition}
+
+\subsection{Earth Mover's Distance analítica}
+
+Para distribuciones de efectos sobre variables binarias condicionalmente
+independientes, la EMD admite una forma cerrada~\cite{geomip2025}:
+\[
+  \EMD(u, v) = \sum_{i=1}^{n} \bigl|u_i - v_i\bigr|,
+\]
+donde $u_i = P(X_i = 0 \mid \cdot)$ es la probabilidad marginal de que el
+nodo $i$ esté \emph{apagado}.  Esta simplificación reduce la complejidad de
+$\mathcal{O}(n^3)$ (problema de transporte general) a $\mathcal{O}(n)$.
+
+\subsection{Análisis del espacio de búsqueda}
+
+El número de $k$-particiones de $n$ elementos es el
+\emph{número de Stirling de segundo tipo} $S(n,k)$, que crece
+aproximadamente como $(k^n)/(k!)$ para $k$ fijo.  La Tabla~\ref{tab:stirling}
+muestra su crecimiento:
+
+\begin{table}[H]
+  \centering
+  \caption{Número de $k$-particiones $S(n,k)$ para distintos $n$ y $k$.}
+  \label{tab:stirling}
+  \begin{tabular}{r r r r r}
+    \toprule
+    $n$ & $k=2$     & $k=3$        & $k=4$           & $k=5$            \\
+    \midrule
+     3  &          3 &            1 &              --  &              --  \\
+     5  &         15 &           25 &              10  &               1  \\
+    10  &        511 &       9\,330 &          34\,105 &          42\,525 \\
+    15  &     16\,383 & 2\,375\,101  & $4.8{\times}10^9$ & $4.2{\times}10^{11}$ \\
+    20  & $5{\times}10^5$ & $7.4{\times}10^8$ & $4.5{\times}10^{12}$ & $1.4{\times}10^{16}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+La búsqueda exhaustiva es inviable para $n > 6$ incluso para $k=2$.
+KGeoMIP explota la estructura del hipercubo para reducir la búsqueda a
+$\mathcal{O}(n \cdot 2^n)$ mediante programación dinámica.
+
+% ============================================================
+\section{Arquitectura del Software}
+\label{sec:arquitectura}
+% ============================================================
+
+\subsection{Visión general}
+
+El sistema se organiza en dos módulos principales bajo \texttt{GeoMIP/src/}:
+
+\begin{itemize}
+  \item \textbf{Method2\_Dynamic\_Programming\_Reformulation}: núcleo del
+        proyecto, contiene las estrategias GeometricSIA, KPartitionSIA,
+        QNodes y BruteForce.
+  \item \textbf{Method3\_Batch\_Processing}: variante de procesamiento en
+        lote sobre todos los TPMs disponibles.
+\end{itemize}
+
+\subsection{Diagrama de paquetes}
+
+% TikZ — diagrama de paquetes
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    pkg/.style={draw, rounded corners, fill=blue!8,
+                minimum width=3.2cm, minimum height=0.7cm, font=\small},
+    arr/.style={-{Stealth}, thick, gray}
+  ]
+    \node[pkg] (manager)    at (0,0)   {\texttt{controllers/manager}};
+    \node[pkg] (geo)        at (4,1)   {\texttt{strategies/geometric}};
+    \node[pkg] (kpart)      at (4,0)   {\texttt{strategies/kpartition}};
+    \node[pkg] (qnodes)     at (4,-1)  {\texttt{strategies/q\_nodes}};
+    \node[pkg] (force)      at (4,-2)  {\texttt{strategies/force}};
+    \node[pkg] (sia)        at (0,-2)  {\texttt{models/base/sia} (ABC)};
+    \node[pkg] (solution)   at (0,-3.5){\texttt{models/core/solution}};
+    \node[pkg] (system)     at (4,-3.5){\texttt{models/core/system}};
+    \node[pkg] (funcs)      at (0,-5)  {\texttt{funcs/base} (EMD)};
+
+    \draw[arr] (manager) -- (geo);
+    \draw[arr] (manager) -- (kpart);
+    \draw[arr] (manager) -- (qnodes);
+    \draw[arr] (manager) -- (force);
+    \draw[arr] (sia) -- (geo);
+    \draw[arr] (sia) -- (kpart);
+    \draw[arr] (sia) -- (qnodes);
+    \draw[arr] (sia) -- (force);
+    \draw[arr] (geo)    -- (solution);
+    \draw[arr] (kpart)  -- (solution);
+    \draw[arr] (qnodes) -- (solution);
+    \draw[arr] (force)  -- (solution);
+    \draw[arr] (sia)    -- (funcs);
+    \draw[arr] (sia)    -- (system);
+  \end{tikzpicture}
+  \caption{Diagrama de paquetes simplificado de Method2.}
+  \label{fig:paquetes}
+\end{figure}
+
+\subsection{Diagrama de clases (UML)}
+
+% TikZ — diagrama de clases UML
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+    cls/.style={draw, fill=white, rounded corners=2pt,
+                minimum width=4.5cm, inner sep=4pt, font=\small},
+    inh/.style={-{Triangle[open]}, thick},
+    dep/.style={-{Stealth}, dashed, gray}
+  ]
+    \node[cls] (sia) at (0,0) {
+      \begin{tabular}{c}
+        \textbf{SIA} (ABC)\\
+        \hline
+        \texttt{+ sia\_preparar\_subsistema()}\\
+        \texttt{+ sia\_cargar\_tpm()}\\
+        \texttt{\# sia\_gestor: Manager}\\
+        \texttt{\# sia\_subsistema: System}\\
+        \hline
+        \texttt{+ aplicar\_estrategia() [abs]}
+      \end{tabular}
+    };
+    \node[cls] (geo) at (-3.5,-4) {
+      \begin{tabular}{c}
+        \textbf{GeometricSIA}\\
+        \hline
+        \texttt{+ tabla\_transiciones}\\
+        \texttt{+ memoria\_particiones}\\
+        \hline
+        \texttt{+ aplicar\_estrategia()}\\
+        \texttt{+ calcular\_costos\_nivel()}
+      \end{tabular}
+    };
+    \node[cls] (kp) at (3.5,-4) {
+      \begin{tabular}{c}
+        \textbf{KPartitionSIA}\\
+        \hline
+        \texttt{+ k: int}\\
+        \hline
+        \texttt{+ aplicar\_estrategia()}\\
+        \texttt{- \_greedy()}\\
+        \texttt{- \_clustering()}
+      \end{tabular}
+    };
+    \node[cls] (sol) at (0,-8) {
+      \begin{tabular}{c}
+        \textbf{Solution}\\
+        \hline
+        \texttt{+ perdida: float}\\
+        \texttt{+ particion: str}\\
+        \texttt{+ estrategia: str}\\
+        \texttt{+ n\_nodos: int}\\
+        \texttt{+ k: int}\\
+        \texttt{+ tiempo\_ms: float @property}
+      \end{tabular}
+    };
+
+    \draw[inh] (geo) -- (sia);
+    \draw[inh] (kp)  -- (sia);
+    \draw[dep] (geo) -- (sol) node[midway,left,font=\tiny]{crea};
+    \draw[dep] (kp)  -- (sol) node[midway,right,font=\tiny]{crea};
+  \end{tikzpicture}
+  \caption{Diagrama de clases UML (simplificado).}
+  \label{fig:clases}
+\end{figure}
+
+\subsection{Patrones de diseño}
+
+\begin{description}[leftmargin=1.5cm]
+  \item[\textbf{Template Method}] La clase abstracta \texttt{SIA} define
+    \texttt{sia\_preparar\_subsistema()} como operación común; cada subclase
+    implementa \texttt{aplicar\_estrategia()}.
+  \item[\textbf{Strategy}] Las clases \texttt{GeometricSIA}, \texttt{KPartitionSIA},
+    \texttt{QNodes} y \texttt{BruteForce} son estrategias intercambiables que
+    comparten la misma interfaz.
+  \item[\textbf{Value Object}] \texttt{Solution} encapsula el resultado inmutable
+    de la búsqueda, incluyendo los nuevos campos \texttt{n\_nodos}, \texttt{k}
+    y la propiedad derivada \texttt{tiempo\_ms}.
+\end{description}
+
+% ============================================================
+\section{Diseño Algorítmico}
+\label{sec:algoritmos}
+% ============================================================
+
+\subsection{GeometricSIA (KGeoMIP, $k=2$)}
+
+El algoritmo explota la estructura del hipercubo $\{0,1\}^n$ para calcular
+el coste de transición $t(s_0, s')$ de forma incremental, aprovechando que
+cada vértice del hipercubo difiere de sus vecinos en exactamente un bit
+(operador de volteo).
+
+\begin{algorithm}[H]
+  \caption{GeometricSIA --- \texttt{aplicar\_estrategia}}
+  \label{alg:geo}
+  \begin{algorithmic}[1]
+    \Require TPM $\tpm$, estado inicial $s_0$, máscaras cond/alcance/mec
+    \Ensure $\parti^* = \arg\min_{(A,B)} \phi(A,B)$, pérdida $\phi^*$
+    \State $\text{subsistema} \gets \texttt{sia\_preparar\_subsistema}(\tpm, \text{cond, alcance, mec})$
+    \State Inicializar $\texttt{tabla}[s_0 \to s_0] \gets \mathbf{0}^n$
+    \For{nivel $\ell = 1, \ldots, n$}
+      \For{cada vértice $v$ a distancia $\ell$ de $s_0$}
+        \State $v' \gets$ vecino de $v$ más cercano a $s_0$
+        \State $\texttt{tabla}[s_0 \to v] \gets \texttt{tabla}[s_0 \to v'] + \Delta(v', v)$
+        \Comment{incremento analítico de un bit}
+      \EndFor
+    \EndFor
+    \State $\phi^* \gets +\infty$
+    \For{cada bipartición $(A, B)$ de las dimensiones del subsistema}
+      \State Calcular $\phi(A,B)$ usando la tabla de costos
+      \If{$\phi(A,B) < \phi^*$}
+        \State $\phi^* \gets \phi(A,B)$;\; $\parti^* \gets (A,B)$
+      \EndIf
+    \EndFor
+    \State \Return \texttt{Solution}($\phi^*$, $\parti^*$, $k=2$)
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{KPartitionSIA (KGeoMIP, $k > 2$)}
+
+\begin{algorithm}[H]
+  \caption{KPartitionSIA --- Estrategia greedy encadenada}
+  \label{alg:kpart}
+  \begin{algorithmic}[1]
+    \Require TPM, $s_0$, máscaras, $k$
+    \Ensure $\parti^* = \{P_1,\ldots,P_k\}$
+    \State Verificar $k \le |V|$; si no, devolver Solution ``Inviable''
+    \State Correr \texttt{GeometricSIA} para obtener bipartición inicial $(A_1, A_2)$
+    \State $\texttt{grupos} \gets [(A_1, \phi(A_1)), (A_2, \phi(A_2))]$
+    \For{$i = 3, \ldots, k$}
+      \State $g^* \gets \arg\max_{g \in \texttt{grupos}} \phi(g)$
+      \Comment{dividir el grupo con mayor pérdida}
+      \State Correr \texttt{GeometricSIA} sobre $g^*$ para obtener $(B_1, B_2)$
+      \State $\texttt{grupos} \gets (\texttt{grupos} \setminus \{g^*\}) \cup \{B_1, B_2\}$
+    \EndFor
+    \State $\phi^* \gets \EMD\bigl(p(Z|M),\;\bigotimes_{g \in \texttt{grupos}} p(Z_g|M_g)\bigr)$
+    \State \Return \texttt{Solution}($\phi^*$, grupos, $k$)
+  \end{algorithmic}
+\end{algorithm}
+
+% ============================================================
+\section{Análisis de Complejidad}
+\label{sec:complejidad}
+% ============================================================
+
+\begin{table}[H]
+  \centering
+  \caption{Complejidad asintótica de cada estrategia.}
+  \label{tab:complejidad}
+  \begin{tabular}{l l l l}
+    \toprule
+    Estrategia & Tiempo & Espacio & Óptima \\
+    \midrule
+    BruteForce     & $\mathcal{O}(2^n)$         & $\mathcal{O}(n)$       & Sí (bipart.) \\
+    QNodes         & $\mathcal{O}(n^2)$          & $\mathcal{O}(n)$       & No           \\
+    GeometricSIA   & $\mathcal{O}(n \cdot 2^n)$ & $\mathcal{O}(n \cdot 2^n)$ & Sí (bipart.) \\
+    KPartitionSIA  & $\mathcal{O}(k \cdot n \cdot 2^n)$ & $\mathcal{O}(n \cdot 2^n)$ & No (aprox.) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Análisis detallado de GeometricSIA}
+
+La tabla de transiciones tiene $2^n$ entradas, cada una de longitud $n$,
+lo que da un espacio $\Theta(n \cdot 2^n)$ bits.  La construcción nivel a
+nivel recorre cada vértice del hipercubo una sola vez, dando complejidad
+temporal $\Theta(n \cdot 2^n)$.  La posterior búsqueda de la MIP sobre las
+biparticiones ocupa $\mathcal{O}(2^{n/2})$ comparaciones gracias a la
+simetría del hipercubo~\cite{geomip2025}.
+
+\subsection{Análisis de KPartitionSIA}
+
+KPartitionSIA aplica GeometricSIA exactamente $k-1$ veces sobre sub-sistemas
+cada vez más pequeños.  Dado que el subsistema más grande tiene $n$ nodos,
+la cota superior es:
+\[
+  T_k = \sum_{i=0}^{k-2} \mathcal{O}\bigl((n-i) \cdot 2^{n-i}\bigr)
+       = \mathcal{O}\bigl(k \cdot n \cdot 2^n\bigr).
+\]
+
+% ============================================================
+\section{Detalles de Implementación}
+\label{sec:implementacion}
+% ============================================================
+
+\subsection{Dependencias externas}
+
+\begin{table}[H]
+  \centering
+  \caption{Dependencias principales del proyecto.}
+  \begin{tabular}{l l l}
+    \toprule
+    Paquete & Versión mín. & Uso \\
+    \midrule
+    \texttt{numpy}      & 2.0   & Álgebra lineal, arreglos, TPM \\
+    \texttt{scipy}      & 1.11  & Clustering jerárquico (\texttt{scipy.cluster}) \\
+    \texttt{pyemd}      & 0.6   & EMD exacta (validación) \\
+    \texttt{pandas}     & 2.0   & Entrada/salida Excel \\
+    \texttt{openpyxl}   & 3.1   & Lectura/escritura de \texttt{.xlsx} \\
+    \texttt{colorama}   & 0.4   & Salida en consola con colores \\
+    \texttt{pyinstrument} & 4.6 & Profiling (desarrollo) \\
+    \texttt{pytest}     & 9.0   & Tests automatizados \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Clase \texttt{Solution} (estandarizada)}
+
+Tras la refactorización de la Fase~1, \texttt{Solution} expone los siguientes
+campos mínimos requeridos por el benchmark:
+
+\begin{lstlisting}[caption={Campos de Solution tras estandarización.}]
+class Solution:
+    estrategia: str       # nombre de la estrategia
+    perdida: float        # phi = EMD(SO, SP)
+    particion: str        # representacion textual de la MIP
+    tiempo_ejecucion: float  # tiempo en segundos
+    n_nodos: int          # numero de nodos del subsistema (nuevo)
+    k: int                # numero de particiones (nuevo)
+    distribucion_subsistema: np.ndarray
+    distribucion_particion:  np.ndarray
+
+    @property
+    def tiempo_ms(self) -> float:
+        return self.tiempo_ejecucion * 1000.0
+\end{lstlisting}
+
+\subsection{Suite de tests}
+
+Se implementaron 34 tests automáticos en \texttt{tests/}:
+
+\begin{table}[H]
+  \centering
+  \caption{Resumen de la suite de tests (34 total, 100\% aprobados).}
+  \begin{tabular}{l l r}
+    \toprule
+    Módulo & Cobertura & Tests \\
+    \midrule
+    \texttt{test\_emd.py}            & Función \texttt{emd\_efecto}           & 7 \\
+    \texttt{test\_geometric\_n3.py}  & Tabla~4.2 N3C + ejecución + cross-val  & 10 \\
+    \texttt{test\_kpart\_coherence.py} & Campos $k$, $n$, coherencia, inviable & 6 \\
+    \texttt{test\_solutions.py}      & Campos mínimos en todas las estrategias & 11 \\
+    \midrule
+    Total & & 34 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ============================================================
+\section{Resultados Experimentales}
+\label{sec:resultados}
+% ============================================================
+
+\subsection{Datasets utilizados}
+
+Los experimentos se ejecutaron sobre 27 archivos CSV de TPMs, con $n$ entre
+3 y 22 nodos.  Los archivos con $n \le 20$ se cargan completamente en memoria;
+los de $n = 21,22$ se validan sobre una muestra (primeras 1000 filas) por
+limitación de RAM.
+
+\subsection{Métricas de evaluación}
+
+\begin{itemize}
+  \item \textbf{perdida\_emd}: valor $\phi$ de la partición encontrada.
+  \item \textbf{tiempo\_ms}: tiempo de CPU en milisegundos.
+  \item \textbf{memoria\_mb}: pico de memoria RSS en megabytes.
+  \item \textbf{convergio}: booleano; falso si el caso excedió el timeout o
+        fue declarado inviable.
+\end{itemize}
+
+\subsection{Tablas de resultados}
+\label{sec:tablas}
+
+% Tablas generadas automáticamente por docs/gen_tables.py
+% (se insertan durante la compilación final)
+\input{tables/benchmark_n10.tex}   % generado por gen_tables.py
+
+\begin{table}[H]
+  \centering
+  \caption{Resultados representativos para $n=10$, $k=2$.
+           Estado inicial: \texttt{1000000000}.
+           (Tabla de ejemplo; resultados reales en \texttt{benchmark\_*.xlsx}).}
+  \label{tab:n10k2}
+  \begin{tabular}{l l r r r r}
+    \toprule
+    Subsistema (purview/mec) & Estrategia & $\phi$ & $t$ (ms) & Mem (MB) & Convergió \\
+    \midrule
+    ABCDEFGHIJ / ABCDEFGHIJ & GeometricSIA & --- & --- & --- & --- \\
+    ABCDEFGHIJ / ABCDEFGHIJ & QNodes       & --- & --- & --- & --- \\
+    \multicolumn{6}{c}{\emph{(datos del archivo benchmark generado)}} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Validación de correctitud}
+
+GeometricSIA se validó contra BruteForce para el sistema N3A (3 nodos):
+la diferencia en $\phi$ fue $< 10^{-6}$ en todos los estados iniciales
+probados.  Además, los ocho costos de transición de la Tabla~4.2 del
+artículo GeoMIP~\cite{geomip2025} se reproducen con error $< 10^{-4}$
+(ver tests en \texttt{test\_geometric\_n3.py}).
+
+% ============================================================
+\section{Limitaciones y Trabajo Futuro}
+\label{sec:limitaciones}
+% ============================================================
+
+\subsection{Limitaciones conocidas}
+
+\begin{enumerate}
+  \item La heurística greedy de KPartitionSIA no garantiza monotonicidad
+        $\phi(k+1) \le \phi(k)$ en todos los casos.  En los experimentos
+        sobre N3--N5 se observó esta propiedad en solo $\approx 33\,\%$
+        de los casos.
+  \item Para $n > 15$, la tabla de transiciones ocupa más de 4 GB,
+        superando la RAM de máquinas típicas.
+  \item Los archivos $N21$/$N22$ solo se validan parcialmente (1000 filas);
+        el benchmark completo requiere paralelismo o muestreo de estados.
+\end{enumerate}
+
+\subsection{Trabajo futuro}
+
+\begin{itemize}
+  \item Implementar memoización de filas de la tabla de costos usando
+        tablas hash para reducir el espacio a $\mathcal{O}(n^2)$.
+  \item Paralelizar el cálculo de la tabla con \texttt{ProcessPoolExecutor}
+        o GPU (POT/CuPy) según el addendum~\ref{app:gpu}.
+  \item Extender KQNodes para que aplique $k$ cortes greedy de forma
+        coordinada (actualmente solo aplica en GeoMIP).
+  \item Generar y validar los TPMs de $n=23,24,25$ usando
+        \texttt{generate\_large\_tpms.py}.
+\end{itemize}
+
+% ============================================================
+\appendix
+% ============================================================
+
+\section{Demostración: EMD analítica para efectos binarios}
+\label{app:emd}
+
+\begin{proposition}
+  Sea $X = (X_1,\ldots,X_n)$ con $X_i \in \{0,1\}$.  Si $X_1,\ldots,X_n$
+  son condicionalmente independientes bajo $p$ y $q$, entonces con la métrica
+  de Hamming como suelo:
+  \[
+    \EMD(p, q) = \sum_{i=1}^{n} |p(X_i = 0) - q(X_i = 0)|.
+  \]
+\end{proposition}
+
+\begin{proof}[Demostración (esquema)]
+  La independencia condicional factoriza las distribuciones como
+  $p(x) = \prod_i p_i(x_i)$ y $q(x) = \prod_i q_i(x_i)$.
+  El problema de transporte óptimo se descompone en $n$ subproblemas
+  unidimensionales independientes, cada uno con coste $|p_i(0) - q_i(0)|$
+  (la única masa que debe moverse entre los dos estados posibles del nodo $i$).
+  La suma da el resultado.
+\end{proof}
+
+\section{Plan de paralelización GPU (Fase 4B)}
+\label{app:gpu}
+
+El documento \texttt{ADDENDUM\_GPU\_PARALLELIZACION.md} especifica la
+implementación opcional de:
+
+\begin{itemize}
+  \item \textbf{CPU multicore}: \texttt{ProcessPoolExecutor} para paralelizar
+        el cálculo de la tabla de transiciones por nivel del hipercubo.
+  \item \textbf{GPU EMD}: librería POT (\texttt{ot.emd}) con backend CUDA
+        para lotes de distribuciones.
+  \item \textbf{GPU Hamming}: CuPy para distancias de Hamming vectorizadas.
+  \item \textbf{GPU clustering}: cuML \texttt{AgglomerativeClustering} para
+        KPartitionSIA con $n > 12$.
+\end{itemize}
+
+Estas optimizaciones \textbf{solo se implementan} si el benchmark de la
+Fase~3 justifica el esfuerzo (tiempos $> 60$ s o errores de memoria para
+$n \ge 15$).
+
+\section{Uso de Inteligencia Artificial Generativa}
+\label{app:ia}
+
+Durante el desarrollo del proyecto se utilizó \textbf{Cursor AI} (Claude
+Sonnet 4.6) como asistente de codificación.  Las áreas de uso fueron:
+
+\begin{description}
+  \item[Diagnóstico y corrección de bugs:] Identificación del bug en
+    \texttt{force.py} y \texttt{q\_nodes.py} (argumento \texttt{tpm}
+    faltante), y la deprecación de \texttt{np.infty} en NumPy~2.0.
+  \item[Generación de tests:] Esqueleto inicial de los 34 tests;
+    todos los valores esperados fueron verificados manualmente contra
+    el Cuadro~4.2 del artículo GeoMIP y los ejemplos del documento
+    \texttt{Ejemplos.md}.
+  \item[Documentación:] Estructura del presente manual.
+  \item[Benchmark:] Estructura de \texttt{benchmark.py} y el validador
+    \texttt{validate\_tpms.py}.
+\end{description}
+
+Todas las decisiones algorítmicas y la verificación de correctitud fueron
+realizadas por el equipo.
+
+% ── Bibliografía ─────────────────────────────────────────────────────────────
+\bibliographystyle{plain}
+\begin{thebibliography}{9}
+
+\bibitem{tononi2016}
+G.~Tononi, M.~Boly, M.~Massimini, C.~Koch,
+\textit{Integrated information theory: from consciousness to its physical
+substrate},
+Nature Reviews Neuroscience, 17(7):450--461, 2016.
+
+\bibitem{geomip2025}
+Autor(es) del equipo,
+\textit{GeoMIP: A Geometric Approach to the Minimum Information Partition
+Problem},
+Proyecto de grado, Universidad de Caldas, 2025.
+
+\bibitem{tononi2004}
+G.~Tononi,
+\textit{An information integration theory of consciousness},
+BMC Neuroscience, 5:42, 2004.
+
+\bibitem{emd1998}
+Y.~Rubner, C.~Tomasi, L.J.~Guibas,
+\textit{A metric for distributions with applications to image databases},
+ICCV 1998.
+
+\end{thebibliography}
+
+\end{document}

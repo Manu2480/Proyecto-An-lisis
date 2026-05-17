@@ -58,7 +58,9 @@ class KPartitionSIA(SIA):
                 distribucion_subsistema=self.sia_dists_marginales,
                 distribucion_particion=None,
                 tiempo_total=time.time() - self.sia_tiempo_inicio,
-                particion="Inviable (nodos insuficientes)"
+                particion="Inviable (nodos insuficientes)",
+                n_nodos=len(self.sia_gestor.estado_inicial),
+                k=self.k,
             )
             
         if self.k == 2:
@@ -114,9 +116,11 @@ class KPartitionSIA(SIA):
             estrategia=f"{GEOMETRIC_LABEL}_k{self.k}_{estrategia_usada}",
             perdida=mejor_perdida,
             distribucion_subsistema=self.sia_dists_marginales,
-            distribucion_particion=None, # TBD if needed
+            distribucion_particion=None,
             tiempo_total=time.time() - self.sia_tiempo_inicio,
             particion=fmt_particion,
+            n_nodos=len(self.sia_gestor.estado_inicial),
+            k=self.k,
         )
 
     # _build_cost_table removed as find_mip now handles it

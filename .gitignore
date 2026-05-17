@@ -55,3 +55,13 @@ dist/
 build/
 
 .log
+
+# Archivos CSV grandes (>100 MB, superan el límite de GitHub)
+GeoMIP/data/samples/N21A.csv
+GeoMIP/data/samples/N21B.csv
+GeoMIP/data/samples/N22A.csv
+GeoMIP/data/samples/N22B.csv
+archivos nuevo/N21A.csv
+archivos nuevo/N21B.csv
+archivos nuevo/N22A.csv
+archivos nuevo/N22B.csv

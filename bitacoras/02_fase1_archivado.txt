@@ -1,0 +1,18 @@
+BITÁCORA 02 — Fase 1.1: Limpieza y archivado
+Fecha: 16/05/2026
+Fase: 1.1 — Limpieza de archivos irrelevantes
+
+ACCIONES:
+  Se movieron los archivos de visualización experimental y resultados
+  antiguos a carpetas _archive/ para mantener trazabilidad sin contaminar
+  el árbol de fuentes activo.
+
+ARCHIVOS MOVIDOS (a _archive/):
+  Method2/src/video/hyper-v0.py ... hyper-v8.py  → Method2/_archive/video/
+  Method3/src/video/hyper-v0.py ... hyper-v8.py  → Method3/_archive/video/
+  GeoMIP/results/result viejos/                  → GeoMIP/results/_archive/result_viejos/
+
+DIRECTORIOS CREADOS:
+  GeoMIP/src/Method2_Dynamic_Programming_Reformulation/_archive/video/
+  GeoMIP/src/Method3_Batch_Processing/_archive/video/
+  GeoMIP/results/_archive/

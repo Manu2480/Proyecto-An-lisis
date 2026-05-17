@@ -83,7 +83,9 @@ class BruteForce(SIA):
         -------
             None: El análisis como se aprecia puede ser medido mediante el decorador de profiling, así como si se desea para algún otro método.
         """
-        self.sia_preparar_subsistema(condiciones, alcance, mecanismo)
+        self.sia_preparar_subsistema(
+            condiciones, alcance, mecanismo, self.sia_cargar_tpm()
+        )
 
         solucion_base = Solution(
             BRUTEFORCE_LABEL,
@@ -93,7 +95,7 @@ class BruteForce(SIA):
             ERROR_PARTITION,
         )
 
-        small_phi = np.infty
+        small_phi = np.inf
         mejor_dist_marg: np.ndarray = DUMMY_ARR
 
         futuros = self.sia_subsistema.indices_ncubos

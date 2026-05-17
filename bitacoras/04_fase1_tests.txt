@@ -1,0 +1,33 @@
+BITÁCORA 04 — Fase 1.3: Suite de tests (34 tests, 100% pass)
+Fecha: 16/05/2026
+Fase: 1.3 — Implementación de tests de regresión
+
+ACCIONES:
+  Se creó la carpeta tests/ en la raíz del repositorio con 4 módulos de test
+  ejecutados con pytest desde el entorno uv de Method2.
+  También se corrigió un bug adicional en q_nodes.py (mismo bug que BruteForce).
+
+ARCHIVOS CREADOS:
+  tests/conftest.py             — configuración global de pytest (sys.path)
+  tests/test_emd.py             — 7 tests de emd_efecto (función analítica)
+  tests/test_geometric_n3.py    — 10 tests: Tabla 4.2 N3C + ejecución completa + cross-val N3A
+  tests/test_kpart_coherence.py — 6 tests: k correcto, n_nodos, coherencia, inviable
+  tests/test_solutions.py       — 11 tests: campos mínimos en todos los retornos
+
+ARCHIVOS MODIFICADOS:
+  GeoMIP/src/Method2.../src/controllers/strategies/q_nodes.py
+    - aplicar_estrategia() ahora acepta tpm opcional y pasa self.sia_cargar_tpm()
+      como fallback a sia_preparar_subsistema (mismo fix que BruteForce)
+
+RESULTADO: 34 passed / 34 total  (0 failed, 34 warnings de deprecación pyinstrument)
+
+BUGS ENCONTRADOS Y CORREGIDOS:
+  - q_nodes.py llamaba sia_preparar_subsistema sin tpm → TypeError corregido
+
+HALLAZGOS DOCUMENTADOS:
+  - emd_efecto recibe P(nodo=OFF) por nodo, NO la distribución completa por estado.
+    Formato: u[i] = P(nodo_i = OFF).  Suma de |u_i - v_i| = EMD total.
+  - KPartitionSIA devuelve "Inviable" cuando k > (n_indices + n_dims).
+    Para N3 completo: 3+3=6 nodos totales → k=7 es el mínimo para Inviable.
+  - La heurística greedy k-partition NO garantiza pérdida(k=3) ≤ pérdida(k=2);
+    solo 33% de los casos en N3-N5. Esto es esperado y se documenta en el Manual.

@@ -1,0 +1,37 @@
+BITÁCORA 08 — Fase 5: Manual Técnico LaTeX + gen_tables.py
+Fecha: 16/05/2026
+Fase: 5 — Documento técnico
+
+ARCHIVOS CREADOS:
+  docs/ManualTecnico_KQMIP.tex
+    - Portada con resumen ejecutivo
+    - Sección 1: Resumen Ejecutivo (problema, estrategias, resultados, limitaciones)
+    - Sección 2: Fundamentos Teóricos (IIT/SIA, EMD analítica, espacio de búsqueda,
+                 tabla de Stirling)
+    - Sección 3: Arquitectura del Software (diagrama de paquetes TikZ,
+                 diagrama de clases UML TikZ, patrones de diseño)
+    - Sección 4: Diseño Algorítmico (pseudocódigo GeometricSIA y KPartitionSIA)
+    - Sección 5: Análisis de Complejidad (tabla, análisis detallado)
+    - Sección 6: Detalles de Implementación (dependencias, Solution, suite tests)
+    - Sección 7: Resultados Experimentales (esqueleto, incluye tablas de tables/)
+    - Sección 8: Limitaciones y Trabajo Futuro
+    - Apéndice A: Demostración EMD analítica
+    - Apéndice B: Plan GPU Fase 4B
+    - Apéndice C: Uso de IA generativa
+    - Bibliografía
+
+  docs/gen_tables.py
+    - Lee benchmark_*.xlsx más reciente (o archivo especificado)
+    - Genera docs/tables/benchmark_n<N>.tex para cada n
+    - Genera docs/tables/benchmark_summary.tex con estadísticas agregadas
+    - Formato booktabs LaTeX compatible con el manual
+
+NOTA:
+  Las tablas en el manual usan \input{tables/benchmark_n10.tex} etc.
+  Ejecutar gen_tables.py DESPUÉS del benchmark para generar las tablas reales.
+
+  Compilación del PDF:
+    pdflatex docs/ManualTecnico_KQMIP.tex
+    bibtex docs/ManualTecnico_KQMIP
+    pdflatex docs/ManualTecnico_KQMIP.tex
+    pdflatex docs/ManualTecnico_KQMIP.tex

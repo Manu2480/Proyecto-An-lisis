@@ -93,6 +93,8 @@ class GeometricSIA(SIA):
             distribucion_particion=self.memoria_particiones[mip][1],
             tiempo_total=time.time() - self.sia_tiempo_inicio,
             particion=fmt_mip,
+            n_nodos=len(self.sia_gestor.estado_inicial),
+            k=2,
         )
     
     def nodes_complement(self, nodes: list[tuple[int, int]]):

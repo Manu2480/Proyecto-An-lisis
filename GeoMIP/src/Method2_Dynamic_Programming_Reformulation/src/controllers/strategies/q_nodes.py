@@ -122,8 +122,9 @@ class QNodes(SIA):
         condicion: str,
         alcance: str,
         mecanismo: str,
+        tpm=None,
     ):
-        self.sia_preparar_subsistema(condicion, alcance, mecanismo)
+        self.sia_preparar_subsistema(condicion, alcance, mecanismo, tpm if tpm is not None else self.sia_cargar_tpm())
 
         futuro = tuple(
             (EFECTO, efecto) for efecto in self.sia_subsistema.indices_ncubos
