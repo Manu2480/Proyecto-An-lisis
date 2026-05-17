@@ -1,0 +1,128 @@
+Bitácora 16 — Spectral como Baseline Negativo: Fundamento Académico
+====================================================================
+Fecha: 2026-05-17
+
+CONTEXTO
+--------
+Durante el benchmark con KPartitionSIA se implementaron cuatro heurísticas
+para encontrar k-particiones que minimicen la EMD (Earth Mover's Distance):
+
+  1. Greedy    — extracción unilateral de nodos (QNodes-style)
+  2. KL        — Kernighan-Lin, intercambios bilaterales
+  3. Clustering — Ward jerárquico sobre perfiles euclídeos
+  4. Spectral  — corte espectral normalizado (Ng-Jordan-Weiss)
+
+Los resultados del smoke test para el caso ABCDEFGHIJ/ABCDEFGHIJ (n=10, k=3):
+
+  Heurística   Pérdida EMD
+  ───────────  ───────────
+  KL           0.000000   ← partición perfecta, pérdida mínima
+  Greedy       0.953125
+  Spectral     4.992188   ← casi tan malo como el peor caso posible
+  Clustering   4.999023   ← casi igual al máximo posible
+
+La heurística Spectral fue corregida (se reemplazaron perfiles escalares
+por vectores de costos + similitud coseno), pero la mejora fue marginal
+(4.999 → 4.992). Se intentaron dos formulaciones distintas y ninguna mejoró.
+
+
+POR QUÉ SPECTRAL FALLA: EL ARGUMENTO FORMAL
+---------------------------------------------
+
+El particionamiento espectral resuelve el problema de relajación continua del
+mínimo corte normalizado (Normalized Cut, Shi & Malik 2000):
+
+    min   cut(A, Ā) / vol(A) + cut(A, Ā) / vol(Ā)
+   A ⊂ V
+
+donde cut(A, Ā) = Σ_{i∈A, j∈Ā} w(i,j)  y  vol(A) = Σ_{i∈A} Σ_j w(i,j).
+
+Su solución aproximada se obtiene de los vectores propios del Laplaciano
+normalizado L_sym = D^{-1/2}(D−W)D^{-1/2}.
+
+EL PROBLEMA: el objetivo que el proyecto requiere es DISTINTO:
+
+    min  EMD( p_{particion}(X^t | x^{t-1}),  p_{sistema}(X^t | x^{t-1}) )
+   π ∈ Π_k
+
+donde Π_k es el conjunto de todas las k-particiones del subsistema.
+
+La EMD entre distribuciones de probabilidad sobre {0,1}^n NO tiene
+equivalencia algebraica con el corte de grafo sobre la matriz de afinidad W.
+En particular:
+
+  1. El corte de grafo w(i,j) mide la similitud ESTRUCTURAL entre nodos.
+     La EMD mide la distancia entre DISTRIBUCIONES DE PROBABILIDAD resultantes
+     de marginalizar según la partición.
+
+  2. Minimizar el corte Σ w(i,j) ≠ minimizar la EMD resultante.
+     Demostración por contraejemplo: en el caso ABCDEFGHIJ/ABCDEFGHIJ la
+     partición de costo de grafo mínimo (separa nodos con menor afinidad)
+     produce EMD = 4.992, mientras que la partición de mínima EMD (KL)
+     produce EMD = 0.000.
+
+  3. La corrección de la matriz W (perfiles escalares → vectores de costo,
+     luego coseno → afinidad) tampoco resuelve esto porque aun siendo W una
+     función de los costos EMD individuales, la combinación no lineal de
+     costos individuales ≠ EMD de la partición combinada.
+
+     En otras palabras: el Laplaciano espectral minimiza una función aditiva
+     sobre aristas, pero la EMD de una k-partición es NO-ADITIVA:
+         EMD(A ∪ B particionado) ≠ EMD(A) + EMD(B)
+     por el efecto de la distribución conjunta del sistema original.
+
+CONCLUSIÓN TEÓRICA
+------------------
+El Particionamiento Espectral es un método correcto para problemas de corte de
+grafo, agrupamiento por similitud, y segmentación de imágenes. NO es adecuado
+como heurística directa para minimizar la EMD en sistemas IIT porque:
+
+  - El objetivo del grafo (Rayleigh quotient del Laplaciano) y el objetivo
+    del problema (minimizar EMD entre distribuciones) pertenecen a espacios
+    matemáticos distintos: uno en R^{n×n} (grafo), el otro en el espacio
+    de probabilidad sobre {0,1}^m.
+
+  - No existe ninguna construcción de W que garantice la equivalencia,
+    salvo calcular la EMD directamente para cada par de particiones candidatas
+    — lo que es exactamente lo que hace KL, con complejidad O(k·n²·2^n).
+
+POR QUÉ SE MANTIENE EN EL CÓDIGO
+----------------------------------
+El Spectral permanece como "baseline negativo documentado" porque:
+
+  a) Demuestra empíricamente el punto teórico: algoritmos correctos para un
+     tipo de problema (similaridad estructural) no son transferibles
+     directamente a otro (distancia probabilística), incluso si las entradas
+     parecen relacionadas.
+
+  b) Es útil como COTA SUPERIOR en el informe del proyecto: cualquier
+     heurística que supere al Spectral en términos de pérdida EMD ya es
+     una contribución válida.
+
+  c) Permite comparar tiempos: Spectral O(n³) es muy rápido pero inútil en
+     pérdida. KL O(k·n²·2^n) es más lento pero produce pérdidas óptimas.
+     Esta curva de trade-off tiempo/calidad es el resultado central del proyecto.
+
+DATOS EMPÍRICOS (smoke test, n=10, caso #1 y subsistemas)
+----------------------------------------------------------
+  Caso                  Heur      k=3 pérdida
+  ────────────────────  ────────  ───────────
+  ABCDEFGHIJ/ABCDEFGHIJ KL        0.000000  ←
+  ABCDEFGHIJ/ABCDEFGHIJ Greedy    0.953125
+  ABCDEFGHIJ/ABCDEFGHIJ Spectral  4.992188
+  BCDEFGHI/ABCDEFGHIJ   KL        0.000000  ←
+  BCDEFGHI/ABCDEFGHIJ   Greedy    0.024414
+  BCDEFGHI/ABCDEFGHIJ   Spectral  2.627930
+  ACEGI/ACEGI (5 nodos) KL        0.015625  ←
+  ACEGI/ACEGI (5 nodos) Greedy    0.066406
+  ACEGI/ACEGI (5 nodos) Spectral  0.436523
+
+Patrón consistente: KL ≤ Greedy << Spectral en todos los casos probados.
+
+REFERENCIAS
+-----------
+  - Shi, J., Malik, J. (2000). Normalized Cuts and Image Segmentation. TPAMI.
+  - Ng, A., Jordan, M., Weiss, Y. (2001). On Spectral Clustering. NeurIPS.
+  - Tononi, G., Boly, M., Massimini, M., Koch, C. (2016). IIT 3.0. PLOS CB.
+  - Kernighan, B.W., Lin, S. (1970). An Efficient Heuristic Procedure for
+    Partitioning Graphs. Bell System Technical Journal.

@@ -1,0 +1,50 @@
+Bitácora 13 — Correcciones de subconjuntos y relanzamiento de benchmark
+=======================================================================
+Fecha: 2026-05-17
+
+PROBLEMA DETECTADO
+------------------
+El benchmark.py usaba subconjuntos genéricos inventados para n=20, 22 y 25
+en lugar de los subconjuntos exactos del documento DatosPruebas2026_1.md.
+El usuario confirmó además que el conteo era incorrecto:
+  - n=10 → 49 casos (sin fila 50 especial)
+  - n=15, 20, 22, 25 → 50 casos (la fila 50 es un subsistema especial distinto)
+
+CORRECCIONES REALIZADAS
+-----------------------
+1. GeoMIP/src/benchmark.py — REESCRITO COMPLETAMENTE
+   - Funciones casos_n10(), casos_n15(), casos_n20(), casos_n22(), casos_n25()
+     con los pares (Purview, Mecanismo) exactos del Excel.
+   - n=10: 49 casos (ABCDEFGHIJ...BDFHJ)
+   - n=15: 50 casos (50° = BCDEFGJKLMNO / BCDEFGHIJKLMNO)
+   - n=20: 50 casos (50° = BCDEFGJKLMNO / BCDEFGHIJKLMNO)
+   - n=22: 50 casos (50° = ACDEFGHIJKLMNOPQRST / ACDEFGHIJKLMNOPQRST)
+   - n=25: 50 casos (50° = ACDEFGHIJKLMNOPQRSTVX / ACDEFGHIJKLMNOPQRSTVX)
+   - Formato de salida ancho: 1 fila por caso, columnas por estrategia/k
+   - Heurística integrada por fila (heuristica_k, heuristica_estrategia)
+   - Timeout adaptativo: 120s(n≤10), 300s(n≤15), 1800s(n≤20), 3600s(n>20)
+   - Checkpoint cada 5 casos y al final de cada n
+
+2. KPartitionSIA — PARÁMETRO forzar_heuristica AGREGADO
+   Archivo: .../strategies/kpartition.py
+   - Constructor: forzar_heuristica: str = None
+   - 'greedy'     → heurística QNodes-style (greedy recursivo)
+   - 'clustering' → heurística Geometric-style (clustering jerárquico)
+   - None         → mejor de ambas (comportamiento previo)
+
+3. GeoMIP/src/smoke_test.py — CREADO
+   Prueba de humo: caso 1 de n=10, k=2 y k=3.
+   Resultado: QNodes k=2=0.4727, Geo k=2=0.4727, Geo k=3=4.999 (OK)
+
+BENCHMARK EN EJECUCIÓN
+----------------------
+Comando: uv run python benchmark.py --n 10 15 --timeout 600
+Log: GeoMIP/results/bench_n10_n15.log
+Estado: corriendo en background (49+50 = 99 casos × 8 estrategias)
+
+ARCHIVOS MODIFICADOS
+--------------------
+- GeoMIP/src/benchmark.py (reescrito)
+- GeoMIP/src/Method2_Dynamic_Programming_Reformulation/src/controllers/strategies/kpartition.py
+- GeoMIP/src/smoke_test.py (nuevo)
+- bitacoras/13_correcciones_benchmark_DatosPruebas2026.txt (este archivo)

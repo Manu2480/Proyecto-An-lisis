@@ -1,0 +1,169 @@
+BITÁCORA 20 — Optimización: Caché de Subsistemas en sia_preparar_subsistema
+===========================================================================
+Fecha: 17/05/2026
+Estado: IMPLEMENTADO (no lanzado aún)
+
+
+1. CONTEXTO Y PROBLEMA IDENTIFICADO
+=====================================
+
+Al intentar ejecutar n=20, el benchmark observó ~35 minutos por caso de prueba.
+Inicialmente se atribuyó esto a la complejidad de las heurísticas. Sin embargo,
+una inspección detallada del log reveló el verdadero cuello de botella:
+
+    CRITICAL (13:34:47): Original creado.   ← inicio estrategia Geo k=2
+      k3(QXGX)
+    CRITICAL (13:49:51): Original creado.   ← inicio estrategia k4
+      k4(QXGX)
+    CRITICAL (13:59:55): Original creado.   ← inicio estrategia k5
+      k5(QXGX)
+    #  2/50  ...
+    CRITICAL (14:10:00): Original creado.   ← inicio caso 2
+
+Cada bloque de k3/k4/k5 tarda exactamente 2×timeout = 2×300s = 600s, lo que
+significa que TODAS las estrategias llegaban al límite de tiempo (TIMEOUT).
+Total por caso: 7 estrategias × 300s = 2100s ≈ 35 minutos.
+
+El timeout de 300s era demasiado corto para n=20 (subsistemas de hasta 14 nodos
+sobre una TPM de 2^20 = 1,048,576 filas).
+
+
+2. ANÁLISIS DEL FLUJO: sia_preparar_subsistema
+================================================
+
+En cada llamada a run_strategy(), la estrategia ejecuta:
+
+    def sia_preparar_subsistema(condicion, alcance, mecanismo, tpm):
+        completo  = System(tpm, estado_inicial)       # crea 20 NCubes con
+                                                       # data shape (2,)^20 = 1M entradas
+        candidato = completo.condicionar(dims_cond)    # no-op si condicion="111...1"
+        subsistema = candidato.substraer(dims_alc,     # marginaliza 6 dims:
+                                         dims_mec)      # np.mean(1M entradas) × 14 veces
+        self.sia_subsistema = subsistema
+        self.sia_dists_marginales = subsistema.distribucion_marginal()
+
+Para un caso con purview de 14 nodos en n=20:
+  - System.__init__: 20 columnas × reshape(1M) → vistas de numpy (O(1), trivial)
+  - condicionar([]): retorna self (no-op, trivial)
+  - substraer: 14 NCubes × np.mean(shape (2,)^20, axis=6 ejes)
+               = 14 × O(2^20) = O(14.7M operaciones numpy)
+
+Esta operación se ejecutaba UNA VEZ POR ESTRATEGIA POR CASO:
+  - QNodes k=2     → 1 vez
+  - GeometricSIA   → 1 vez
+  - KPartitionSIA k=3 Greedy → 1 vez
+  - KPartitionSIA k=3 KL     → 1 vez
+  - KPartitionSIA k=4 Greedy → 1 vez
+  - KPartitionSIA k=4 KL     → 1 vez
+  - KPartitionSIA k=5 Greedy → 1 vez
+  - KPartitionSIA k=5 KL     → 1 vez
+  TOTAL: 8 veces por caso con (condicion, alcance, mecanismo) IDÉNTICOS
+
+El subsistema resultante es el MISMO en las 8 llamadas. Computarlo 8 veces
+es trabajo redundante puro.
+
+Seguridad del caché: bipartir() y distribucion_marginal() crean nuevos objetos
+sin modificar la estructura del subsistema. El caché es seguro con deep-copy.
+
+
+3. SOLUCIÓN IMPLEMENTADA
+=========================
+
+Archivos modificados:
+  - GeoMIP/src/Method2_Dynamic_Programming_Reformulation/src/models/base/sia.py
+  - GeoMIP/src/benchmark.py
+
+3.1 En sia.py — Caché a nivel de módulo
+-----------------------------------------
+
+Se agregó al inicio del módulo:
+
+    import copy
+    _SUBSYSTEM_CACHE: dict = {}   # clave: (id(tpm), condicion, alcance, mecanismo)
+
+    def limpiar_cache_subsistemas() -> None:
+        """Vacía el caché. Llamar entre casos de benchmark."""
+        _SUBSYSTEM_CACHE.clear()
+
+En sia_preparar_subsistema(), antes de hacer el trabajo costoso:
+
+    cache_key = (id(tpm), condicion, alcance, mecanismo)
+    if cache_key in _SUBSYSTEM_CACHE:
+        cached_sub, cached_dists = _SUBSYSTEM_CACHE[cache_key]
+        self.sia_subsistema       = copy.deepcopy(cached_sub)
+        self.sia_dists_marginales = cached_dists.copy()
+        self.sia_tiempo_inicio    = time.time()
+        return
+
+Al final, después del cálculo:
+
+    _SUBSYSTEM_CACHE[cache_key] = (
+        copy.deepcopy(subsistema),
+        self.sia_dists_marginales.copy(),
+    )
+
+Uso de id(tpm) como parte de la clave: la misma matriz tpm es pasada para todos
+los casos de un mismo n en el benchmark, por lo que id(tpm) es estable y
+diferencia correctamente entre redes de distinto n.
+
+Deep-copy al leer: por seguridad, aunque las estrategias no modifican el
+subsistema en lugar (bipartir() crea objetos nuevos), la copia garantiza que
+potenciales modificaciones accidentales no corrompan el caché.
+
+Costo del deep-copy para n=20 con subsistema de 14 nodos:
+  - 14 NCubes × (2,)^14 = 16,384 entradas × 8 bytes = 128 KB por NCube
+  - Total: ~1.8 MB → deep-copy en <1 ms (despreciable vs el cálculo original)
+
+3.2 En benchmark.py — Limpieza entre casos y timeout
+------------------------------------------------------
+
+a) Import de la función:
+    from src.models.base.sia import limpiar_cache_subsistemas
+
+b) Llamada al inicio de cada caso:
+    limpiar_cache_subsistemas()
+    
+   Esto libera la memoria del subsistema del caso anterior (no reutilizable
+   entre casos distintos) y evita acumulación a lo largo de 50 casos.
+
+c) Timeout corregido según PROMPT_PROYECTO_KQMIP.md §4:
+    Antes: case_to = min(timeout, 300)   para n>=20  ← INCORRECTO
+    Después: case_to = min(timeout, 1800) para n>=20  ← 30 minutos
+
+   El prompt especifica explícitamente 1800s para n>15. El timeout de 300s
+   era la causa directa de que TODAS las estrategias fallaran en n=20.
+
+   DEFAULT_TIMEOUT actualizado de 600 → 1800.
+
+
+4. IMPACTO ESPERADO
+====================
+
+Para n=20:
+  - Sin caché + timeout=300s: 8 × 300s = 2,100s (35 min) por caso, TODO timeout
+  - Con caché + timeout=1800s: 1 × costo_real + 7 × ~1ms de deep-copy
+
+El costo real de cada estrategia en n=20 es desconocido (se interrumpió antes
+de completar alguna). Con 1800s de margen y 1 sola construcción de subsistema
+por caso, las estrategias tienen posibilidad real de converger.
+
+Para n=15 (referencia):
+  - Tiempo promedio por estrategia: 10-25 segundos (observado en resultados)
+  - n=20 tiene 2^20 / 2^15 = 32× más datos en la TPM
+  - Estimado por estrategia en n=20: ~320-800 segundos
+  - Con caché: 1 subsistema @ ~1s + estrategia @ ~300-800s < 1800s posiblemente
+
+Nota: n=20 sigue siendo computacionalmente exigente. El caché elimina el
+desperdicio redundante; si la estrategia en sí excede 1800s, seguirá en timeout.
+
+
+5. ESTADO ACTUAL Y PRÓXIMOS PASOS
+====================================
+
+Estado: implementado y verificado (sin errores de linting), NO lanzado aún.
+
+Próximo paso: lanzar benchmark n=20 cuando el usuario lo autorice, usando:
+    cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+    uv run python ../benchmark.py --n 20 --timeout 1800
+
+Se recomienda monitorear el primer caso (~1h estimado) antes de ejecutar los 50.

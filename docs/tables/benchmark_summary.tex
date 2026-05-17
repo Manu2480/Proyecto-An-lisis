@@ -1,0 +1,15 @@
+\begin{table}[H]
+  \centering
+  \caption{Resumen estadístico del benchmark (media, mín, máx).}
+  \label{tab:bench_summary}
+  \small
+  \begin{tabular}{llrrrrrrrr}
+    \toprule
+    $n$ & Estrategia & $k$ & $\bar\phi$ & $\phi_\min$ & $\phi_\max$ & $\bar t$ (ms) & $t_\min$ & $t_\max$ \\
+    \midrule
+    10 & \texttt{GeometricSIA} & 2 & 0.0766 & 0.0039 & 0.4844 & 250.2 & 50.0 & 564.4 \\
+    10 & \texttt{KPartitionSIA_k3} & 3 & 0.1651 & 0.0107 & 0.9746 & 300.7 & 99.4 & 775.8 \\
+    10 & \texttt{QNodes} & 2 & 0.0797 & 0.0039 & 0.4951 & 2910.5 & 633.2 & 8401.2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

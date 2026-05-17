@@ -1,0 +1,2757 @@
+Benchmark K-QGMIP - 2026-05-17 10:43
+  n=[10, 15]  timeout_max=600s
+  samples: C:\Users\Manu\Documents\Semestre 2026 - 01\Analisis y diseño de algoritmos\projecto-analisis-20261\GeoMIP\data\samples
+
+=================================================================
+n=10  TPM=N10A.csv  casos=49  timeout=120s/estrategia
+=================================================================
+  #  1/49  ABCDEFGHIJ     / ABCDEFGHIJCRITICAL (10:43:55): Original creado.
+CRITICAL (10:43:55): Original:
+CRITICAL (10:43:55): Candidato creado.
+CRITICAL (10:43:55): Subsistema creado.
+  QN2=.CRITICAL (10:44:03): Original creado.
+CRITICAL (10:44:03): Original:
+CRITICAL (10:44:03): Candidato creado.
+CRITICAL (10:44:03): Subsistema creado.
+CRITICAL (10:44:03): empieza.
+  Geo2=.CRITICAL (10:44:04): Original creado.
+CRITICAL (10:44:04): Original:
+CRITICAL (10:44:04): Candidato creado.
+CRITICAL (10:44:04): Subsistema creado.
+CRITICAL (10:44:04): empieza.
+CRITICAL (10:44:04): Original creado.
+CRITICAL (10:44:04): Original:
+CRITICAL (10:44:04): Candidato creado.
+CRITICAL (10:44:04): Subsistema creado.
+CRITICAL (10:44:04): empieza.
+  k3(Q.G.)CRITICAL (10:44:05): Original creado.
+CRITICAL (10:44:05): Original:
+CRITICAL (10:44:05): Candidato creado.
+CRITICAL (10:44:05): Subsistema creado.
+CRITICAL (10:44:05): empieza.
+CRITICAL (10:44:05): Original creado.
+CRITICAL (10:44:05): Original:
+CRITICAL (10:44:05): Candidato creado.
+CRITICAL (10:44:05): Subsistema creado.
+CRITICAL (10:44:05): empieza.
+  k4(Q.G.)CRITICAL (10:44:06): Original creado.
+CRITICAL (10:44:06): Original:
+CRITICAL (10:44:06): Candidato creado.
+CRITICAL (10:44:06): Subsistema creado.
+CRITICAL (10:44:06): empieza.
+CRITICAL (10:44:06): Original creado.
+CRITICAL (10:44:06): Original:
+CRITICAL (10:44:06): Candidato creado.
+CRITICAL (10:44:06): Subsistema creado.
+CRITICAL (10:44:06): empieza.
+  k5(Q.G.)
+  #  2/49  ABCDEFGHIJ     / ABCDEFGHICRITICAL (10:44:07): Original creado.
+CRITICAL (10:44:07): Original:
+CRITICAL (10:44:07): Candidato creado.
+CRITICAL (10:44:07): Subsistema creado.
+  QN2=.CRITICAL (10:44:13): Original creado.
+CRITICAL (10:44:13): Original:
+CRITICAL (10:44:13): Candidato creado.
+CRITICAL (10:44:13): Subsistema creado.
+CRITICAL (10:44:13): empieza.
+  Geo2=.CRITICAL (10:44:13): Original creado.
+CRITICAL (10:44:13): Original:
+CRITICAL (10:44:13): Candidato creado.
+CRITICAL (10:44:13): Subsistema creado.
+CRITICAL (10:44:13): empieza.
+CRITICAL (10:44:13): Original creado.
+CRITICAL (10:44:13): Original:
+CRITICAL (10:44:13): Candidato creado.
+CRITICAL (10:44:13): Subsistema creado.
+CRITICAL (10:44:13): empieza.
+  k3(Q.G.)CRITICAL (10:44:13): Original creado.
+CRITICAL (10:44:13): Original:
+CRITICAL (10:44:13): Candidato creado.
+CRITICAL (10:44:13): Subsistema creado.
+CRITICAL (10:44:13): empieza.
+CRITICAL (10:44:14): Original creado.
+CRITICAL (10:44:14): Original:
+CRITICAL (10:44:14): Candidato creado.
+CRITICAL (10:44:14): Subsistema creado.
+CRITICAL (10:44:14): empieza.
+  k4(Q.G.)CRITICAL (10:44:14): Original creado.
+CRITICAL (10:44:14): Original:
+CRITICAL (10:44:14): Candidato creado.
+CRITICAL (10:44:14): Subsistema creado.
+CRITICAL (10:44:14): empieza.
+CRITICAL (10:44:14): Original creado.
+CRITICAL (10:44:14): Original:
+CRITICAL (10:44:14): Candidato creado.
+CRITICAL (10:44:14): Subsistema creado.
+CRITICAL (10:44:14): empieza.
+  k5(Q.G.)
+  #  3/49  ABCDEFGHIJ     / BCDEFGHIJCRITICAL (10:44:15): Original creado.
+CRITICAL (10:44:15): Original:
+CRITICAL (10:44:15): Candidato creado.
+CRITICAL (10:44:15): Subsistema creado.
+  QN2=.CRITICAL (10:44:21): Original creado.
+CRITICAL (10:44:21): Original:
+CRITICAL (10:44:21): Candidato creado.
+CRITICAL (10:44:21): Subsistema creado.
+CRITICAL (10:44:21): empieza.
+  Geo2=.CRITICAL (10:44:21): Original creado.
+CRITICAL (10:44:21): Original:
+CRITICAL (10:44:21): Candidato creado.
+CRITICAL (10:44:21): Subsistema creado.
+CRITICAL (10:44:21): empieza.
+CRITICAL (10:44:21): Original creado.
+CRITICAL (10:44:21): Original:
+CRITICAL (10:44:21): Candidato creado.
+CRITICAL (10:44:21): Subsistema creado.
+CRITICAL (10:44:21): empieza.
+  k3(Q.G.)CRITICAL (10:44:21): Original creado.
+CRITICAL (10:44:21): Original:
+CRITICAL (10:44:21): Candidato creado.
+CRITICAL (10:44:21): Subsistema creado.
+CRITICAL (10:44:21): empieza.
+CRITICAL (10:44:22): Original creado.
+CRITICAL (10:44:22): Original:
+CRITICAL (10:44:22): Candidato creado.
+CRITICAL (10:44:22): Subsistema creado.
+CRITICAL (10:44:22): empieza.
+  k4(Q.G.)CRITICAL (10:44:22): Original creado.
+CRITICAL (10:44:22): Original:
+CRITICAL (10:44:22): Candidato creado.
+CRITICAL (10:44:22): Subsistema creado.
+CRITICAL (10:44:22): empieza.
+CRITICAL (10:44:22): Original creado.
+CRITICAL (10:44:22): Original:
+CRITICAL (10:44:22): Candidato creado.
+CRITICAL (10:44:22): Subsistema creado.
+CRITICAL (10:44:22): empieza.
+  k5(Q.G.)
+  #  4/49  ABCDEFGHIJ     / BCDEFGHICRITICAL (10:44:23): Original creado.
+CRITICAL (10:44:23): Original:
+CRITICAL (10:44:23): Candidato creado.
+CRITICAL (10:44:23): Subsistema creado.
+  QN2=.CRITICAL (10:44:28): Original creado.
+CRITICAL (10:44:28): Original:
+CRITICAL (10:44:28): Candidato creado.
+CRITICAL (10:44:28): Subsistema creado.
+CRITICAL (10:44:28): empieza.
+  Geo2=.CRITICAL (10:44:28): Original creado.
+CRITICAL (10:44:28): Original:
+CRITICAL (10:44:28): Candidato creado.
+CRITICAL (10:44:28): Subsistema creado.
+CRITICAL (10:44:28): empieza.
+CRITICAL (10:44:28): Original creado.
+CRITICAL (10:44:28): Original:
+CRITICAL (10:44:28): Candidato creado.
+CRITICAL (10:44:28): Subsistema creado.
+CRITICAL (10:44:28): empieza.
+  k3(Q.G.)CRITICAL (10:44:29): Original creado.
+CRITICAL (10:44:29): Original:
+CRITICAL (10:44:29): Candidato creado.
+CRITICAL (10:44:29): Subsistema creado.
+CRITICAL (10:44:29): empieza.
+CRITICAL (10:44:29): Original creado.
+CRITICAL (10:44:29): Original:
+CRITICAL (10:44:29): Candidato creado.
+CRITICAL (10:44:29): Subsistema creado.
+CRITICAL (10:44:29): empieza.
+  k4(Q.G.)CRITICAL (10:44:29): Original creado.
+CRITICAL (10:44:29): Original:
+CRITICAL (10:44:29): Candidato creado.
+CRITICAL (10:44:29): Subsistema creado.
+CRITICAL (10:44:29): empieza.
+CRITICAL (10:44:29): Original creado.
+CRITICAL (10:44:29): Original:
+CRITICAL (10:44:29): Candidato creado.
+CRITICAL (10:44:29): Subsistema creado.
+CRITICAL (10:44:29): empieza.
+  k5(Q.G.)
+  #  5/49  ABCDEFGHIJ     / ABDEGHJCRITICAL (10:44:30): Original creado.
+CRITICAL (10:44:30): Original:
+CRITICAL (10:44:30): Candidato creado.
+CRITICAL (10:44:30): Subsistema creado.
+  QN2=.CRITICAL (10:44:33): Original creado.
+CRITICAL (10:44:33): Original:
+CRITICAL (10:44:33): Candidato creado.
+CRITICAL (10:44:33): Subsistema creado.
+CRITICAL (10:44:33): empieza.
+  Geo2=.CRITICAL (10:44:33): Original creado.
+CRITICAL (10:44:33): Original:
+CRITICAL (10:44:33): Candidato creado.
+CRITICAL (10:44:33): Subsistema creado.
+CRITICAL (10:44:33): empieza.
+CRITICAL (10:44:33): Original creado.
+CRITICAL (10:44:33): Original:
+CRITICAL (10:44:33): Candidato creado.
+CRITICAL (10:44:33): Subsistema creado.
+CRITICAL (10:44:33): empieza.
+  k3(Q.G.)CRITICAL (10:44:34): Original creado.
+CRITICAL (10:44:34): Original:
+CRITICAL (10:44:34): Candidato creado.
+CRITICAL (10:44:34): Subsistema creado.
+CRITICAL (10:44:34): empieza.
+CRITICAL (10:44:34): Original creado.
+CRITICAL (10:44:34): Original:
+CRITICAL (10:44:34): Candidato creado.
+CRITICAL (10:44:34): Subsistema creado.
+CRITICAL (10:44:34): empieza.
+  k4(Q.G.)CRITICAL (10:44:34): Original creado.
+CRITICAL (10:44:34): Original:
+CRITICAL (10:44:34): Candidato creado.
+CRITICAL (10:44:34): Subsistema creado.
+CRITICAL (10:44:34): empieza.
+CRITICAL (10:44:35): Original creado.
+CRITICAL (10:44:35): Original:
+CRITICAL (10:44:35): Candidato creado.
+CRITICAL (10:44:35): Subsistema creado.
+CRITICAL (10:44:35): empieza.
+  k5(Q.G.)
+  #  6/49  ABCDEFGHIJ     / ACEGICRITICAL (10:44:35): Original creado.
+CRITICAL (10:44:35): Original:
+CRITICAL (10:44:35): Candidato creado.
+CRITICAL (10:44:35): Subsistema creado.
+  QN2=.CRITICAL (10:44:38): Original creado.
+CRITICAL (10:44:38): Original:
+CRITICAL (10:44:38): Candidato creado.
+CRITICAL (10:44:38): Subsistema creado.
+CRITICAL (10:44:38): empieza.
+  Geo2=.CRITICAL (10:44:38): Original creado.
+CRITICAL (10:44:38): Original:
+CRITICAL (10:44:38): Candidato creado.
+CRITICAL (10:44:38): Subsistema creado.
+CRITICAL (10:44:38): empieza.
+CRITICAL (10:44:38): Original creado.
+CRITICAL (10:44:38): Original:
+CRITICAL (10:44:38): Candidato creado.
+CRITICAL (10:44:38): Subsistema creado.
+CRITICAL (10:44:38): empieza.
+  k3(Q.G.)CRITICAL (10:44:38): Original creado.
+CRITICAL (10:44:38): Original:
+CRITICAL (10:44:38): Candidato creado.
+CRITICAL (10:44:38): Subsistema creado.
+CRITICAL (10:44:38): empieza.
+CRITICAL (10:44:38): Original creado.
+CRITICAL (10:44:38): Original:
+CRITICAL (10:44:38): Candidato creado.
+CRITICAL (10:44:38): Subsistema creado.
+CRITICAL (10:44:38): empieza.
+  k4(Q.G.)CRITICAL (10:44:38): Original creado.
+CRITICAL (10:44:38): Original:
+CRITICAL (10:44:38): Candidato creado.
+CRITICAL (10:44:39): Subsistema creado.
+CRITICAL (10:44:39): empieza.
+CRITICAL (10:44:39): Original creado.
+CRITICAL (10:44:39): Original:
+CRITICAL (10:44:39): Candidato creado.
+CRITICAL (10:44:39): Subsistema creado.
+CRITICAL (10:44:39): empieza.
+  k5(Q.G.)
+  #  7/49  ABCDEFGHIJ     / BDFHJCRITICAL (10:44:39): Original creado.
+CRITICAL (10:44:39): Original:
+CRITICAL (10:44:39): Candidato creado.
+CRITICAL (10:44:39): Subsistema creado.
+  QN2=.CRITICAL (10:44:41): Original creado.
+CRITICAL (10:44:41): Original:
+CRITICAL (10:44:41): Candidato creado.
+CRITICAL (10:44:41): Subsistema creado.
+CRITICAL (10:44:41): empieza.
+  Geo2=.CRITICAL (10:44:41): Original creado.
+CRITICAL (10:44:41): Original:
+CRITICAL (10:44:41): Candidato creado.
+CRITICAL (10:44:41): Subsistema creado.
+CRITICAL (10:44:41): empieza.
+CRITICAL (10:44:41): Original creado.
+CRITICAL (10:44:41): Original:
+CRITICAL (10:44:41): Candidato creado.
+CRITICAL (10:44:41): Subsistema creado.
+CRITICAL (10:44:41): empieza.
+  k3(Q.G.)CRITICAL (10:44:41): Original creado.
+CRITICAL (10:44:41): Original:
+CRITICAL (10:44:41): Candidato creado.
+CRITICAL (10:44:41): Subsistema creado.
+CRITICAL (10:44:41): empieza.
+CRITICAL (10:44:41): Original creado.
+CRITICAL (10:44:41): Original:
+CRITICAL (10:44:41): Candidato creado.
+CRITICAL (10:44:42): Subsistema creado.
+CRITICAL (10:44:42): empieza.
+  k4(Q.G.)CRITICAL (10:44:42): Original creado.
+CRITICAL (10:44:42): Original:
+CRITICAL (10:44:42): Candidato creado.
+CRITICAL (10:44:42): Subsistema creado.
+CRITICAL (10:44:42): empieza.
+CRITICAL (10:44:42): Original creado.
+CRITICAL (10:44:42): Original:
+CRITICAL (10:44:42): Candidato creado.
+CRITICAL (10:44:42): Subsistema creado.
+CRITICAL (10:44:42): empieza.
+  k5(Q.G.)
+  #  8/49  ABCDEFGHI      / ABCDEFGHIJCRITICAL (10:44:42): Original creado.
+CRITICAL (10:44:42): Original:
+CRITICAL (10:44:42): Candidato creado.
+CRITICAL (10:44:42): Subsistema creado.
+  QN2=.CRITICAL (10:44:48): Original creado.
+CRITICAL (10:44:48): Original:
+CRITICAL (10:44:48): Candidato creado.
+CRITICAL (10:44:48): Subsistema creado.
+CRITICAL (10:44:48): empieza.
+  Geo2=.CRITICAL (10:44:49): Original creado.
+CRITICAL (10:44:49): Original:
+CRITICAL (10:44:49): Candidato creado.
+CRITICAL (10:44:49): Subsistema creado.
+CRITICAL (10:44:49): empieza.
+CRITICAL (10:44:49): Original creado.
+CRITICAL (10:44:49): Original:
+CRITICAL (10:44:49): Candidato creado.
+CRITICAL (10:44:49): Subsistema creado.
+CRITICAL (10:44:49): empieza.
+  k3(Q.G.)CRITICAL (10:44:50): Original creado.
+CRITICAL (10:44:50): Original:
+CRITICAL (10:44:50): Candidato creado.
+CRITICAL (10:44:50): Subsistema creado.
+CRITICAL (10:44:50): empieza.
+CRITICAL (10:44:50): Original creado.
+CRITICAL (10:44:50): Original:
+CRITICAL (10:44:50): Candidato creado.
+CRITICAL (10:44:50): Subsistema creado.
+CRITICAL (10:44:50): empieza.
+  k4(Q.G.)CRITICAL (10:44:51): Original creado.
+CRITICAL (10:44:51): Original:
+CRITICAL (10:44:51): Candidato creado.
+CRITICAL (10:44:51): Subsistema creado.
+CRITICAL (10:44:51): empieza.
+CRITICAL (10:44:51): Original creado.
+CRITICAL (10:44:51): Original:
+CRITICAL (10:44:51): Candidato creado.
+CRITICAL (10:44:51): Subsistema creado.
+CRITICAL (10:44:51): empieza.
+  k5(Q.G.)
+  #  9/49  ABCDEFGHI      / ABCDEFGHICRITICAL (10:44:52): Original creado.
+CRITICAL (10:44:52): Original:
+CRITICAL (10:44:52): Candidato creado.
+CRITICAL (10:44:52): Subsistema creado.
+  QN2=.CRITICAL (10:44:57): Original creado.
+CRITICAL (10:44:57): Original:
+CRITICAL (10:44:57): Candidato creado.
+CRITICAL (10:44:57): Subsistema creado.
+CRITICAL (10:44:57): empieza.
+  Geo2=.CRITICAL (10:44:57): Original creado.
+CRITICAL (10:44:57): Original:
+CRITICAL (10:44:57): Candidato creado.
+CRITICAL (10:44:57): Subsistema creado.
+CRITICAL (10:44:57): empieza.
+CRITICAL (10:44:57): Original creado.
+CRITICAL (10:44:57): Original:
+CRITICAL (10:44:57): Candidato creado.
+CRITICAL (10:44:57): Subsistema creado.
+CRITICAL (10:44:57): empieza.
+  k3(Q.G.)CRITICAL (10:44:58): Original creado.
+CRITICAL (10:44:58): Original:
+CRITICAL (10:44:58): Candidato creado.
+CRITICAL (10:44:58): Subsistema creado.
+CRITICAL (10:44:58): empieza.
+CRITICAL (10:44:58): Original creado.
+CRITICAL (10:44:58): Original:
+CRITICAL (10:44:58): Candidato creado.
+CRITICAL (10:44:58): Subsistema creado.
+CRITICAL (10:44:58): empieza.
+  k4(Q.G.)CRITICAL (10:44:58): Original creado.
+CRITICAL (10:44:58): Original:
+CRITICAL (10:44:58): Candidato creado.
+CRITICAL (10:44:58): Subsistema creado.
+CRITICAL (10:44:58): empieza.
+CRITICAL (10:44:59): Original creado.
+CRITICAL (10:44:59): Original:
+CRITICAL (10:44:59): Candidato creado.
+CRITICAL (10:44:59): Subsistema creado.
+CRITICAL (10:44:59): empieza.
+  k5(Q.G.)
+  # 10/49  ABCDEFGHI      / BCDEFGHIJCRITICAL (10:44:59): Original creado.
+CRITICAL (10:44:59): Original:
+CRITICAL (10:44:59): Candidato creado.
+CRITICAL (10:44:59): Subsistema creado.
+  QN2=.CRITICAL (10:45:04): Original creado.
+CRITICAL (10:45:04): Original:
+CRITICAL (10:45:04): Candidato creado.
+CRITICAL (10:45:04): Subsistema creado.
+CRITICAL (10:45:04): empieza.
+  Geo2=.CRITICAL (10:45:04): Original creado.
+CRITICAL (10:45:04): Original:
+CRITICAL (10:45:04): Candidato creado.
+CRITICAL (10:45:04): Subsistema creado.
+CRITICAL (10:45:04): empieza.
+CRITICAL (10:45:05): Original creado.
+CRITICAL (10:45:05): Original:
+CRITICAL (10:45:05): Candidato creado.
+CRITICAL (10:45:05): Subsistema creado.
+CRITICAL (10:45:05): empieza.
+  k3(Q.G.)CRITICAL (10:45:05): Original creado.
+CRITICAL (10:45:05): Original:
+CRITICAL (10:45:05): Candidato creado.
+CRITICAL (10:45:05): Subsistema creado.
+CRITICAL (10:45:05): empieza.
+CRITICAL (10:45:05): Original creado.
+CRITICAL (10:45:05): Original:
+CRITICAL (10:45:05): Candidato creado.
+CRITICAL (10:45:05): Subsistema creado.
+CRITICAL (10:45:05): empieza.
+  k4(Q.G.)CRITICAL (10:45:06): Original creado.
+CRITICAL (10:45:06): Original:
+CRITICAL (10:45:06): Candidato creado.
+CRITICAL (10:45:06): Subsistema creado.
+CRITICAL (10:45:06): empieza.
+CRITICAL (10:45:06): Original creado.
+CRITICAL (10:45:06): Original:
+CRITICAL (10:45:06): Candidato creado.
+CRITICAL (10:45:06): Subsistema creado.
+CRITICAL (10:45:06): empieza.
+  k5(Q.G.)
+  # 11/49  ABCDEFGHI      / BCDEFGHICRITICAL (10:45:07): Original creado.
+CRITICAL (10:45:07): Original:
+CRITICAL (10:45:07): Candidato creado.
+CRITICAL (10:45:07): Subsistema creado.
+  QN2=.CRITICAL (10:45:11): Original creado.
+CRITICAL (10:45:11): Original:
+CRITICAL (10:45:11): Candidato creado.
+CRITICAL (10:45:11): Subsistema creado.
+CRITICAL (10:45:11): empieza.
+  Geo2=.CRITICAL (10:45:11): Original creado.
+CRITICAL (10:45:11): Original:
+CRITICAL (10:45:11): Candidato creado.
+CRITICAL (10:45:11): Subsistema creado.
+CRITICAL (10:45:11): empieza.
+CRITICAL (10:45:11): Original creado.
+CRITICAL (10:45:11): Original:
+CRITICAL (10:45:11): Candidato creado.
+CRITICAL (10:45:11): Subsistema creado.
+CRITICAL (10:45:11): empieza.
+  k3(Q.G.)CRITICAL (10:45:12): Original creado.
+CRITICAL (10:45:12): Original:
+CRITICAL (10:45:12): Candidato creado.
+CRITICAL (10:45:12): Subsistema creado.
+CRITICAL (10:45:12): empieza.
+CRITICAL (10:45:12): Original creado.
+CRITICAL (10:45:12): Original:
+CRITICAL (10:45:12): Candidato creado.
+CRITICAL (10:45:12): Subsistema creado.
+CRITICAL (10:45:12): empieza.
+  k4(Q.G.)CRITICAL (10:45:12): Original creado.
+CRITICAL (10:45:12): Original:
+CRITICAL (10:45:12): Candidato creado.
+CRITICAL (10:45:12): Subsistema creado.
+CRITICAL (10:45:12): empieza.
+CRITICAL (10:45:13): Original creado.
+CRITICAL (10:45:13): Original:
+CRITICAL (10:45:13): Candidato creado.
+CRITICAL (10:45:13): Subsistema creado.
+CRITICAL (10:45:13): empieza.
+  k5(Q.G.)
+  # 12/49  ABCDEFGHI      / ABDEGHJCRITICAL (10:45:13): Original creado.
+CRITICAL (10:45:13): Original:
+CRITICAL (10:45:13): Candidato creado.
+CRITICAL (10:45:13): Subsistema creado.
+  QN2=.CRITICAL (10:45:16): Original creado.
+CRITICAL (10:45:16): Original:
+CRITICAL (10:45:16): Candidato creado.
+CRITICAL (10:45:16): Subsistema creado.
+CRITICAL (10:45:16): empieza.
+  Geo2=.CRITICAL (10:45:17): Original creado.
+CRITICAL (10:45:17): Original:
+CRITICAL (10:45:17): Candidato creado.
+CRITICAL (10:45:17): Subsistema creado.
+CRITICAL (10:45:17): empieza.
+CRITICAL (10:45:17): Original creado.
+CRITICAL (10:45:17): Original:
+CRITICAL (10:45:17): Candidato creado.
+CRITICAL (10:45:17): Subsistema creado.
+CRITICAL (10:45:17): empieza.
+  k3(Q.G.)CRITICAL (10:45:17): Original creado.
+CRITICAL (10:45:17): Original:
+CRITICAL (10:45:17): Candidato creado.
+CRITICAL (10:45:17): Subsistema creado.
+CRITICAL (10:45:17): empieza.
+CRITICAL (10:45:18): Original creado.
+CRITICAL (10:45:18): Original:
+CRITICAL (10:45:18): Candidato creado.
+CRITICAL (10:45:18): Subsistema creado.
+CRITICAL (10:45:18): empieza.
+  k4(Q.G.)CRITICAL (10:45:18): Original creado.
+CRITICAL (10:45:18): Original:
+CRITICAL (10:45:18): Candidato creado.
+CRITICAL (10:45:18): Subsistema creado.
+CRITICAL (10:45:18): empieza.
+CRITICAL (10:45:18): Original creado.
+CRITICAL (10:45:19): Original:
+CRITICAL (10:45:19): Candidato creado.
+CRITICAL (10:45:19): Subsistema creado.
+CRITICAL (10:45:19): empieza.
+  k5(Q.G.)
+  # 13/49  ABCDEFGHI      / ACEGICRITICAL (10:45:19): Original creado.
+CRITICAL (10:45:19): Original:
+CRITICAL (10:45:19): Candidato creado.
+CRITICAL (10:45:19): Subsistema creado.
+  QN2=.CRITICAL (10:45:21): Original creado.
+CRITICAL (10:45:21): Original:
+CRITICAL (10:45:21): Candidato creado.
+CRITICAL (10:45:21): Subsistema creado.
+CRITICAL (10:45:21): empieza.
+  Geo2=.CRITICAL (10:45:21): Original creado.
+CRITICAL (10:45:21): Original:
+CRITICAL (10:45:21): Candidato creado.
+CRITICAL (10:45:21): Subsistema creado.
+CRITICAL (10:45:21): empieza.
+CRITICAL (10:45:21): Original creado.
+CRITICAL (10:45:21): Original:
+CRITICAL (10:45:21): Candidato creado.
+CRITICAL (10:45:21): Subsistema creado.
+CRITICAL (10:45:21): empieza.
+  k3(Q.G.)CRITICAL (10:45:22): Original creado.
+CRITICAL (10:45:22): Original:
+CRITICAL (10:45:22): Candidato creado.
+CRITICAL (10:45:22): Subsistema creado.
+CRITICAL (10:45:22): empieza.
+CRITICAL (10:45:22): Original creado.
+CRITICAL (10:45:22): Original:
+CRITICAL (10:45:22): Candidato creado.
+CRITICAL (10:45:22): Subsistema creado.
+CRITICAL (10:45:22): empieza.
+  k4(Q.G.)CRITICAL (10:45:22): Original creado.
+CRITICAL (10:45:22): Original:
+CRITICAL (10:45:22): Candidato creado.
+CRITICAL (10:45:22): Subsistema creado.
+CRITICAL (10:45:22): empieza.
+CRITICAL (10:45:23): Original creado.
+CRITICAL (10:45:23): Original:
+CRITICAL (10:45:23): Candidato creado.
+CRITICAL (10:45:23): Subsistema creado.
+CRITICAL (10:45:23): empieza.
+  k5(Q.G.)
+  # 14/49  ABCDEFGHI      / BDFHJCRITICAL (10:45:23): Original creado.
+CRITICAL (10:45:23): Original:
+CRITICAL (10:45:23): Candidato creado.
+CRITICAL (10:45:23): Subsistema creado.
+  QN2=.CRITICAL (10:45:25): Original creado.
+CRITICAL (10:45:25): Original:
+CRITICAL (10:45:25): Candidato creado.
+CRITICAL (10:45:25): Subsistema creado.
+CRITICAL (10:45:25): empieza.
+  Geo2=.CRITICAL (10:45:25): Original creado.
+CRITICAL (10:45:25): Original:
+CRITICAL (10:45:25): Candidato creado.
+CRITICAL (10:45:25): Subsistema creado.
+CRITICAL (10:45:25): empieza.
+CRITICAL (10:45:25): Original creado.
+CRITICAL (10:45:25): Original:
+CRITICAL (10:45:26): Candidato creado.
+CRITICAL (10:45:26): Subsistema creado.
+CRITICAL (10:45:26): empieza.
+  k3(Q.G.)CRITICAL (10:45:26): Original creado.
+CRITICAL (10:45:26): Original:
+CRITICAL (10:45:26): Candidato creado.
+CRITICAL (10:45:26): Subsistema creado.
+CRITICAL (10:45:26): empieza.
+CRITICAL (10:45:26): Original creado.
+CRITICAL (10:45:26): Original:
+CRITICAL (10:45:26): Candidato creado.
+CRITICAL (10:45:27): Subsistema creado.
+CRITICAL (10:45:27): empieza.
+  k4(Q.G.)CRITICAL (10:45:27): Original creado.
+CRITICAL (10:45:27): Original:
+CRITICAL (10:45:27): Candidato creado.
+CRITICAL (10:45:27): Subsistema creado.
+CRITICAL (10:45:27): empieza.
+CRITICAL (10:45:27): Original creado.
+CRITICAL (10:45:27): Original:
+CRITICAL (10:45:27): Candidato creado.
+CRITICAL (10:45:27): Subsistema creado.
+CRITICAL (10:45:27): empieza.
+  k5(Q.G.)
+  # 15/49  BCDEFGHIJ      / ABCDEFGHIJCRITICAL (10:45:28): Original creado.
+CRITICAL (10:45:28): Original:
+CRITICAL (10:45:28): Candidato creado.
+CRITICAL (10:45:28): Subsistema creado.
+  QN2=.CRITICAL (10:45:34): Original creado.
+CRITICAL (10:45:34): Original:
+CRITICAL (10:45:34): Candidato creado.
+CRITICAL (10:45:34): Subsistema creado.
+CRITICAL (10:45:34): empieza.
+  Geo2=.CRITICAL (10:45:34): Original creado.
+CRITICAL (10:45:34): Original:
+CRITICAL (10:45:34): Candidato creado.
+CRITICAL (10:45:34): Subsistema creado.
+CRITICAL (10:45:35): empieza.
+CRITICAL (10:45:35): Original creado.
+CRITICAL (10:45:35): Original:
+CRITICAL (10:45:35): Candidato creado.
+CRITICAL (10:45:35): Subsistema creado.
+CRITICAL (10:45:35): empieza.
+  k3(Q.G.)CRITICAL (10:45:36): Original creado.
+CRITICAL (10:45:36): Original:
+CRITICAL (10:45:36): Candidato creado.
+CRITICAL (10:45:36): Subsistema creado.
+CRITICAL (10:45:36): empieza.
+CRITICAL (10:45:37): Original creado.
+CRITICAL (10:45:37): Original:
+CRITICAL (10:45:37): Candidato creado.
+CRITICAL (10:45:37): Subsistema creado.
+CRITICAL (10:45:37): empieza.
+  k4(Q.G.)CRITICAL (10:45:38): Original creado.
+CRITICAL (10:45:38): Original:
+CRITICAL (10:45:38): Candidato creado.
+CRITICAL (10:45:38): Subsistema creado.
+CRITICAL (10:45:38): empieza.
+CRITICAL (10:45:38): Original creado.
+CRITICAL (10:45:38): Original:
+CRITICAL (10:45:39): Candidato creado.
+CRITICAL (10:45:39): Subsistema creado.
+CRITICAL (10:45:39): empieza.
+  k5(Q.G.)
+  # 16/49  BCDEFGHIJ      / ABCDEFGHICRITICAL (10:45:39): Original creado.
+CRITICAL (10:45:39): Original:
+CRITICAL (10:45:39): Candidato creado.
+CRITICAL (10:45:40): Subsistema creado.
+  QN2=.CRITICAL (10:45:44): Original creado.
+CRITICAL (10:45:44): Original:
+CRITICAL (10:45:44): Candidato creado.
+CRITICAL (10:45:44): Subsistema creado.
+CRITICAL (10:45:45): empieza.
+  Geo2=.CRITICAL (10:45:45): Original creado.
+CRITICAL (10:45:45): Original:
+CRITICAL (10:45:45): Candidato creado.
+CRITICAL (10:45:45): Subsistema creado.
+CRITICAL (10:45:45): empieza.
+CRITICAL (10:45:46): Original creado.
+CRITICAL (10:45:46): Original:
+CRITICAL (10:45:46): Candidato creado.
+CRITICAL (10:45:46): Subsistema creado.
+CRITICAL (10:45:46): empieza.
+  k3(Q.G.)CRITICAL (10:45:46): Original creado.
+CRITICAL (10:45:46): Original:
+CRITICAL (10:45:46): Candidato creado.
+CRITICAL (10:45:46): Subsistema creado.
+CRITICAL (10:45:46): empieza.
+CRITICAL (10:45:47): Original creado.
+CRITICAL (10:45:47): Original:
+CRITICAL (10:45:47): Candidato creado.
+CRITICAL (10:45:47): Subsistema creado.
+CRITICAL (10:45:47): empieza.
+  k4(Q.G.)CRITICAL (10:45:47): Original creado.
+CRITICAL (10:45:48): Original:
+CRITICAL (10:45:48): Candidato creado.
+CRITICAL (10:45:48): Subsistema creado.
+CRITICAL (10:45:48): empieza.
+CRITICAL (10:45:48): Original creado.
+CRITICAL (10:45:48): Original:
+CRITICAL (10:45:48): Candidato creado.
+CRITICAL (10:45:48): Subsistema creado.
+CRITICAL (10:45:49): empieza.
+  k5(Q.G.)
+  # 17/49  BCDEFGHIJ      / BCDEFGHIJCRITICAL (10:45:49): Original creado.
+CRITICAL (10:45:49): Original:
+CRITICAL (10:45:49): Candidato creado.
+CRITICAL (10:45:49): Subsistema creado.
+  QN2=.CRITICAL (10:45:54): Original creado.
+CRITICAL (10:45:54): Original:
+CRITICAL (10:45:54): Candidato creado.
+CRITICAL (10:45:54): Subsistema creado.
+CRITICAL (10:45:54): empieza.
+  Geo2=.CRITICAL (10:45:54): Original creado.
+CRITICAL (10:45:55): Original:
+CRITICAL (10:45:55): Candidato creado.
+CRITICAL (10:45:55): Subsistema creado.
+CRITICAL (10:45:55): empieza.
+CRITICAL (10:45:55): Original creado.
+CRITICAL (10:45:55): Original:
+CRITICAL (10:45:55): Candidato creado.
+CRITICAL (10:45:55): Subsistema creado.
+CRITICAL (10:45:55): empieza.
+  k3(Q.G.)CRITICAL (10:45:56): Original creado.
+CRITICAL (10:45:56): Original:
+CRITICAL (10:45:56): Candidato creado.
+CRITICAL (10:45:56): Subsistema creado.
+CRITICAL (10:45:56): empieza.
+CRITICAL (10:45:56): Original creado.
+CRITICAL (10:45:57): Original:
+CRITICAL (10:45:57): Candidato creado.
+CRITICAL (10:45:57): Subsistema creado.
+CRITICAL (10:45:57): empieza.
+  k4(Q.G.)CRITICAL (10:45:57): Original creado.
+CRITICAL (10:45:57): Original:
+CRITICAL (10:45:57): Candidato creado.
+CRITICAL (10:45:57): Subsistema creado.
+CRITICAL (10:45:57): empieza.
+CRITICAL (10:45:58): Original creado.
+CRITICAL (10:45:58): Original:
+CRITICAL (10:45:58): Candidato creado.
+CRITICAL (10:45:58): Subsistema creado.
+CRITICAL (10:45:58): empieza.
+  k5(Q.G.)
+  # 18/49  BCDEFGHIJ      / BCDEFGHICRITICAL (10:45:59): Original creado.
+CRITICAL (10:45:59): Original:
+CRITICAL (10:45:59): Candidato creado.
+CRITICAL (10:45:59): Subsistema creado.
+  QN2=.CRITICAL (10:46:03): Original creado.
+CRITICAL (10:46:03): Original:
+CRITICAL (10:46:03): Candidato creado.
+CRITICAL (10:46:03): Subsistema creado.
+CRITICAL (10:46:03): empieza.
+  Geo2=.CRITICAL (10:46:03): Original creado.
+CRITICAL (10:46:03): Original:
+CRITICAL (10:46:03): Candidato creado.
+CRITICAL (10:46:03): Subsistema creado.
+CRITICAL (10:46:03): empieza.
+CRITICAL (10:46:04): Original creado.
+CRITICAL (10:46:04): Original:
+CRITICAL (10:46:04): Candidato creado.
+CRITICAL (10:46:04): Subsistema creado.
+CRITICAL (10:46:04): empieza.
+  k3(Q.G.)CRITICAL (10:46:04): Original creado.
+CRITICAL (10:46:04): Original:
+CRITICAL (10:46:04): Candidato creado.
+CRITICAL (10:46:05): Subsistema creado.
+CRITICAL (10:46:05): empieza.
+CRITICAL (10:46:05): Original creado.
+CRITICAL (10:46:05): Original:
+CRITICAL (10:46:05): Candidato creado.
+CRITICAL (10:46:05): Subsistema creado.
+CRITICAL (10:46:05): empieza.
+  k4(Q.G.)CRITICAL (10:46:06): Original creado.
+CRITICAL (10:46:06): Original:
+CRITICAL (10:46:06): Candidato creado.
+CRITICAL (10:46:06): Subsistema creado.
+CRITICAL (10:46:06): empieza.
+CRITICAL (10:46:06): Original creado.
+CRITICAL (10:46:07): Original:
+CRITICAL (10:46:07): Candidato creado.
+CRITICAL (10:46:07): Subsistema creado.
+CRITICAL (10:46:07): empieza.
+  k5(Q.G.)
+  # 19/49  BCDEFGHIJ      / ABDEGHJCRITICAL (10:46:07): Original creado.
+CRITICAL (10:46:07): Original:
+CRITICAL (10:46:07): Candidato creado.
+CRITICAL (10:46:07): Subsistema creado.
+  QN2=.CRITICAL (10:46:10): Original creado.
+CRITICAL (10:46:10): Original:
+CRITICAL (10:46:10): Candidato creado.
+CRITICAL (10:46:10): Subsistema creado.
+CRITICAL (10:46:11): empieza.
+  Geo2=.CRITICAL (10:46:11): Original creado.
+CRITICAL (10:46:11): Original:
+CRITICAL (10:46:11): Candidato creado.
+CRITICAL (10:46:11): Subsistema creado.
+CRITICAL (10:46:11): empieza.
+CRITICAL (10:46:11): Original creado.
+CRITICAL (10:46:11): Original:
+CRITICAL (10:46:12): Candidato creado.
+CRITICAL (10:46:12): Subsistema creado.
+CRITICAL (10:46:12): empieza.
+  k3(Q.G.)CRITICAL (10:46:12): Original creado.
+CRITICAL (10:46:12): Original:
+CRITICAL (10:46:12): Candidato creado.
+CRITICAL (10:46:12): Subsistema creado.
+CRITICAL (10:46:12): empieza.
+CRITICAL (10:46:13): Original creado.
+CRITICAL (10:46:13): Original:
+CRITICAL (10:46:13): Candidato creado.
+CRITICAL (10:46:13): Subsistema creado.
+CRITICAL (10:46:13): empieza.
+  k4(Q.G.)CRITICAL (10:46:14): Original creado.
+CRITICAL (10:46:14): Original:
+CRITICAL (10:46:14): Candidato creado.
+CRITICAL (10:46:14): Subsistema creado.
+CRITICAL (10:46:14): empieza.
+CRITICAL (10:46:14): Original creado.
+CRITICAL (10:46:14): Original:
+CRITICAL (10:46:15): Candidato creado.
+CRITICAL (10:46:15): Subsistema creado.
+CRITICAL (10:46:15): empieza.
+  k5(Q.G.)
+  # 20/49  BCDEFGHIJ      / ACEGICRITICAL (10:46:15): Original creado.
+CRITICAL (10:46:15): Original:
+CRITICAL (10:46:15): Candidato creado.
+CRITICAL (10:46:15): Subsistema creado.
+  QN2=.CRITICAL (10:46:17): Original creado.
+CRITICAL (10:46:17): Original:
+CRITICAL (10:46:17): Candidato creado.
+CRITICAL (10:46:17): Subsistema creado.
+CRITICAL (10:46:18): empieza.
+  Geo2=.CRITICAL (10:46:18): Original creado.
+CRITICAL (10:46:18): Original:
+CRITICAL (10:46:18): Candidato creado.
+CRITICAL (10:46:18): Subsistema creado.
+CRITICAL (10:46:18): empieza.
+CRITICAL (10:46:18): Original creado.
+CRITICAL (10:46:19): Original:
+CRITICAL (10:46:19): Candidato creado.
+CRITICAL (10:46:19): Subsistema creado.
+CRITICAL (10:46:19): empieza.
+  k3(Q.G.)CRITICAL (10:46:19): Original creado.
+CRITICAL (10:46:19): Original:
+CRITICAL (10:46:19): Candidato creado.
+CRITICAL (10:46:19): Subsistema creado.
+CRITICAL (10:46:20): empieza.
+CRITICAL (10:46:20): Original creado.
+CRITICAL (10:46:20): Original:
+CRITICAL (10:46:20): Candidato creado.
+CRITICAL (10:46:20): Subsistema creado.
+CRITICAL (10:46:20): empieza.
+  k4(Q.G.)CRITICAL (10:46:21): Original creado.
+CRITICAL (10:46:21): Original:
+CRITICAL (10:46:21): Candidato creado.
+CRITICAL (10:46:21): Subsistema creado.
+CRITICAL (10:46:21): empieza.
+CRITICAL (10:46:21): Original creado.
+CRITICAL (10:46:21): Original:
+CRITICAL (10:46:22): Candidato creado.
+CRITICAL (10:46:22): Subsistema creado.
+CRITICAL (10:46:22): empieza.
+  k5(Q.G.)
+  # 21/49  BCDEFGHIJ      / BDFHJCRITICAL (10:46:22): Original creado.
+CRITICAL (10:46:22): Original:
+CRITICAL (10:46:22): Candidato creado.
+CRITICAL (10:46:23): Subsistema creado.
+  QN2=.CRITICAL (10:46:24): Original creado.
+CRITICAL (10:46:24): Original:
+CRITICAL (10:46:25): Candidato creado.
+CRITICAL (10:46:25): Subsistema creado.
+CRITICAL (10:46:25): empieza.
+  Geo2=.CRITICAL (10:46:25): Original creado.
+CRITICAL (10:46:25): Original:
+CRITICAL (10:46:25): Candidato creado.
+CRITICAL (10:46:25): Subsistema creado.
+CRITICAL (10:46:25): empieza.
+CRITICAL (10:46:26): Original creado.
+CRITICAL (10:46:26): Original:
+CRITICAL (10:46:26): Candidato creado.
+CRITICAL (10:46:26): Subsistema creado.
+CRITICAL (10:46:26): empieza.
+  k3(Q.G.)CRITICAL (10:46:27): Original creado.
+CRITICAL (10:46:27): Original:
+CRITICAL (10:46:27): Candidato creado.
+CRITICAL (10:46:27): Subsistema creado.
+CRITICAL (10:46:27): empieza.
+CRITICAL (10:46:27): Original creado.
+CRITICAL (10:46:28): Original:
+CRITICAL (10:46:28): Candidato creado.
+CRITICAL (10:46:28): Subsistema creado.
+CRITICAL (10:46:28): empieza.
+  k4(Q.G.)CRITICAL (10:46:28): Original creado.
+CRITICAL (10:46:28): Original:
+CRITICAL (10:46:28): Candidato creado.
+CRITICAL (10:46:29): Subsistema creado.
+CRITICAL (10:46:29): empieza.
+CRITICAL (10:46:29): Original creado.
+CRITICAL (10:46:29): Original:
+CRITICAL (10:46:29): Candidato creado.
+CRITICAL (10:46:29): Subsistema creado.
+CRITICAL (10:46:30): empieza.
+  k5(Q.G.)
+  # 22/49  BCDEFGHI       / ABCDEFGHIJCRITICAL (10:46:30): Original creado.
+CRITICAL (10:46:30): Original:
+CRITICAL (10:46:30): Candidato creado.
+CRITICAL (10:46:30): Subsistema creado.
+  QN2=.CRITICAL (10:46:35): Original creado.
+CRITICAL (10:46:35): Original:
+CRITICAL (10:46:35): Candidato creado.
+CRITICAL (10:46:36): Subsistema creado.
+CRITICAL (10:46:36): empieza.
+  Geo2=.CRITICAL (10:46:36): Original creado.
+CRITICAL (10:46:36): Original:
+CRITICAL (10:46:37): Candidato creado.
+CRITICAL (10:46:37): Subsistema creado.
+CRITICAL (10:46:37): empieza.
+CRITICAL (10:46:37): Original creado.
+CRITICAL (10:46:38): Original:
+CRITICAL (10:46:38): Candidato creado.
+CRITICAL (10:46:38): Subsistema creado.
+CRITICAL (10:46:38): empieza.
+  k3(Q.G.)CRITICAL (10:46:38): Original creado.
+CRITICAL (10:46:39): Original:
+CRITICAL (10:46:39): Candidato creado.
+CRITICAL (10:46:39): Subsistema creado.
+CRITICAL (10:46:39): empieza.
+CRITICAL (10:46:40): Original creado.
+CRITICAL (10:46:40): Original:
+CRITICAL (10:46:40): Candidato creado.
+CRITICAL (10:46:40): Subsistema creado.
+CRITICAL (10:46:40): empieza.
+  k4(Q.G.)CRITICAL (10:46:41): Original creado.
+CRITICAL (10:46:41): Original:
+CRITICAL (10:46:41): Candidato creado.
+CRITICAL (10:46:41): Subsistema creado.
+CRITICAL (10:46:41): empieza.
+CRITICAL (10:46:42): Original creado.
+CRITICAL (10:46:42): Original:
+CRITICAL (10:46:42): Candidato creado.
+CRITICAL (10:46:42): Subsistema creado.
+CRITICAL (10:46:43): empieza.
+  k5(Q.G.)
+  # 23/49  BCDEFGHI       / ABCDEFGHICRITICAL (10:46:43): Original creado.
+CRITICAL (10:46:44): Original:
+CRITICAL (10:46:44): Candidato creado.
+CRITICAL (10:46:44): Subsistema creado.
+  QN2=.CRITICAL (10:46:48): Original creado.
+CRITICAL (10:46:48): Original:
+CRITICAL (10:46:48): Candidato creado.
+CRITICAL (10:46:48): Subsistema creado.
+CRITICAL (10:46:48): empieza.
+  Geo2=.CRITICAL (10:46:49): Original creado.
+CRITICAL (10:46:49): Original:
+CRITICAL (10:46:49): Candidato creado.
+CRITICAL (10:46:49): Subsistema creado.
+CRITICAL (10:46:49): empieza.
+CRITICAL (10:46:50): Original creado.
+CRITICAL (10:46:50): Original:
+CRITICAL (10:46:50): Candidato creado.
+CRITICAL (10:46:50): Subsistema creado.
+CRITICAL (10:46:50): empieza.
+  k3(Q.G.)CRITICAL (10:46:51): Original creado.
+CRITICAL (10:46:51): Original:
+CRITICAL (10:46:51): Candidato creado.
+CRITICAL (10:46:51): Subsistema creado.
+CRITICAL (10:46:51): empieza.
+CRITICAL (10:46:52): Original creado.
+CRITICAL (10:46:52): Original:
+CRITICAL (10:46:52): Candidato creado.
+CRITICAL (10:46:52): Subsistema creado.
+CRITICAL (10:46:52): empieza.
+  k4(Q.G.)CRITICAL (10:46:53): Original creado.
+CRITICAL (10:46:53): Original:
+CRITICAL (10:46:53): Candidato creado.
+CRITICAL (10:46:53): Subsistema creado.
+CRITICAL (10:46:54): empieza.
+CRITICAL (10:46:54): Original creado.
+CRITICAL (10:46:54): Original:
+CRITICAL (10:46:54): Candidato creado.
+CRITICAL (10:46:54): Subsistema creado.
+CRITICAL (10:46:55): empieza.
+  k5(Q.G.)
+  # 24/49  BCDEFGHI       / BCDEFGHIJCRITICAL (10:46:55): Original creado.
+CRITICAL (10:46:55): Original:
+CRITICAL (10:46:56): Candidato creado.
+CRITICAL (10:46:56): Subsistema creado.
+  QN2=.CRITICAL (10:46:59): Original creado.
+CRITICAL (10:47:00): Original:
+CRITICAL (10:47:00): Candidato creado.
+CRITICAL (10:47:00): Subsistema creado.
+CRITICAL (10:47:00): empieza.
+  Geo2=.CRITICAL (10:47:01): Original creado.
+CRITICAL (10:47:01): Original:
+CRITICAL (10:47:01): Candidato creado.
+CRITICAL (10:47:01): Subsistema creado.
+CRITICAL (10:47:01): empieza.
+CRITICAL (10:47:03): Original creado.
+CRITICAL (10:47:03): Original:
+CRITICAL (10:47:03): Candidato creado.
+CRITICAL (10:47:04): Subsistema creado.
+CRITICAL (10:47:04): empieza.
+  k3(Q.G.)CRITICAL (10:47:04): Original creado.
+CRITICAL (10:47:04): Original:
+CRITICAL (10:47:05): Candidato creado.
+CRITICAL (10:47:05): Subsistema creado.
+CRITICAL (10:47:05): empieza.
+CRITICAL (10:47:05): Original creado.
+CRITICAL (10:47:06): Original:
+CRITICAL (10:47:06): Candidato creado.
+CRITICAL (10:47:06): Subsistema creado.
+CRITICAL (10:47:06): empieza.
+  k4(Q.G.)CRITICAL (10:47:07): Original creado.
+CRITICAL (10:47:07): Original:
+CRITICAL (10:47:07): Candidato creado.
+CRITICAL (10:47:07): Subsistema creado.
+CRITICAL (10:47:07): empieza.
+CRITICAL (10:47:08): Original creado.
+CRITICAL (10:47:08): Original:
+CRITICAL (10:47:08): Candidato creado.
+CRITICAL (10:47:08): Subsistema creado.
+CRITICAL (10:47:09): empieza.
+  k5(Q.G.)
+  # 25/49  BCDEFGHI       / BCDEFGHICRITICAL (10:47:09): Original creado.
+CRITICAL (10:47:09): Original:
+CRITICAL (10:47:10): Candidato creado.
+CRITICAL (10:47:10): Subsistema creado.
+  QN2=.CRITICAL (10:47:13): Original creado.
+CRITICAL (10:47:13): Original:
+CRITICAL (10:47:13): Candidato creado.
+CRITICAL (10:47:13): Subsistema creado.
+CRITICAL (10:47:13): empieza.
+  Geo2=.CRITICAL (10:47:14): Original creado.
+CRITICAL (10:47:14): Original:
+CRITICAL (10:47:14): Candidato creado.
+CRITICAL (10:47:14): Subsistema creado.
+CRITICAL (10:47:14): empieza.
+CRITICAL (10:47:15): Original creado.
+CRITICAL (10:47:15): Original:
+CRITICAL (10:47:15): Candidato creado.
+CRITICAL (10:47:16): Subsistema creado.
+CRITICAL (10:47:16): empieza.
+  k3(Q.G.)CRITICAL (10:47:16): Original creado.
+CRITICAL (10:47:16): Original:
+CRITICAL (10:47:17): Candidato creado.
+CRITICAL (10:47:17): Subsistema creado.
+CRITICAL (10:47:17): empieza.
+CRITICAL (10:47:17): Original creado.
+CRITICAL (10:47:18): Original:
+CRITICAL (10:47:18): Candidato creado.
+CRITICAL (10:47:18): Subsistema creado.
+CRITICAL (10:47:18): empieza.
+  k4(Q.G.)CRITICAL (10:47:19): Original creado.
+CRITICAL (10:47:19): Original:
+CRITICAL (10:47:19): Candidato creado.
+CRITICAL (10:47:19): Subsistema creado.
+CRITICAL (10:47:19): empieza.
+CRITICAL (10:47:20): Original creado.
+CRITICAL (10:47:20): Original:
+CRITICAL (10:47:20): Candidato creado.
+CRITICAL (10:47:20): Subsistema creado.
+CRITICAL (10:47:21): empieza.
+  k5(Q.G.)
+  # 26/49  BCDEFGHI       / ABDEGHJCRITICAL (10:47:21): Original creado.
+CRITICAL (10:47:21): Original:
+CRITICAL (10:47:22): Candidato creado.
+CRITICAL (10:47:22): Subsistema creado.
+  QN2=.CRITICAL (10:47:24): Original creado.
+CRITICAL (10:47:24): Original:
+CRITICAL (10:47:25): Candidato creado.
+CRITICAL (10:47:25): Subsistema creado.
+CRITICAL (10:47:25): empieza.
+  Geo2=.CRITICAL (10:47:25): Original creado.
+CRITICAL (10:47:26): Original:
+CRITICAL (10:47:26): Candidato creado.
+CRITICAL (10:47:26): Subsistema creado.
+CRITICAL (10:47:26): empieza.
+CRITICAL (10:47:27): Original creado.
+CRITICAL (10:47:27): Original:
+CRITICAL (10:47:27): Candidato creado.
+CRITICAL (10:47:27): Subsistema creado.
+CRITICAL (10:47:27): empieza.
+  k3(Q.G.)CRITICAL (10:47:28): Original creado.
+CRITICAL (10:47:28): Original:
+CRITICAL (10:47:28): Candidato creado.
+CRITICAL (10:47:28): Subsistema creado.
+CRITICAL (10:47:29): empieza.
+CRITICAL (10:47:29): Original creado.
+CRITICAL (10:47:29): Original:
+CRITICAL (10:47:29): Candidato creado.
+CRITICAL (10:47:30): Subsistema creado.
+CRITICAL (10:47:30): empieza.
+  k4(Q.G.)CRITICAL (10:47:30): Original creado.
+CRITICAL (10:47:30): Original:
+CRITICAL (10:47:31): Candidato creado.
+CRITICAL (10:47:31): Subsistema creado.
+CRITICAL (10:47:31): empieza.
+CRITICAL (10:47:32): Original creado.
+CRITICAL (10:47:32): Original:
+CRITICAL (10:47:32): Candidato creado.
+CRITICAL (10:47:32): Subsistema creado.
+CRITICAL (10:47:32): empieza.
+  k5(Q.G.)
+  # 27/49  BCDEFGHI       / ACEGICRITICAL (10:47:33): Original creado.
+CRITICAL (10:47:33): Original:
+CRITICAL (10:47:33): Candidato creado.
+CRITICAL (10:47:34): Subsistema creado.
+  QN2=.CRITICAL (10:47:35): Original creado.
+CRITICAL (10:47:35): Original:
+CRITICAL (10:47:35): Candidato creado.
+CRITICAL (10:47:36): Subsistema creado.
+CRITICAL (10:47:36): empieza.
+  Geo2=.CRITICAL (10:47:36): Original creado.
+CRITICAL (10:47:36): Original:
+CRITICAL (10:47:37): Candidato creado.
+CRITICAL (10:47:37): Subsistema creado.
+CRITICAL (10:47:37): empieza.
+CRITICAL (10:47:38): Original creado.
+CRITICAL (10:47:38): Original:
+CRITICAL (10:47:38): Candidato creado.
+CRITICAL (10:47:38): Subsistema creado.
+CRITICAL (10:47:38): empieza.
+  k3(Q.G.)CRITICAL (10:47:39): Original creado.
+CRITICAL (10:47:39): Original:
+CRITICAL (10:47:39): Candidato creado.
+CRITICAL (10:47:40): Subsistema creado.
+CRITICAL (10:47:40): empieza.
+CRITICAL (10:47:40): Original creado.
+CRITICAL (10:47:40): Original:
+CRITICAL (10:47:41): Candidato creado.
+CRITICAL (10:47:41): Subsistema creado.
+CRITICAL (10:47:41): empieza.
+  k4(Q.G.)CRITICAL (10:47:41): Original creado.
+CRITICAL (10:47:42): Original:
+CRITICAL (10:47:42): Candidato creado.
+CRITICAL (10:47:42): Subsistema creado.
+CRITICAL (10:47:42): empieza.
+CRITICAL (10:47:43): Original creado.
+CRITICAL (10:47:43): Original:
+CRITICAL (10:47:43): Candidato creado.
+CRITICAL (10:47:43): Subsistema creado.
+CRITICAL (10:47:44): empieza.
+  k5(Q.G.)
+  # 28/49  BCDEFGHI       / BDFHJCRITICAL (10:47:44): Original creado.
+CRITICAL (10:47:44): Original:
+CRITICAL (10:47:45): Candidato creado.
+CRITICAL (10:47:45): Subsistema creado.
+  QN2=.CRITICAL (10:47:46): Original creado.
+CRITICAL (10:47:47): Original:
+CRITICAL (10:47:47): Candidato creado.
+CRITICAL (10:47:47): Subsistema creado.
+CRITICAL (10:47:47): empieza.
+  Geo2=.CRITICAL (10:47:48): Original creado.
+CRITICAL (10:47:48): Original:
+CRITICAL (10:47:48): Candidato creado.
+CRITICAL (10:47:49): Subsistema creado.
+CRITICAL (10:47:49): empieza.
+CRITICAL (10:47:49): Original creado.
+CRITICAL (10:47:49): Original:
+CRITICAL (10:47:50): Candidato creado.
+CRITICAL (10:47:50): Subsistema creado.
+CRITICAL (10:47:50): empieza.
+  k3(Q.G.)CRITICAL (10:47:51): Original creado.
+CRITICAL (10:47:51): Original:
+CRITICAL (10:47:51): Candidato creado.
+CRITICAL (10:47:51): Subsistema creado.
+CRITICAL (10:47:52): empieza.
+CRITICAL (10:47:52): Original creado.
+CRITICAL (10:47:52): Original:
+CRITICAL (10:47:52): Candidato creado.
+CRITICAL (10:47:53): Subsistema creado.
+CRITICAL (10:47:53): empieza.
+  k4(Q.G.)CRITICAL (10:47:53): Original creado.
+CRITICAL (10:47:54): Original:
+CRITICAL (10:47:54): Candidato creado.
+CRITICAL (10:47:54): Subsistema creado.
+CRITICAL (10:47:54): empieza.
+CRITICAL (10:47:55): Original creado.
+CRITICAL (10:47:55): Original:
+CRITICAL (10:47:55): Candidato creado.
+CRITICAL (10:47:55): Subsistema creado.
+CRITICAL (10:47:56): empieza.
+  k5(Q.G.)
+  # 29/49  ABDEGHJ        / ABCDEFGHIJCRITICAL (10:47:56): Original creado.
+CRITICAL (10:47:56): Original:
+CRITICAL (10:47:57): Candidato creado.
+CRITICAL (10:47:57): Subsistema creado.
+  QN2=.CRITICAL (10:48:01): Original creado.
+CRITICAL (10:48:01): Original:
+CRITICAL (10:48:01): Candidato creado.
+CRITICAL (10:48:02): Subsistema creado.
+CRITICAL (10:48:02): empieza.
+  Geo2=.CRITICAL (10:48:03): Original creado.
+CRITICAL (10:48:03): Original:
+CRITICAL (10:48:03): Candidato creado.
+CRITICAL (10:48:03): Subsistema creado.
+CRITICAL (10:48:04): empieza.
+CRITICAL (10:48:04): Original creado.
+CRITICAL (10:48:05): Original:
+CRITICAL (10:48:05): Candidato creado.
+CRITICAL (10:48:05): Subsistema creado.
+CRITICAL (10:48:05): empieza.
+  k3(Q.G.)CRITICAL (10:48:06): Original creado.
+CRITICAL (10:48:06): Original:
+CRITICAL (10:48:07): Candidato creado.
+CRITICAL (10:48:07): Subsistema creado.
+CRITICAL (10:48:07): empieza.
+CRITICAL (10:48:08): Original creado.
+CRITICAL (10:48:08): Original:
+CRITICAL (10:48:08): Candidato creado.
+CRITICAL (10:48:09): Subsistema creado.
+CRITICAL (10:48:09): empieza.
+  k4(Q.G.)CRITICAL (10:48:10): Original creado.
+CRITICAL (10:48:10): Original:
+CRITICAL (10:48:10): Candidato creado.
+CRITICAL (10:48:10): Subsistema creado.
+CRITICAL (10:48:11): empieza.
+CRITICAL (10:48:11): Original creado.
+CRITICAL (10:48:12): Original:
+CRITICAL (10:48:12): Candidato creado.
+CRITICAL (10:48:12): Subsistema creado.
+CRITICAL (10:48:12): empieza.
+  k5(Q.G.)
+  # 30/49  ABDEGHJ        / ABCDEFGHICRITICAL (10:48:13): Original creado.
+CRITICAL (10:48:14): Original:
+CRITICAL (10:48:14): Candidato creado.
+CRITICAL (10:48:14): Subsistema creado.
+  QN2=.CRITICAL (10:48:17): Original creado.
+CRITICAL (10:48:18): Original:
+CRITICAL (10:48:18): Candidato creado.
+CRITICAL (10:48:18): Subsistema creado.
+CRITICAL (10:48:18): empieza.
+  Geo2=.CRITICAL (10:48:19): Original creado.
+CRITICAL (10:48:19): Original:
+CRITICAL (10:48:19): Candidato creado.
+CRITICAL (10:48:20): Subsistema creado.
+CRITICAL (10:48:20): empieza.
+CRITICAL (10:48:21): Original creado.
+CRITICAL (10:48:21): Original:
+CRITICAL (10:48:21): Candidato creado.
+CRITICAL (10:48:21): Subsistema creado.
+CRITICAL (10:48:22): empieza.
+  k3(Q.G.)CRITICAL (10:48:22): Original creado.
+CRITICAL (10:48:23): Original:
+CRITICAL (10:48:23): Candidato creado.
+CRITICAL (10:48:23): Subsistema creado.
+CRITICAL (10:48:23): empieza.
+CRITICAL (10:48:24): Original creado.
+CRITICAL (10:48:24): Original:
+CRITICAL (10:48:25): Candidato creado.
+CRITICAL (10:48:25): Subsistema creado.
+CRITICAL (10:48:25): empieza.
+  k4(Q.G.)CRITICAL (10:48:26): Original creado.
+CRITICAL (10:48:26): Original:
+CRITICAL (10:48:26): Candidato creado.
+CRITICAL (10:48:27): Subsistema creado.
+CRITICAL (10:48:27): empieza.
+CRITICAL (10:48:28): Original creado.
+CRITICAL (10:48:28): Original:
+CRITICAL (10:48:28): Candidato creado.
+CRITICAL (10:48:28): Subsistema creado.
+CRITICAL (10:48:29): empieza.
+  k5(Q.G.)
+  # 31/49  ABDEGHJ        / BCDEFGHIJCRITICAL (10:48:29): Original creado.
+CRITICAL (10:48:30): Original:
+CRITICAL (10:48:30): Candidato creado.
+CRITICAL (10:48:30): Subsistema creado.
+  QN2=.CRITICAL (10:48:33): Original creado.
+CRITICAL (10:48:34): Original:
+CRITICAL (10:48:34): Candidato creado.
+CRITICAL (10:48:34): Subsistema creado.
+CRITICAL (10:48:35): empieza.
+  Geo2=.CRITICAL (10:48:35): Original creado.
+CRITICAL (10:48:35): Original:
+CRITICAL (10:48:36): Candidato creado.
+CRITICAL (10:48:36): Subsistema creado.
+CRITICAL (10:48:36): empieza.
+CRITICAL (10:48:37): Original creado.
+CRITICAL (10:48:37): Original:
+CRITICAL (10:48:38): Candidato creado.
+CRITICAL (10:48:38): Subsistema creado.
+CRITICAL (10:48:38): empieza.
+  k3(Q.G.)CRITICAL (10:48:39): Original creado.
+CRITICAL (10:48:39): Original:
+CRITICAL (10:48:39): Candidato creado.
+CRITICAL (10:48:40): Subsistema creado.
+CRITICAL (10:48:40): empieza.
+CRITICAL (10:48:41): Original creado.
+CRITICAL (10:48:41): Original:
+CRITICAL (10:48:41): Candidato creado.
+CRITICAL (10:48:42): Subsistema creado.
+CRITICAL (10:48:42): empieza.
+  k4(Q.G.)CRITICAL (10:48:43): Original creado.
+CRITICAL (10:48:43): Original:
+CRITICAL (10:48:43): Candidato creado.
+CRITICAL (10:48:43): Subsistema creado.
+CRITICAL (10:48:44): empieza.
+CRITICAL (10:48:44): Original creado.
+CRITICAL (10:48:45): Original:
+CRITICAL (10:48:45): Candidato creado.
+CRITICAL (10:48:45): Subsistema creado.
+CRITICAL (10:48:46): empieza.
+  k5(Q.G.)
+  # 32/49  ABDEGHJ        / BCDEFGHICRITICAL (10:48:46): Original creado.
+CRITICAL (10:48:47): Original:
+CRITICAL (10:48:47): Candidato creado.
+CRITICAL (10:48:47): Subsistema creado.
+  QN2=.CRITICAL (10:48:50): Original creado.
+CRITICAL (10:48:50): Original:
+CRITICAL (10:48:50): Candidato creado.
+CRITICAL (10:48:51): Subsistema creado.
+CRITICAL (10:48:51): empieza.
+  Geo2=.CRITICAL (10:48:52): Original creado.
+CRITICAL (10:48:52): Original:
+CRITICAL (10:48:52): Candidato creado.
+CRITICAL (10:48:52): Subsistema creado.
+CRITICAL (10:48:53): empieza.
+CRITICAL (10:48:53): Original creado.
+CRITICAL (10:48:54): Original:
+CRITICAL (10:48:54): Candidato creado.
+CRITICAL (10:48:54): Subsistema creado.
+CRITICAL (10:48:55): empieza.
+  k3(Q.G.)CRITICAL (10:48:55): Original creado.
+CRITICAL (10:48:55): Original:
+CRITICAL (10:48:56): Candidato creado.
+CRITICAL (10:48:56): Subsistema creado.
+CRITICAL (10:48:56): empieza.
+CRITICAL (10:48:57): Original creado.
+CRITICAL (10:48:57): Original:
+CRITICAL (10:48:58): Candidato creado.
+CRITICAL (10:48:58): Subsistema creado.
+CRITICAL (10:48:58): empieza.
+  k4(Q.G.)CRITICAL (10:48:59): Original creado.
+CRITICAL (10:48:59): Original:
+CRITICAL (10:49:00): Candidato creado.
+CRITICAL (10:49:00): Subsistema creado.
+CRITICAL (10:49:00): empieza.
+CRITICAL (10:49:01): Original creado.
+CRITICAL (10:49:01): Original:
+CRITICAL (10:49:01): Candidato creado.
+CRITICAL (10:49:02): Subsistema creado.
+CRITICAL (10:49:02): empieza.
+  k5(Q.G.)
+  # 33/49  ABDEGHJ        / ABDEGHJCRITICAL (10:49:03): Original creado.
+CRITICAL (10:49:03): Original:
+CRITICAL (10:49:03): Candidato creado.
+CRITICAL (10:49:04): Subsistema creado.
+  QN2=.CRITICAL (10:49:06): Original creado.
+CRITICAL (10:49:06): Original:
+CRITICAL (10:49:06): Candidato creado.
+CRITICAL (10:49:07): Subsistema creado.
+CRITICAL (10:49:07): empieza.
+  Geo2=.CRITICAL (10:49:08): Original creado.
+CRITICAL (10:49:08): Original:
+CRITICAL (10:49:08): Candidato creado.
+CRITICAL (10:49:09): Subsistema creado.
+CRITICAL (10:49:09): empieza.
+CRITICAL (10:49:10): Original creado.
+CRITICAL (10:49:10): Original:
+CRITICAL (10:49:10): Candidato creado.
+CRITICAL (10:49:11): Subsistema creado.
+CRITICAL (10:49:11): empieza.
+  k3(Q.G.)CRITICAL (10:49:11): Original creado.
+CRITICAL (10:49:12): Original:
+CRITICAL (10:49:12): Candidato creado.
+CRITICAL (10:49:12): Subsistema creado.
+CRITICAL (10:49:13): empieza.
+CRITICAL (10:49:13): Original creado.
+CRITICAL (10:49:14): Original:
+CRITICAL (10:49:14): Candidato creado.
+CRITICAL (10:49:14): Subsistema creado.
+CRITICAL (10:49:15): empieza.
+  k4(Q.G.)CRITICAL (10:49:15): Original creado.
+CRITICAL (10:49:16): Original:
+CRITICAL (10:49:16): Candidato creado.
+CRITICAL (10:49:16): Subsistema creado.
+CRITICAL (10:49:17): empieza.
+CRITICAL (10:49:17): Original creado.
+CRITICAL (10:49:18): Original:
+CRITICAL (10:49:18): Candidato creado.
+CRITICAL (10:49:18): Subsistema creado.
+CRITICAL (10:49:19): empieza.
+  k5(Q.G.)
+  # 34/49  ABDEGHJ        / ACEGICRITICAL (10:49:19): Original creado.
+CRITICAL (10:49:20): Original:
+CRITICAL (10:49:20): Candidato creado.
+CRITICAL (10:49:20): Subsistema creado.
+  QN2=.CRITICAL (10:49:22): Original creado.
+CRITICAL (10:49:22): Original:
+CRITICAL (10:49:22): Candidato creado.
+CRITICAL (10:49:23): Subsistema creado.
+CRITICAL (10:49:23): empieza.
+  Geo2=.CRITICAL (10:49:24): Original creado.
+CRITICAL (10:49:24): Original:
+CRITICAL (10:49:24): Candidato creado.
+CRITICAL (10:49:25): Subsistema creado.
+CRITICAL (10:49:25): empieza.
+CRITICAL (10:49:26): Original creado.
+CRITICAL (10:49:26): Original:
+CRITICAL (10:49:26): Candidato creado.
+CRITICAL (10:49:27): Subsistema creado.
+CRITICAL (10:49:27): empieza.
+  k3(Q.G.)CRITICAL (10:49:28): Original creado.
+CRITICAL (10:49:28): Original:
+CRITICAL (10:49:28): Candidato creado.
+CRITICAL (10:49:29): Subsistema creado.
+CRITICAL (10:49:29): empieza.
+CRITICAL (10:49:30): Original creado.
+CRITICAL (10:49:30): Original:
+CRITICAL (10:49:30): Candidato creado.
+CRITICAL (10:49:31): Subsistema creado.
+CRITICAL (10:49:31): empieza.
+  k4(Q.G.)CRITICAL (10:49:32): Original creado.
+CRITICAL (10:49:32): Original:
+CRITICAL (10:49:32): Candidato creado.
+CRITICAL (10:49:33): Subsistema creado.
+CRITICAL (10:49:33): empieza.
+CRITICAL (10:49:34): Original creado.
+CRITICAL (10:49:34): Original:
+CRITICAL (10:49:34): Candidato creado.
+CRITICAL (10:49:35): Subsistema creado.
+CRITICAL (10:49:35): empieza.
+  k5(Q.G.)
+  # 35/49  ABDEGHJ        / BDFHJCRITICAL (10:49:36): Original creado.
+CRITICAL (10:49:36): Original:
+CRITICAL (10:49:37): Candidato creado.
+CRITICAL (10:49:37): Subsistema creado.
+  QN2=.CRITICAL (10:49:38): Original creado.
+CRITICAL (10:49:39): Original:
+CRITICAL (10:49:39): Candidato creado.
+CRITICAL (10:49:39): Subsistema creado.
+CRITICAL (10:49:40): empieza.
+  Geo2=.CRITICAL (10:49:40): Original creado.
+CRITICAL (10:49:41): Original:
+CRITICAL (10:49:41): Candidato creado.
+CRITICAL (10:49:42): Subsistema creado.
+CRITICAL (10:49:42): empieza.
+CRITICAL (10:49:42): Original creado.
+CRITICAL (10:49:43): Original:
+CRITICAL (10:49:43): Candidato creado.
+CRITICAL (10:49:44): Subsistema creado.
+CRITICAL (10:49:44): empieza.
+  k3(Q.G.)CRITICAL (10:49:45): Original creado.
+CRITICAL (10:49:45): Original:
+CRITICAL (10:49:45): Candidato creado.
+CRITICAL (10:49:46): Subsistema creado.
+CRITICAL (10:49:46): empieza.
+CRITICAL (10:49:47): Original creado.
+CRITICAL (10:49:47): Original:
+CRITICAL (10:49:47): Candidato creado.
+CRITICAL (10:49:48): Subsistema creado.
+CRITICAL (10:49:48): empieza.
+  k4(Q.G.)CRITICAL (10:49:49): Original creado.
+CRITICAL (10:49:49): Original:
+CRITICAL (10:49:50): Candidato creado.
+CRITICAL (10:49:50): Subsistema creado.
+CRITICAL (10:49:51): empieza.
+CRITICAL (10:49:51): Original creado.
+CRITICAL (10:49:52): Original:
+CRITICAL (10:49:52): Candidato creado.
+CRITICAL (10:49:52): Subsistema creado.
+CRITICAL (10:49:53): empieza.
+  k5(Q.G.)
+  # 36/49  ACEGI          / ABCDEFGHIJCRITICAL (10:49:53): Original creado.
+CRITICAL (10:49:54): Original:
+CRITICAL (10:49:54): Candidato creado.
+CRITICAL (10:49:55): Subsistema creado.
+  QN2=.CRITICAL (10:49:57): Original creado.
+CRITICAL (10:49:58): Original:
+CRITICAL (10:49:58): Candidato creado.
+CRITICAL (10:49:58): Subsistema creado.
+CRITICAL (10:49:59): empieza.
+  Geo2=.CRITICAL (10:50:00): Original creado.
+CRITICAL (10:50:00): Original:
+CRITICAL (10:50:00): Candidato creado.
+CRITICAL (10:50:01): Subsistema creado.
+CRITICAL (10:50:01): empieza.
+CRITICAL (10:50:02): Original creado.
+CRITICAL (10:50:02): Original:
+CRITICAL (10:50:03): Candidato creado.
+CRITICAL (10:50:03): Subsistema creado.
+CRITICAL (10:50:04): empieza.
+  k3(Q.G.)CRITICAL (10:50:05): Original creado.
+CRITICAL (10:50:05): Original:
+CRITICAL (10:50:05): Candidato creado.
+CRITICAL (10:50:06): Subsistema creado.
+CRITICAL (10:50:06): empieza.
+CRITICAL (10:50:07): Original creado.
+CRITICAL (10:50:07): Original:
+CRITICAL (10:50:08): Candidato creado.
+CRITICAL (10:50:08): Subsistema creado.
+CRITICAL (10:50:09): empieza.
+  k4(Q.G.)CRITICAL (10:50:10): Original creado.
+CRITICAL (10:50:10): Original:
+CRITICAL (10:50:10): Candidato creado.
+CRITICAL (10:50:11): Subsistema creado.
+CRITICAL (10:50:11): empieza.
+CRITICAL (10:50:12): Original creado.
+CRITICAL (10:50:13): Original:
+CRITICAL (10:50:13): Candidato creado.
+CRITICAL (10:50:13): Subsistema creado.
+CRITICAL (10:50:14): empieza.
+  k5(Q.G.)
+  # 37/49  ACEGI          / ABCDEFGHICRITICAL (10:50:15): Original creado.
+CRITICAL (10:50:15): Original:
+CRITICAL (10:50:16): Candidato creado.
+CRITICAL (10:50:16): Subsistema creado.
+  QN2=.CRITICAL (10:50:18): Original creado.
+CRITICAL (10:50:19): Original:
+CRITICAL (10:50:19): Candidato creado.
+CRITICAL (10:50:19): Subsistema creado.
+CRITICAL (10:50:20): empieza.
+  Geo2=.CRITICAL (10:50:21): Original creado.
+CRITICAL (10:50:21): Original:
+CRITICAL (10:50:21): Candidato creado.
+CRITICAL (10:50:22): Subsistema creado.
+CRITICAL (10:50:22): empieza.
+CRITICAL (10:50:23): Original creado.
+CRITICAL (10:50:23): Original:
+CRITICAL (10:50:24): Candidato creado.
+CRITICAL (10:50:24): Subsistema creado.
+CRITICAL (10:50:25): empieza.
+  k3(Q.G.)CRITICAL (10:50:26): Original creado.
+CRITICAL (10:50:26): Original:
+CRITICAL (10:50:26): Candidato creado.
+CRITICAL (10:50:27): Subsistema creado.
+CRITICAL (10:50:27): empieza.
+CRITICAL (10:50:28): Original creado.
+CRITICAL (10:50:28): Original:
+CRITICAL (10:50:29): Candidato creado.
+CRITICAL (10:50:29): Subsistema creado.
+CRITICAL (10:50:30): empieza.
+  k4(Q.G.)CRITICAL (10:50:31): Original creado.
+CRITICAL (10:50:31): Original:
+CRITICAL (10:50:32): Candidato creado.
+CRITICAL (10:50:32): Subsistema creado.
+CRITICAL (10:50:32): empieza.
+CRITICAL (10:50:33): Original creado.
+CRITICAL (10:50:34): Original:
+CRITICAL (10:50:34): Candidato creado.
+CRITICAL (10:50:34): Subsistema creado.
+CRITICAL (10:50:35): empieza.
+  k5(Q.G.)
+  # 38/49  ACEGI          / BCDEFGHIJCRITICAL (10:50:36): Original creado.
+CRITICAL (10:50:36): Original:
+CRITICAL (10:50:37): Candidato creado.
+CRITICAL (10:50:37): Subsistema creado.
+  QN2=.CRITICAL (10:50:39): Original creado.
+CRITICAL (10:50:40): Original:
+CRITICAL (10:50:40): Candidato creado.
+CRITICAL (10:50:41): Subsistema creado.
+CRITICAL (10:50:41): empieza.
+  Geo2=.CRITICAL (10:50:42): Original creado.
+CRITICAL (10:50:42): Original:
+CRITICAL (10:50:43): Candidato creado.
+CRITICAL (10:50:43): Subsistema creado.
+CRITICAL (10:50:44): empieza.
+CRITICAL (10:50:44): Original creado.
+CRITICAL (10:50:45): Original:
+CRITICAL (10:50:45): Candidato creado.
+CRITICAL (10:50:46): Subsistema creado.
+CRITICAL (10:50:46): empieza.
+  k3(Q.G.)CRITICAL (10:50:47): Original creado.
+CRITICAL (10:50:47): Original:
+CRITICAL (10:50:48): Candidato creado.
+CRITICAL (10:50:48): Subsistema creado.
+CRITICAL (10:50:49): empieza.
+CRITICAL (10:50:50): Original creado.
+CRITICAL (10:50:50): Original:
+CRITICAL (10:50:50): Candidato creado.
+CRITICAL (10:50:51): Subsistema creado.
+CRITICAL (10:50:51): empieza.
+  k4(Q.G.)CRITICAL (10:50:52): Original creado.
+CRITICAL (10:50:53): Original:
+CRITICAL (10:50:53): Candidato creado.
+CRITICAL (10:50:54): Subsistema creado.
+CRITICAL (10:50:54): empieza.
+CRITICAL (10:50:55): Original creado.
+CRITICAL (10:50:55): Original:
+CRITICAL (10:50:56): Candidato creado.
+CRITICAL (10:50:56): Subsistema creado.
+CRITICAL (10:50:57): empieza.
+  k5(Q.G.)
+  # 39/49  ACEGI          / BCDEFGHICRITICAL (10:50:58): Original creado.
+CRITICAL (10:50:58): Original:
+CRITICAL (10:50:59): Candidato creado.
+CRITICAL (10:50:59): Subsistema creado.
+  QN2=.CRITICAL (10:51:01): Original creado.
+CRITICAL (10:51:01): Original:
+CRITICAL (10:51:02): Candidato creado.
+CRITICAL (10:51:02): Subsistema creado.
+CRITICAL (10:51:03): empieza.
+  Geo2=.CRITICAL (10:51:04): Original creado.
+CRITICAL (10:51:04): Original:
+CRITICAL (10:51:05): Candidato creado.
+CRITICAL (10:51:05): Subsistema creado.
+CRITICAL (10:51:05): empieza.
+CRITICAL (10:51:06): Original creado.
+CRITICAL (10:51:07): Original:
+CRITICAL (10:51:07): Candidato creado.
+CRITICAL (10:51:08): Subsistema creado.
+CRITICAL (10:51:08): empieza.
+  k3(Q.G.)CRITICAL (10:51:09): Original creado.
+CRITICAL (10:51:09): Original:
+CRITICAL (10:51:10): Candidato creado.
+CRITICAL (10:51:10): Subsistema creado.
+CRITICAL (10:51:11): empieza.
+CRITICAL (10:51:12): Original creado.
+CRITICAL (10:51:12): Original:
+CRITICAL (10:51:13): Candidato creado.
+CRITICAL (10:51:13): Subsistema creado.
+CRITICAL (10:51:14): empieza.
+  k4(Q.G.)CRITICAL (10:51:14): Original creado.
+CRITICAL (10:51:15): Original:
+CRITICAL (10:51:15): Candidato creado.
+CRITICAL (10:51:16): Subsistema creado.
+CRITICAL (10:51:16): empieza.
+CRITICAL (10:51:17): Original creado.
+CRITICAL (10:51:18): Original:
+CRITICAL (10:51:18): Candidato creado.
+CRITICAL (10:51:19): Subsistema creado.
+CRITICAL (10:51:19): empieza.
+  k5(Q.G.)
+  # 40/49  ACEGI          / ABDEGHJCRITICAL (10:51:20): Original creado.
+CRITICAL (10:51:21): Original:
+CRITICAL (10:51:21): Candidato creado.
+CRITICAL (10:51:22): Subsistema creado.
+  QN2=.CRITICAL (10:51:23): Original creado.
+CRITICAL (10:51:24): Original:
+CRITICAL (10:51:24): Candidato creado.
+CRITICAL (10:51:25): Subsistema creado.
+CRITICAL (10:51:25): empieza.
+  Geo2=.CRITICAL (10:51:26): Original creado.
+CRITICAL (10:51:26): Original:
+CRITICAL (10:51:27): Candidato creado.
+CRITICAL (10:51:27): Subsistema creado.
+CRITICAL (10:51:28): empieza.
+CRITICAL (10:51:29): Original creado.
+CRITICAL (10:51:29): Original:
+CRITICAL (10:51:30): Candidato creado.
+CRITICAL (10:51:30): Subsistema creado.
+CRITICAL (10:51:31): empieza.
+  k3(Q.G.)CRITICAL (10:51:31): Original creado.
+CRITICAL (10:51:32): Original:
+CRITICAL (10:51:32): Candidato creado.
+CRITICAL (10:51:33): Subsistema creado.
+CRITICAL (10:51:33): empieza.
+CRITICAL (10:51:34): Original creado.
+CRITICAL (10:51:35): Original:
+CRITICAL (10:51:35): Candidato creado.
+CRITICAL (10:51:36): Subsistema creado.
+CRITICAL (10:51:36): empieza.
+  k4(Q.G.)CRITICAL (10:51:37): Original creado.
+CRITICAL (10:51:38): Original:
+CRITICAL (10:51:38): Candidato creado.
+CRITICAL (10:51:39): Subsistema creado.
+CRITICAL (10:51:39): empieza.
+CRITICAL (10:51:40): Original creado.
+CRITICAL (10:51:40): Original:
+CRITICAL (10:51:41): Candidato creado.
+CRITICAL (10:51:42): Subsistema creado.
+CRITICAL (10:51:42): empieza.
+  k5(Q.G.)
+  # 41/49  ACEGI          / ACEGICRITICAL (10:51:43): Original creado.
+CRITICAL (10:51:44): Original:
+CRITICAL (10:51:44): Candidato creado.
+CRITICAL (10:51:45): Subsistema creado.
+  QN2=.CRITICAL (10:51:46): Original creado.
+CRITICAL (10:51:46): Original:
+CRITICAL (10:51:47): Candidato creado.
+CRITICAL (10:51:47): Subsistema creado.
+CRITICAL (10:51:48): empieza.
+  Geo2=.CRITICAL (10:51:49): Original creado.
+CRITICAL (10:51:49): Original:
+CRITICAL (10:51:50): Candidato creado.
+CRITICAL (10:51:50): Subsistema creado.
+CRITICAL (10:51:51): empieza.
+CRITICAL (10:51:52): Original creado.
+CRITICAL (10:51:52): Original:
+CRITICAL (10:51:53): Candidato creado.
+CRITICAL (10:51:53): Subsistema creado.
+CRITICAL (10:51:54): empieza.
+  k3(Q.G.)CRITICAL (10:51:55): Original creado.
+CRITICAL (10:51:55): Original:
+CRITICAL (10:51:56): Candidato creado.
+CRITICAL (10:51:56): Subsistema creado.
+CRITICAL (10:51:57): empieza.
+CRITICAL (10:51:57): Original creado.
+CRITICAL (10:51:58): Original:
+CRITICAL (10:51:59): Candidato creado.
+CRITICAL (10:51:59): Subsistema creado.
+CRITICAL (10:52:00): empieza.
+  k4(Q.G.)CRITICAL (10:52:01): Original creado.
+CRITICAL (10:52:01): Original:
+CRITICAL (10:52:02): Candidato creado.
+CRITICAL (10:52:02): Subsistema creado.
+CRITICAL (10:52:03): empieza.
+CRITICAL (10:52:03): Original creado.
+CRITICAL (10:52:04): Original:
+CRITICAL (10:52:05): Candidato creado.
+CRITICAL (10:52:05): Subsistema creado.
+CRITICAL (10:52:06): empieza.
+  k5(Q.G.)
+  # 42/49  ACEGI          / BDFHJCRITICAL (10:52:07): Original creado.
+CRITICAL (10:52:07): Original:
+CRITICAL (10:52:08): Candidato creado.
+CRITICAL (10:52:08): Subsistema creado.
+  QN2=.CRITICAL (10:52:09): Original creado.
+CRITICAL (10:52:10): Original:
+CRITICAL (10:52:10): Candidato creado.
+CRITICAL (10:52:11): Subsistema creado.
+CRITICAL (10:52:12): empieza.
+  Geo2=.CRITICAL (10:52:12): Original creado.
+CRITICAL (10:52:13): Original:
+CRITICAL (10:52:14): Candidato creado.
+CRITICAL (10:52:14): Subsistema creado.
+CRITICAL (10:52:15): empieza.
+CRITICAL (10:52:15): Original creado.
+CRITICAL (10:52:16): Original:
+CRITICAL (10:52:17): Candidato creado.
+CRITICAL (10:52:17): Subsistema creado.
+CRITICAL (10:52:18): empieza.
+  k3(Q.G.)CRITICAL (10:52:19): Original creado.
+CRITICAL (10:52:19): Original:
+CRITICAL (10:52:20): Candidato creado.
+CRITICAL (10:52:20): Subsistema creado.
+CRITICAL (10:52:21): empieza.
+CRITICAL (10:52:22): Original creado.
+CRITICAL (10:52:22): Original:
+CRITICAL (10:52:23): Candidato creado.
+CRITICAL (10:52:23): Subsistema creado.
+CRITICAL (10:52:24): empieza.
+  k4(Q.G.)CRITICAL (10:52:25): Original creado.
+CRITICAL (10:52:26): Original:
+CRITICAL (10:52:26): Candidato creado.
+CRITICAL (10:52:27): Subsistema creado.
+CRITICAL (10:52:27): empieza.
+CRITICAL (10:52:28): Original creado.
+CRITICAL (10:52:29): Original:
+CRITICAL (10:52:29): Candidato creado.
+CRITICAL (10:52:30): Subsistema creado.
+CRITICAL (10:52:31): empieza.
+  k5(Q.G.)
+  # 43/49  BDFHJ          / ABCDEFGHIJCRITICAL (10:52:32): Original creado.
+CRITICAL (10:52:32): Original:
+CRITICAL (10:52:33): Candidato creado.
+CRITICAL (10:52:33): Subsistema creado.
+  QN2=.CRITICAL (10:52:36): Original creado.
+CRITICAL (10:52:37): Original:
+CRITICAL (10:52:37): Candidato creado.
+CRITICAL (10:52:38): Subsistema creado.
+CRITICAL (10:52:38): empieza.
+  Geo2=.CRITICAL (10:52:39): Original creado.
+CRITICAL (10:52:40): Original:
+CRITICAL (10:52:41): Candidato creado.
+CRITICAL (10:52:41): Subsistema creado.
+CRITICAL (10:52:42): empieza.
+CRITICAL (10:52:43): Original creado.
+CRITICAL (10:52:44): Original:
+CRITICAL (10:52:44): Candidato creado.
+CRITICAL (10:52:45): Subsistema creado.
+CRITICAL (10:52:45): empieza.
+  k3(Q.G.)CRITICAL (10:52:47): Original creado.
+CRITICAL (10:52:47): Original:
+CRITICAL (10:52:48): Candidato creado.
+CRITICAL (10:52:48): Subsistema creado.
+CRITICAL (10:52:49): empieza.
+CRITICAL (10:52:50): Original creado.
+CRITICAL (10:52:51): Original:
+CRITICAL (10:52:51): Candidato creado.
+CRITICAL (10:52:52): Subsistema creado.
+CRITICAL (10:52:53): empieza.
+  k4(Q.G.)CRITICAL (10:52:54): Original creado.
+CRITICAL (10:52:54): Original:
+CRITICAL (10:52:55): Candidato creado.
+CRITICAL (10:52:56): Subsistema creado.
+CRITICAL (10:52:56): empieza.
+CRITICAL (10:52:57): Original creado.
+CRITICAL (10:52:58): Original:
+CRITICAL (10:52:59): Candidato creado.
+CRITICAL (10:52:59): Subsistema creado.
+CRITICAL (10:53:00): empieza.
+  k5(Q.G.)
+  # 44/49  BDFHJ          / ABCDEFGHICRITICAL (10:53:01): Original creado.
+CRITICAL (10:53:02): Original:
+CRITICAL (10:53:03): Candidato creado.
+CRITICAL (10:53:03): Subsistema creado.
+  QN2=.CRITICAL (10:53:05): Original creado.
+CRITICAL (10:53:06): Original:
+CRITICAL (10:53:07): Candidato creado.
+CRITICAL (10:53:07): Subsistema creado.
+CRITICAL (10:53:08): empieza.
+  Geo2=.CRITICAL (10:53:09): Original creado.
+CRITICAL (10:53:09): Original:
+CRITICAL (10:53:10): Candidato creado.
+CRITICAL (10:53:11): Subsistema creado.
+CRITICAL (10:53:11): empieza.
+CRITICAL (10:53:12): Original creado.
+CRITICAL (10:53:13): Original:
+CRITICAL (10:53:13): Candidato creado.
+CRITICAL (10:53:14): Subsistema creado.
+CRITICAL (10:53:15): empieza.
+  k3(Q.G.)CRITICAL (10:53:16): Original creado.
+CRITICAL (10:53:16): Original:
+CRITICAL (10:53:17): Candidato creado.
+CRITICAL (10:53:18): Subsistema creado.
+CRITICAL (10:53:18): empieza.
+CRITICAL (10:53:19): Original creado.
+CRITICAL (10:53:20): Original:
+CRITICAL (10:53:21): Candidato creado.
+CRITICAL (10:53:21): Subsistema creado.
+CRITICAL (10:53:22): empieza.
+  k4(Q.G.)CRITICAL (10:53:23): Original creado.
+CRITICAL (10:53:24): Original:
+CRITICAL (10:53:24): Candidato creado.
+CRITICAL (10:53:25): Subsistema creado.
+CRITICAL (10:53:25): empieza.
+CRITICAL (10:53:27): Original creado.
+CRITICAL (10:53:27): Original:
+CRITICAL (10:53:28): Candidato creado.
+CRITICAL (10:53:28): Subsistema creado.
+CRITICAL (10:53:29): empieza.
+  k5(Q.G.)
+  # 45/49  BDFHJ          / BCDEFGHIJCRITICAL (10:53:30): Original creado.
+CRITICAL (10:53:31): Original:
+CRITICAL (10:53:32): Candidato creado.
+CRITICAL (10:53:32): Subsistema creado.
+  QN2=.CRITICAL (10:53:35): Original creado.
+CRITICAL (10:53:35): Original:
+CRITICAL (10:53:36): Candidato creado.
+CRITICAL (10:53:36): Subsistema creado.
+CRITICAL (10:53:37): empieza.
+  Geo2=.CRITICAL (10:53:38): Original creado.
+CRITICAL (10:53:39): Original:
+CRITICAL (10:53:40): Candidato creado.
+CRITICAL (10:53:40): Subsistema creado.
+CRITICAL (10:53:41): empieza.
+CRITICAL (10:53:42): Original creado.
+CRITICAL (10:53:43): Original:
+CRITICAL (10:53:43): Candidato creado.
+CRITICAL (10:53:44): Subsistema creado.
+CRITICAL (10:53:44): empieza.
+  k3(Q.G.)CRITICAL (10:53:46): Original creado.
+CRITICAL (10:53:46): Original:
+CRITICAL (10:53:47): Candidato creado.
+CRITICAL (10:53:48): Subsistema creado.
+CRITICAL (10:53:48): empieza.
+CRITICAL (10:53:49): Original creado.
+CRITICAL (10:53:50): Original:
+CRITICAL (10:53:51): Candidato creado.
+CRITICAL (10:53:51): Subsistema creado.
+CRITICAL (10:53:52): empieza.
+  k4(Q.G.)CRITICAL (10:53:53): Original creado.
+CRITICAL (10:53:54): Original:
+CRITICAL (10:53:54): Candidato creado.
+CRITICAL (10:53:55): Subsistema creado.
+CRITICAL (10:53:56): empieza.
+CRITICAL (10:53:57): Original creado.
+CRITICAL (10:53:58): Original:
+CRITICAL (10:53:58): Candidato creado.
+CRITICAL (10:53:59): Subsistema creado.
+CRITICAL (10:54:00): empieza.
+  k5(Q.G.)
+  # 46/49  BDFHJ          / BCDEFGHICRITICAL (10:54:01): Original creado.
+CRITICAL (10:54:02): Original:
+CRITICAL (10:54:02): Candidato creado.
+CRITICAL (10:54:03): Subsistema creado.
+  QN2=.CRITICAL (10:54:05): Original creado.
+CRITICAL (10:54:06): Original:
+CRITICAL (10:54:06): Candidato creado.
+CRITICAL (10:54:07): Subsistema creado.
+CRITICAL (10:54:08): empieza.
+  Geo2=.CRITICAL (10:54:09): Original creado.
+CRITICAL (10:54:09): Original:
+CRITICAL (10:54:10): Candidato creado.
+CRITICAL (10:54:11): Subsistema creado.
+CRITICAL (10:54:11): empieza.
+CRITICAL (10:54:12): Original creado.
+CRITICAL (10:54:13): Original:
+CRITICAL (10:54:14): Candidato creado.
+CRITICAL (10:54:14): Subsistema creado.
+CRITICAL (10:54:15): empieza.
+  k3(Q.G.)CRITICAL (10:54:16): Original creado.
+CRITICAL (10:54:17): Original:
+CRITICAL (10:54:18): Candidato creado.
+CRITICAL (10:54:18): Subsistema creado.
+CRITICAL (10:54:19): empieza.
+CRITICAL (10:54:20): Original creado.
+CRITICAL (10:54:21): Original:
+CRITICAL (10:54:21): Candidato creado.
+CRITICAL (10:54:22): Subsistema creado.
+CRITICAL (10:54:23): empieza.
+  k4(Q.G.)CRITICAL (10:54:24): Original creado.
+CRITICAL (10:54:25): Original:
+CRITICAL (10:54:25): Candidato creado.
+CRITICAL (10:54:26): Subsistema creado.
+CRITICAL (10:54:27): empieza.
+CRITICAL (10:54:28): Original creado.
+CRITICAL (10:54:29): Original:
+CRITICAL (10:54:29): Candidato creado.
+CRITICAL (10:54:30): Subsistema creado.
+CRITICAL (10:54:31): empieza.
+  k5(Q.G.)
+  # 47/49  BDFHJ          / ABDEGHJCRITICAL (10:54:32): Original creado.
+CRITICAL (10:54:33): Original:
+CRITICAL (10:54:33): Candidato creado.
+CRITICAL (10:54:34): Subsistema creado.
+  QN2=.CRITICAL (10:54:36): Original creado.
+CRITICAL (10:54:36): Original:
+CRITICAL (10:54:37): Candidato creado.
+CRITICAL (10:54:38): Subsistema creado.
+CRITICAL (10:54:39): empieza.
+  Geo2=.CRITICAL (10:54:40): Original creado.
+CRITICAL (10:54:40): Original:
+CRITICAL (10:54:41): Candidato creado.
+CRITICAL (10:54:42): Subsistema creado.
+CRITICAL (10:54:42): empieza.
+CRITICAL (10:54:43): Original creado.
+CRITICAL (10:54:44): Original:
+CRITICAL (10:54:45): Candidato creado.
+CRITICAL (10:54:46): Subsistema creado.
+CRITICAL (10:54:46): empieza.
+  k3(Q.G.)CRITICAL (10:54:47): Original creado.
+CRITICAL (10:54:48): Original:
+CRITICAL (10:54:49): Candidato creado.
+CRITICAL (10:54:50): Subsistema creado.
+CRITICAL (10:54:50): empieza.
+CRITICAL (10:54:51): Original creado.
+CRITICAL (10:54:52): Original:
+CRITICAL (10:54:53): Candidato creado.
+CRITICAL (10:54:54): Subsistema creado.
+CRITICAL (10:54:54): empieza.
+  k4(Q.G.)CRITICAL (10:54:55): Original creado.
+CRITICAL (10:54:56): Original:
+CRITICAL (10:54:57): Candidato creado.
+CRITICAL (10:54:58): Subsistema creado.
+CRITICAL (10:54:58): empieza.
+CRITICAL (10:54:59): Original creado.
+CRITICAL (10:55:00): Original:
+CRITICAL (10:55:01): Candidato creado.
+CRITICAL (10:55:02): Subsistema creado.
+CRITICAL (10:55:02): empieza.
+  k5(Q.G.)
+  # 48/49  BDFHJ          / ACEGICRITICAL (10:55:04): Original creado.
+CRITICAL (10:55:04): Original:
+CRITICAL (10:55:05): Candidato creado.
+CRITICAL (10:55:06): Subsistema creado.
+  QN2=.CRITICAL (10:55:07): Original creado.
+CRITICAL (10:55:08): Original:
+CRITICAL (10:55:09): Candidato creado.
+CRITICAL (10:55:09): Subsistema creado.
+CRITICAL (10:55:10): empieza.
+  Geo2=.CRITICAL (10:55:11): Original creado.
+CRITICAL (10:55:12): Original:
+CRITICAL (10:55:13): Candidato creado.
+CRITICAL (10:55:13): Subsistema creado.
+CRITICAL (10:55:14): empieza.
+CRITICAL (10:55:15): Original creado.
+CRITICAL (10:55:16): Original:
+CRITICAL (10:55:17): Candidato creado.
+CRITICAL (10:55:17): Subsistema creado.
+CRITICAL (10:55:18): empieza.
+  k3(Q.G.)CRITICAL (10:55:19): Original creado.
+CRITICAL (10:55:20): Original:
+CRITICAL (10:55:21): Candidato creado.
+CRITICAL (10:55:22): Subsistema creado.
+CRITICAL (10:55:22): empieza.
+CRITICAL (10:55:23): Original creado.
+CRITICAL (10:55:24): Original:
+CRITICAL (10:55:25): Candidato creado.
+CRITICAL (10:55:26): Subsistema creado.
+CRITICAL (10:55:26): empieza.
+  k4(Q.G.)CRITICAL (10:55:28): Original creado.
+CRITICAL (10:55:28): Original:
+CRITICAL (10:55:29): Candidato creado.
+CRITICAL (10:55:30): Subsistema creado.
+CRITICAL (10:55:31): empieza.
+CRITICAL (10:55:32): Original creado.
+CRITICAL (10:55:33): Original:
+CRITICAL (10:55:33): Candidato creado.
+CRITICAL (10:55:34): Subsistema creado.
+CRITICAL (10:55:35): empieza.
+  k5(Q.G.)
+  # 49/49  BDFHJ          / BDFHJCRITICAL (10:55:36): Original creado.
+CRITICAL (10:55:37): Original:
+CRITICAL (10:55:38): Candidato creado.
+CRITICAL (10:55:38): Subsistema creado.
+  QN2=.CRITICAL (10:55:40): Original creado.
+CRITICAL (10:55:41): Original:
+CRITICAL (10:55:41): Candidato creado.
+CRITICAL (10:55:42): Subsistema creado.
+CRITICAL (10:55:43): empieza.
+  Geo2=.CRITICAL (10:55:44): Original creado.
+CRITICAL (10:55:45): Original:
+CRITICAL (10:55:46): Candidato creado.
+CRITICAL (10:55:46): Subsistema creado.
+CRITICAL (10:55:47): empieza.
+CRITICAL (10:55:48): Original creado.
+CRITICAL (10:55:49): Original:
+CRITICAL (10:55:50): Candidato creado.
+CRITICAL (10:55:51): Subsistema creado.
+CRITICAL (10:55:51): empieza.
+  k3(Q.G.)CRITICAL (10:55:53): Original creado.
+CRITICAL (10:55:53): Original:
+CRITICAL (10:55:54): Candidato creado.
+CRITICAL (10:55:55): Subsistema creado.
+CRITICAL (10:55:56): empieza.
+CRITICAL (10:55:57): Original creado.
+CRITICAL (10:55:58): Original:
+CRITICAL (10:55:58): Candidato creado.
+CRITICAL (10:55:59): Subsistema creado.
+CRITICAL (10:56:00): empieza.
+  k4(Q.G.)CRITICAL (10:56:01): Original creado.
+CRITICAL (10:56:02): Original:
+CRITICAL (10:56:03): Candidato creado.
+CRITICAL (10:56:04): Subsistema creado.
+CRITICAL (10:56:05): empieza.
+CRITICAL (10:56:06): Original creado.
+CRITICAL (10:56:07): Original:
+CRITICAL (10:56:07): Candidato creado.
+CRITICAL (10:56:08): Subsistema creado.
+CRITICAL (10:56:09): empieza.
+  k5(Q.G.)
+  n=10 completado: 49 filas
+
+=================================================================
+n=15  TPM=N15A.csv  casos=50  timeout=300s/estrategia
+=================================================================
+  #  1/50  ABCDEFGHIJKLMN / ABCDEFGHIJKLMNCRITICAL (10:56:12): Original creado.
+CRITICAL (10:56:12): Original:
+CRITICAL (10:56:13): Candidato creado.
+CRITICAL (10:56:14): Subsistema creado.
+  QN2=.CRITICAL (10:57:58): Original creado.
+CRITICAL (10:57:59): Original:
+CRITICAL (10:57:59): Candidato creado.
+CRITICAL (10:58:00): Subsistema creado.
+CRITICAL (10:58:01): empieza.
+  Geo2=.CRITICAL (10:58:18): Original creado.
+CRITICAL (10:58:19): Original:
+CRITICAL (10:58:20): Candidato creado.
+CRITICAL (10:58:21): Subsistema creado.
+CRITICAL (10:58:22): empieza.
+CRITICAL (10:58:39): Original creado.
+CRITICAL (10:58:40): Original:
+CRITICAL (10:58:41): Candidato creado.
+CRITICAL (10:58:42): Subsistema creado.
+CRITICAL (10:58:43): empieza.
+  k3(Q.G.)CRITICAL (10:59:01): Original creado.
+CRITICAL (10:59:01): Original:
+CRITICAL (10:59:02): Candidato creado.
+CRITICAL (10:59:03): Subsistema creado.
+CRITICAL (10:59:04): empieza.
+CRITICAL (10:59:22): Original creado.
+CRITICAL (10:59:23): Original:
+CRITICAL (10:59:24): Candidato creado.
+CRITICAL (10:59:25): Subsistema creado.
+CRITICAL (10:59:25): empieza.
+  k4(Q.G.)CRITICAL (10:59:43): Original creado.
+CRITICAL (10:59:44): Original:
+CRITICAL (10:59:45): Candidato creado.
+CRITICAL (10:59:46): Subsistema creado.
+CRITICAL (10:59:47): empieza.
+CRITICAL (11:00:05): Original creado.
+CRITICAL (11:00:06): Original:
+CRITICAL (11:00:07): Candidato creado.
+CRITICAL (11:00:08): Subsistema creado.
+CRITICAL (11:00:08): empieza.
+  k5(Q.G.)
+  #  2/50  ABCDEFGHIJKLMN / ABCDEFGHIJKLMNCRITICAL (11:00:27): Original creado.
+CRITICAL (11:00:28): Original:
+CRITICAL (11:00:29): Candidato creado.
+CRITICAL (11:00:30): Subsistema creado.
+  QN2=.CRITICAL (11:01:31): Original creado.
+CRITICAL (11:01:32): Original:
+CRITICAL (11:01:33): Candidato creado.
+CRITICAL (11:01:34): Subsistema creado.
+CRITICAL (11:01:35): empieza.
+  Geo2=.CRITICAL (11:01:44): Original creado.
+CRITICAL (11:01:44): Original:
+CRITICAL (11:01:45): Candidato creado.
+CRITICAL (11:01:46): Subsistema creado.
+CRITICAL (11:01:47): empieza.
+CRITICAL (11:01:56): Original creado.
+CRITICAL (11:01:57): Original:
+CRITICAL (11:01:58): Candidato creado.
+CRITICAL (11:01:59): Subsistema creado.
+CRITICAL (11:02:00): empieza.
+  k3(Q.G.)CRITICAL (11:02:09): Original creado.
+CRITICAL (11:02:10): Original:
+CRITICAL (11:02:11): Candidato creado.
+CRITICAL (11:02:12): Subsistema creado.
+CRITICAL (11:02:12): empieza.
+CRITICAL (11:02:22): Original creado.
+CRITICAL (11:02:23): Original:
+CRITICAL (11:02:24): Candidato creado.
+CRITICAL (11:02:24): Subsistema creado.
+CRITICAL (11:02:25): empieza.
+  k4(Q.G.)CRITICAL (11:02:35): Original creado.
+CRITICAL (11:02:36): Original:
+CRITICAL (11:02:37): Candidato creado.
+CRITICAL (11:02:37): Subsistema creado.
+CRITICAL (11:02:38): empieza.
+CRITICAL (11:02:48): Original creado.
+CRITICAL (11:02:49): Original:
+CRITICAL (11:02:50): Candidato creado.
+CRITICAL (11:02:51): Subsistema creado.
+CRITICAL (11:02:52): empieza.
+  k5(Q.G.)
+  #  3/50  ABCDEFGHIJKLMN / BCDEFGHIJKLMNOCRITICAL (11:03:01): Original creado.
+CRITICAL (11:03:02): Original:
+CRITICAL (11:03:03): Candidato creado.
+CRITICAL (11:03:04): Subsistema creado.
+  QN2=.CRITICAL (11:04:04): Original creado.
+CRITICAL (11:04:05): Original:
+CRITICAL (11:04:06): Candidato creado.
+CRITICAL (11:04:07): Subsistema creado.
+CRITICAL (11:04:08): empieza.
+  Geo2=.CRITICAL (11:04:17): Original creado.
+CRITICAL (11:04:17): Original:
+CRITICAL (11:04:18): Candidato creado.
+CRITICAL (11:04:19): Subsistema creado.
+CRITICAL (11:04:20): empieza.
+CRITICAL (11:04:29): Original creado.
+CRITICAL (11:04:30): Original:
+CRITICAL (11:04:31): Candidato creado.
+CRITICAL (11:04:32): Subsistema creado.
+CRITICAL (11:04:33): empieza.
+  k3(Q.G.)CRITICAL (11:04:42): Original creado.
+CRITICAL (11:04:43): Original:
+CRITICAL (11:04:44): Candidato creado.
+CRITICAL (11:04:45): Subsistema creado.
+CRITICAL (11:04:46): empieza.
+CRITICAL (11:04:55): Original creado.
+CRITICAL (11:04:56): Original:
+CRITICAL (11:04:57): Candidato creado.
+CRITICAL (11:04:58): Subsistema creado.
+CRITICAL (11:04:59): empieza.
+  k4(Q.G.)CRITICAL (11:05:09): Original creado.
+CRITICAL (11:05:10): Original:
+CRITICAL (11:05:11): Candidato creado.
+CRITICAL (11:05:11): Subsistema creado.
+CRITICAL (11:05:12): empieza.
+CRITICAL (11:05:23): Original creado.
+CRITICAL (11:05:23): Original:
+CRITICAL (11:05:24): Candidato creado.
+CRITICAL (11:05:25): Subsistema creado.
+CRITICAL (11:05:26): empieza.
+  k5(Q.G.)
+  #  4/50  ABCDEFGHIJKLMN / BCDEFGHIJKLMNCRITICAL (11:05:37): Original creado.
+CRITICAL (11:05:37): Original:
+CRITICAL (11:05:38): Candidato creado.
+CRITICAL (11:05:39): Subsistema creado.
+  QN2=.CRITICAL (11:06:21): Original creado.
+CRITICAL (11:06:22): Original:
+CRITICAL (11:06:23): Candidato creado.
+CRITICAL (11:06:23): Subsistema creado.
+CRITICAL (11:06:24): empieza.
+  Geo2=.CRITICAL (11:06:29): Original creado.
+CRITICAL (11:06:30): Original:
+CRITICAL (11:06:31): Candidato creado.
+CRITICAL (11:06:32): Subsistema creado.
+CRITICAL (11:06:33): empieza.
+CRITICAL (11:06:38): Original creado.
+CRITICAL (11:06:39): Original:
+CRITICAL (11:06:40): Candidato creado.
+CRITICAL (11:06:41): Subsistema creado.
+CRITICAL (11:06:42): empieza.
+  k3(Q.G.)CRITICAL (11:06:47): Original creado.
+CRITICAL (11:06:48): Original:
+CRITICAL (11:06:49): Candidato creado.
+CRITICAL (11:06:50): Subsistema creado.
+CRITICAL (11:06:51): empieza.
+CRITICAL (11:06:56): Original creado.
+CRITICAL (11:06:57): Original:
+CRITICAL (11:06:58): Candidato creado.
+CRITICAL (11:06:59): Subsistema creado.
+CRITICAL (11:07:00): empieza.
+  k4(Q.G.)CRITICAL (11:07:05): Original creado.
+CRITICAL (11:07:06): Original:
+CRITICAL (11:07:07): Candidato creado.
+CRITICAL (11:07:08): Subsistema creado.
+CRITICAL (11:07:09): empieza.
+CRITICAL (11:07:14): Original creado.
+CRITICAL (11:07:15): Original:
+CRITICAL (11:07:16): Candidato creado.
+CRITICAL (11:07:17): Subsistema creado.
+CRITICAL (11:07:18): empieza.
+  k5(Q.G.)
+  #  5/50  ABCDEFGHIJKLMN / ABDEGHJKMNCRITICAL (11:07:24): Original creado.
+CRITICAL (11:07:25): Original:
+CRITICAL (11:07:26): Candidato creado.
+CRITICAL (11:07:27): Subsistema creado.
+  QN2=.CRITICAL (11:07:49): Original creado.
+CRITICAL (11:07:50): Original:
+CRITICAL (11:07:51): Candidato creado.
+CRITICAL (11:07:52): Subsistema creado.
+CRITICAL (11:07:53): empieza.
+  Geo2=.CRITICAL (11:07:55): Original creado.
+CRITICAL (11:07:55): Original:
+CRITICAL (11:07:56): Candidato creado.
+CRITICAL (11:07:57): Subsistema creado.
+CRITICAL (11:07:58): empieza.
+CRITICAL (11:08:00): Original creado.
+CRITICAL (11:08:01): Original:
+CRITICAL (11:08:02): Candidato creado.
+CRITICAL (11:08:03): Subsistema creado.
+CRITICAL (11:08:04): empieza.
+  k3(Q.G.)CRITICAL (11:08:06): Original creado.
+CRITICAL (11:08:07): Original:
+CRITICAL (11:08:08): Candidato creado.
+CRITICAL (11:08:09): Subsistema creado.
+CRITICAL (11:08:10): empieza.
+CRITICAL (11:08:12): Original creado.
+CRITICAL (11:08:13): Original:
+CRITICAL (11:08:14): Candidato creado.
+CRITICAL (11:08:15): Subsistema creado.
+CRITICAL (11:08:16): empieza.
+  k4(Q.G.)CRITICAL (11:08:18): Original creado.
+CRITICAL (11:08:19): Original:
+CRITICAL (11:08:20): Candidato creado.
+CRITICAL (11:08:21): Subsistema creado.
+CRITICAL (11:08:22): empieza.
+CRITICAL (11:08:24): Original creado.
+CRITICAL (11:08:25): Original:
+CRITICAL (11:08:26): Candidato creado.
+CRITICAL (11:08:27): Subsistema creado.
+CRITICAL (11:08:28): empieza.
+  k5(Q.G.)
+  #  6/50  ABCDEFGHIJKLMN / ACEGIKMOCRITICAL (11:08:31): Original creado.
+CRITICAL (11:08:31): Original:
+CRITICAL (11:08:32): Candidato creado.
+CRITICAL (11:08:33): Subsistema creado.
+  QN2=.CRITICAL (11:08:48): Original creado.
+CRITICAL (11:08:49): Original:
+CRITICAL (11:08:50): Candidato creado.
+CRITICAL (11:08:51): Subsistema creado.
+CRITICAL (11:08:52): empieza.
+  Geo2=.CRITICAL (11:08:54): Original creado.
+CRITICAL (11:08:55): Original:
+CRITICAL (11:08:56): Candidato creado.
+CRITICAL (11:08:57): Subsistema creado.
+CRITICAL (11:08:58): empieza.
+CRITICAL (11:08:59): Original creado.
+CRITICAL (11:09:00): Original:
+CRITICAL (11:09:01): Candidato creado.
+CRITICAL (11:09:02): Subsistema creado.
+CRITICAL (11:09:03): empieza.
+  k3(Q.G.)CRITICAL (11:09:05): Original creado.
+CRITICAL (11:09:06): Original:
+CRITICAL (11:09:07): Candidato creado.
+CRITICAL (11:09:08): Subsistema creado.
+CRITICAL (11:09:09): empieza.
+CRITICAL (11:09:11): Original creado.
+CRITICAL (11:09:12): Original:
+CRITICAL (11:09:13): Candidato creado.
+CRITICAL (11:09:14): Subsistema creado.
+CRITICAL (11:09:15): empieza.
+  k4(Q.G.)CRITICAL (11:09:16): Original creado.
+CRITICAL (11:09:18): Original:
+CRITICAL (11:09:19): Candidato creado.
+CRITICAL (11:09:20): Subsistema creado.
+CRITICAL (11:09:21): empieza.
+CRITICAL (11:09:22): Original creado.
+CRITICAL (11:09:23): Original:
+CRITICAL (11:09:24): Candidato creado.
+CRITICAL (11:09:25): Subsistema creado.
+CRITICAL (11:09:26): empieza.
+  k5(Q.G.)
+  #  7/50  ABCDEFGHIJKLMN / BDFHJLNCRITICAL (11:09:28): Original creado.
+CRITICAL (11:09:29): Original:
+CRITICAL (11:09:30): Candidato creado.
+CRITICAL (11:09:31): Subsistema creado.
+  QN2=.CRITICAL (11:09:44): Original creado.
+CRITICAL (11:09:45): Original:
+CRITICAL (11:09:46): Candidato creado.
+CRITICAL (11:09:47): Subsistema creado.
+CRITICAL (11:09:48): empieza.
+  Geo2=.CRITICAL (11:09:50): Original creado.
+CRITICAL (11:09:51): Original:
+CRITICAL (11:09:52): Candidato creado.
+CRITICAL (11:09:53): Subsistema creado.
+CRITICAL (11:09:54): empieza.
+CRITICAL (11:09:55): Original creado.
+CRITICAL (11:09:56): Original:
+CRITICAL (11:09:57): Candidato creado.
+CRITICAL (11:09:58): Subsistema creado.
+CRITICAL (11:09:59): empieza.
+  k3(Q.G.)CRITICAL (11:10:01): Original creado.
+CRITICAL (11:10:02): Original:
+CRITICAL (11:10:03): Candidato creado.
+CRITICAL (11:10:04): Subsistema creado.
+CRITICAL (11:10:05): empieza.
+CRITICAL (11:10:07): Original creado.
+CRITICAL (11:10:08): Original:
+CRITICAL (11:10:09): Candidato creado.
+CRITICAL (11:10:10): Subsistema creado.
+CRITICAL (11:10:11): empieza.
+  k4(Q.G.)CRITICAL (11:10:13): Original creado.
+CRITICAL (11:10:14): Original:
+CRITICAL (11:10:15): Candidato creado.
+CRITICAL (11:10:16): Subsistema creado.
+CRITICAL (11:10:17): empieza.
+CRITICAL (11:10:19): Original creado.
+CRITICAL (11:10:20): Original:
+CRITICAL (11:10:21): Candidato creado.
+CRITICAL (11:10:22): Subsistema creado.
+CRITICAL (11:10:23): empieza.
+  k5(Q.G.)
+  #  8/50  ABCDEFGHIJKLMN / ABCDEFGHIJKLMNCRITICAL (11:10:25): Original creado.
+CRITICAL (11:10:26): Original:
+CRITICAL (11:10:27): Candidato creado.
+CRITICAL (11:10:28): Subsistema creado.
+  QN2=.CRITICAL (11:11:57): Original creado.
+CRITICAL (11:11:58): Original:
+CRITICAL (11:11:59): Candidato creado.
+CRITICAL (11:12:00): Subsistema creado.
+CRITICAL (11:12:01): empieza.
+  Geo2=.CRITICAL (11:12:18): Original creado.
+CRITICAL (11:12:19): Original:
+CRITICAL (11:12:20): Candidato creado.
+CRITICAL (11:12:21): Subsistema creado.
+CRITICAL (11:12:23): empieza.
+CRITICAL (11:12:40): Original creado.
+CRITICAL (11:12:41): Original:
+CRITICAL (11:12:42): Candidato creado.
+CRITICAL (11:12:43): Subsistema creado.
+CRITICAL (11:12:44): empieza.
+  k3(Q.G.)CRITICAL (11:13:02): Original creado.
+CRITICAL (11:13:03): Original:
+CRITICAL (11:13:04): Candidato creado.
+CRITICAL (11:13:05): Subsistema creado.
+CRITICAL (11:13:06): empieza.
+CRITICAL (11:13:24): Original creado.
+CRITICAL (11:13:25): Original:
+CRITICAL (11:13:27): Candidato creado.
+CRITICAL (11:13:28): Subsistema creado.
+CRITICAL (11:13:29): empieza.
+  k4(Q.G.)CRITICAL (11:13:47): Original creado.
+CRITICAL (11:13:48): Original:
+CRITICAL (11:13:49): Candidato creado.
+CRITICAL (11:13:50): Subsistema creado.
+CRITICAL (11:13:51): empieza.
+CRITICAL (11:14:09): Original creado.
+CRITICAL (11:14:11): Original:
+CRITICAL (11:14:12): Candidato creado.
+CRITICAL (11:14:13): Subsistema creado.
+CRITICAL (11:14:14): empieza.
+  k5(Q.G.)
+  #  9/50  ABCDEFGHIJKLMN / ABCDEFGHIJKLMNCRITICAL (11:14:32): Original creado.
+CRITICAL (11:14:33): Original:
+CRITICAL (11:14:35): Candidato creado.
+CRITICAL (11:14:36): Subsistema creado.
+  QN2=.CRITICAL (11:15:33): Original creado.
+CRITICAL (11:15:34): Original:
+CRITICAL (11:15:35): Candidato creado.
+CRITICAL (11:15:36): Subsistema creado.
+CRITICAL (11:15:37): empieza.
+  Geo2=.CRITICAL (11:15:46): Original creado.
+CRITICAL (11:15:48): Original:
+CRITICAL (11:15:49): Candidato creado.
+CRITICAL (11:15:50): Subsistema creado.
+CRITICAL (11:15:51): empieza.
+CRITICAL (11:16:00): Original creado.
+CRITICAL (11:16:01): Original:
+CRITICAL (11:16:03): Candidato creado.
+CRITICAL (11:16:04): Subsistema creado.
+CRITICAL (11:16:05): empieza.
+  k3(Q.G.)CRITICAL (11:16:14): Original creado.
+CRITICAL (11:16:15): Original:
+CRITICAL (11:16:16): Candidato creado.
+CRITICAL (11:16:18): Subsistema creado.
+CRITICAL (11:16:19): empieza.
+CRITICAL (11:16:28): Original creado.
+CRITICAL (11:16:29): Original:
+CRITICAL (11:16:31): Candidato creado.
+CRITICAL (11:16:32): Subsistema creado.
+CRITICAL (11:16:33): empieza.
+  k4(Q.G.)CRITICAL (11:16:42): Original creado.
+CRITICAL (11:16:44): Original:
+CRITICAL (11:16:45): Candidato creado.
+CRITICAL (11:16:46): Subsistema creado.
+CRITICAL (11:16:47): empieza.
+CRITICAL (11:16:57): Original creado.
+CRITICAL (11:16:58): Original:
+CRITICAL (11:16:59): Candidato creado.
+CRITICAL (11:17:00): Subsistema creado.
+CRITICAL (11:17:01): empieza.
+  k5(Q.G.)
+  # 10/50  ABCDEFGHIJKLMN / BCDEFGHIJKLMNOCRITICAL (11:17:12): Original creado.
+CRITICAL (11:17:13): Original:
+CRITICAL (11:17:14): Candidato creado.
+CRITICAL (11:17:15): Subsistema creado.
+  QN2=.CRITICAL (11:18:03): Original creado.
+CRITICAL (11:18:04): Original:
+CRITICAL (11:18:06): Candidato creado.
+CRITICAL (11:18:07): Subsistema creado.
+CRITICAL (11:18:08): empieza.
+  Geo2=.CRITICAL (11:18:17): Original creado.
+CRITICAL (11:18:18): Original:
+CRITICAL (11:18:19): Candidato creado.
+CRITICAL (11:18:20): Subsistema creado.
+CRITICAL (11:18:22): empieza.
+CRITICAL (11:18:31): Original creado.
+CRITICAL (11:18:32): Original:
+CRITICAL (11:18:33): Candidato creado.
+CRITICAL (11:18:34): Subsistema creado.
+CRITICAL (11:18:36): empieza.
+  k3(Q.G.)CRITICAL (11:18:45): Original creado.
+CRITICAL (11:18:46): Original:
+CRITICAL (11:18:47): Candidato creado.
+CRITICAL (11:18:49): Subsistema creado.
+CRITICAL (11:18:50): empieza.
+CRITICAL (11:19:00): Original creado.
+CRITICAL (11:19:01): Original:
+CRITICAL (11:19:02): Candidato creado.
+CRITICAL (11:19:03): Subsistema creado.
+CRITICAL (11:19:04): empieza.
+  k4(Q.G.)CRITICAL (11:19:14): Original creado.
+CRITICAL (11:19:15): Original:
+CRITICAL (11:19:17): Candidato creado.
+CRITICAL (11:19:18): Subsistema creado.
+CRITICAL (11:19:19): empieza.
+CRITICAL (11:19:29): Original creado.
+CRITICAL (11:19:30): Original:
+CRITICAL (11:19:31): Candidato creado.
+CRITICAL (11:19:33): Subsistema creado.
+CRITICAL (11:19:34): empieza.
+  k5(Q.G.)
+  # 11/50  ABCDEFGHIJKLMN / BCDEFGHIJKLMNCRITICAL (11:19:44): Original creado.
+CRITICAL (11:19:45): Original:
+CRITICAL (11:19:47): Candidato creado.
+CRITICAL (11:19:48): Subsistema creado.
+  QN2=.CRITICAL (11:20:24): Original creado.
+CRITICAL (11:20:25): Original:
+CRITICAL (11:20:26): Candidato creado.
+CRITICAL (11:20:27): Subsistema creado.
+CRITICAL (11:20:28): empieza.
+  Geo2=.CRITICAL (11:20:33): Original creado.
+CRITICAL (11:20:35): Original:
+CRITICAL (11:20:36): Candidato creado.
+CRITICAL (11:20:37): Subsistema creado.
+CRITICAL (11:20:38): empieza.
+CRITICAL (11:20:44): Original creado.
+CRITICAL (11:20:45): Original:
+CRITICAL (11:20:46): Candidato creado.
+CRITICAL (11:20:47): Subsistema creado.
+CRITICAL (11:20:48): empieza.
+  k3(Q.G.)CRITICAL (11:20:54): Original creado.
+CRITICAL (11:20:55): Original:
+CRITICAL (11:20:56): Candidato creado.
+CRITICAL (11:20:57): Subsistema creado.
+CRITICAL (11:20:59): empieza.
+CRITICAL (11:21:04): Original creado.
+CRITICAL (11:21:05): Original:
+CRITICAL (11:21:07): Candidato creado.
+CRITICAL (11:21:08): Subsistema creado.
+CRITICAL (11:21:09): empieza.
+  k4(Q.G.)CRITICAL (11:21:15): Original creado.
+CRITICAL (11:21:16): Original:
+CRITICAL (11:21:17): Candidato creado.
+CRITICAL (11:21:18): Subsistema creado.
+CRITICAL (11:21:20): empieza.
+CRITICAL (11:21:25): Original creado.
+CRITICAL (11:21:27): Original:
+CRITICAL (11:21:28): Candidato creado.
+CRITICAL (11:21:29): Subsistema creado.
+CRITICAL (11:21:30): empieza.
+  k5(Q.G.)
+  # 12/50  ABCDEFGHIJKLMN / ABDEGHJKMNCRITICAL (11:21:36): Original creado.
+CRITICAL (11:21:38): Original:
+CRITICAL (11:21:39): Candidato creado.
+CRITICAL (11:21:40): Subsistema creado.
+  QN2=.CRITICAL (11:21:59): Original creado.
+CRITICAL (11:22:00): Original:
+CRITICAL (11:22:02): Candidato creado.
+CRITICAL (11:22:03): Subsistema creado.
+CRITICAL (11:22:04): empieza.
+  Geo2=.CRITICAL (11:22:06): Original creado.
+CRITICAL (11:22:08): Original:
+CRITICAL (11:22:09): Candidato creado.
+CRITICAL (11:22:10): Subsistema creado.
+CRITICAL (11:22:11): empieza.
+CRITICAL (11:22:13): Original creado.
+CRITICAL (11:22:15): Original:
+CRITICAL (11:22:16): Candidato creado.
+CRITICAL (11:22:17): Subsistema creado.
+CRITICAL (11:22:18): empieza.
+  k3(Q.G.)CRITICAL (11:22:21): Original creado.
+CRITICAL (11:22:22): Original:
+CRITICAL (11:22:23): Candidato creado.
+CRITICAL (11:22:24): Subsistema creado.
+CRITICAL (11:22:26): empieza.
+CRITICAL (11:22:28): Original creado.
+CRITICAL (11:22:29): Original:
+CRITICAL (11:22:31): Candidato creado.
+CRITICAL (11:22:32): Subsistema creado.
+CRITICAL (11:22:33): empieza.
+  k4(Q.G.)CRITICAL (11:22:35): Original creado.
+CRITICAL (11:22:37): Original:
+CRITICAL (11:22:38): Candidato creado.
+CRITICAL (11:22:39): Subsistema creado.
+CRITICAL (11:22:41): empieza.
+CRITICAL (11:22:43): Original creado.
+CRITICAL (11:22:44): Original:
+CRITICAL (11:22:46): Candidato creado.
+CRITICAL (11:22:47): Subsistema creado.
+CRITICAL (11:22:48): empieza.
+  k5(Q.G.)
+  # 13/50  ABCDEFGHIJKLMN / ACEGIKMOCRITICAL (11:22:51): Original creado.
+CRITICAL (11:22:52): Original:
+CRITICAL (11:22:53): Candidato creado.
+CRITICAL (11:22:55): Subsistema creado.
+  QN2=.CRITICAL (11:23:08): Original creado.
+CRITICAL (11:23:10): Original:
+CRITICAL (11:23:11): Candidato creado.
+CRITICAL (11:23:12): Subsistema creado.
+CRITICAL (11:23:13): empieza.
+  Geo2=.CRITICAL (11:23:15): Original creado.
+CRITICAL (11:23:17): Original:
+CRITICAL (11:23:18): Candidato creado.
+CRITICAL (11:23:19): Subsistema creado.
+CRITICAL (11:23:21): empieza.
+CRITICAL (11:23:23): Original creado.
+CRITICAL (11:23:24): Original:
+CRITICAL (11:23:25): Candidato creado.
+CRITICAL (11:23:26): Subsistema creado.
+CRITICAL (11:23:28): empieza.
+  k3(Q.G.)CRITICAL (11:23:30): Original creado.
+CRITICAL (11:23:31): Original:
+CRITICAL (11:23:32): Candidato creado.
+CRITICAL (11:23:34): Subsistema creado.
+CRITICAL (11:23:35): empieza.
+CRITICAL (11:23:37): Original creado.
+CRITICAL (11:23:39): Original:
+CRITICAL (11:23:40): Candidato creado.
+CRITICAL (11:23:41): Subsistema creado.
+CRITICAL (11:23:42): empieza.
+  k4(Q.G.)CRITICAL (11:23:45): Original creado.
+CRITICAL (11:23:46): Original:
+CRITICAL (11:23:47): Candidato creado.
+CRITICAL (11:23:49): Subsistema creado.
+CRITICAL (11:23:50): empieza.
+CRITICAL (11:23:52): Original creado.
+CRITICAL (11:23:53): Original:
+CRITICAL (11:23:55): Candidato creado.
+CRITICAL (11:23:56): Subsistema creado.
+CRITICAL (11:23:57): empieza.
+  k5(Q.G.)
+  # 14/50  ABCDEFGHIJKLMN / BDFHJLNCRITICAL (11:24:00): Original creado.
+CRITICAL (11:24:01): Original:
+CRITICAL (11:24:02): Candidato creado.
+CRITICAL (11:24:04): Subsistema creado.
+  QN2=.CRITICAL (11:24:15): Original creado.
+CRITICAL (11:24:16): Original:
+CRITICAL (11:24:17): Candidato creado.
+CRITICAL (11:24:19): Subsistema creado.
+CRITICAL (11:24:20): empieza.
+  Geo2=.CRITICAL (11:24:22): Original creado.
+CRITICAL (11:24:23): Original:
+CRITICAL (11:24:25): Candidato creado.
+CRITICAL (11:24:26): Subsistema creado.
+CRITICAL (11:24:27): empieza.
+CRITICAL (11:24:29): Original creado.
+CRITICAL (11:24:31): Original:
+CRITICAL (11:24:32): Candidato creado.
+CRITICAL (11:24:33): Subsistema creado.
+CRITICAL (11:24:35): empieza.
+  k3(Q.G.)CRITICAL (11:24:37): Original creado.
+CRITICAL (11:24:38): Original:
+CRITICAL (11:24:40): Candidato creado.
+CRITICAL (11:24:41): Subsistema creado.
+CRITICAL (11:24:42): empieza.
+CRITICAL (11:24:44): Original creado.
+CRITICAL (11:24:46): Original:
+CRITICAL (11:24:47): Candidato creado.
+CRITICAL (11:24:48): Subsistema creado.
+CRITICAL (11:24:50): empieza.
+  k4(Q.G.)CRITICAL (11:24:52): Original creado.
+CRITICAL (11:24:53): Original:
+CRITICAL (11:24:54): Candidato creado.
+CRITICAL (11:24:56): Subsistema creado.
+CRITICAL (11:24:57): empieza.
+CRITICAL (11:24:59): Original creado.
+CRITICAL (11:25:01): Original:
+CRITICAL (11:25:02): Candidato creado.
+CRITICAL (11:25:03): Subsistema creado.
+CRITICAL (11:25:05): empieza.
+  k5(Q.G.)
+  # 15/50  BCDEFGHIJKLMNO / ABCDEFGHIJKLMNCRITICAL (11:25:07): Original creado.
+CRITICAL (11:25:09): Original:
+CRITICAL (11:25:10): Candidato creado.
+CRITICAL (11:25:11): Subsistema creado.
+  QN2=.CRITICAL (11:26:33): Original creado.
+CRITICAL (11:26:34): Original:
+CRITICAL (11:26:35): Candidato creado.
+CRITICAL (11:26:37): Subsistema creado.
+CRITICAL (11:26:38): empieza.
+  Geo2=.CRITICAL (11:26:56): Original creado.
+CRITICAL (11:26:57): Original:
+CRITICAL (11:26:58): Candidato creado.
+CRITICAL (11:27:00): Subsistema creado.
+CRITICAL (11:27:01): empieza.
+CRITICAL (11:27:19): Original creado.
+CRITICAL (11:27:20): Original:
+CRITICAL (11:27:22): Candidato creado.
+CRITICAL (11:27:23): Subsistema creado.
+CRITICAL (11:27:24): empieza.
+  k3(Q.G.)CRITICAL (11:27:42): Original creado.
+CRITICAL (11:27:44): Original:
+CRITICAL (11:27:45): Candidato creado.
+CRITICAL (11:27:47): Subsistema creado.
+CRITICAL (11:27:48): empieza.
+CRITICAL (11:28:06): Original creado.
+CRITICAL (11:28:08): Original:
+CRITICAL (11:28:09): Candidato creado.
+CRITICAL (11:28:10): Subsistema creado.
+CRITICAL (11:28:12): empieza.
+  k4(Q.G.)CRITICAL (11:28:29): Original creado.
+CRITICAL (11:28:31): Original:
+CRITICAL (11:28:32): Candidato creado.
+CRITICAL (11:28:33): Subsistema creado.
+CRITICAL (11:28:35): empieza.
+CRITICAL (11:28:53): Original creado.
+CRITICAL (11:28:54): Original:
+CRITICAL (11:28:55): Candidato creado.
+CRITICAL (11:28:57): Subsistema creado.
+CRITICAL (11:28:58): empieza.
+  k5(Q.G.)
+  # 16/50  BCDEFGHIJKLMNO / ABCDEFGHIJKLMNCRITICAL (11:29:16): Original creado.
+CRITICAL (11:29:17): Original:
+CRITICAL (11:29:19): Candidato creado.
+CRITICAL (11:29:20): Subsistema creado.
+  QN2=.CRITICAL (11:30:11): Original creado.
+CRITICAL (11:30:13): Original:
+CRITICAL (11:30:14): Candidato creado.
+CRITICAL (11:30:15): Subsistema creado.
+CRITICAL (11:30:16): empieza.
+  Geo2=.CRITICAL (11:30:25): Original creado.
+CRITICAL (11:30:27): Original:
+CRITICAL (11:30:28): Candidato creado.
+CRITICAL (11:30:30): Subsistema creado.
+CRITICAL (11:30:31): empieza.
+CRITICAL (11:30:40): Original creado.
+CRITICAL (11:30:41): Original:
+CRITICAL (11:30:43): Candidato creado.
+CRITICAL (11:30:44): Subsistema creado.
+CRITICAL (11:30:45): empieza.
+  k3(Q.G.)CRITICAL (11:30:55): Original creado.
+CRITICAL (11:30:56): Original:
+CRITICAL (11:30:57): Candidato creado.
+CRITICAL (11:30:59): Subsistema creado.
+CRITICAL (11:31:00): empieza.
+CRITICAL (11:31:09): Original creado.
+CRITICAL (11:31:11): Original:
+CRITICAL (11:31:12): Candidato creado.
+CRITICAL (11:31:14): Subsistema creado.
+CRITICAL (11:31:15): empieza.
+  k4(Q.G.)CRITICAL (11:31:24): Original creado.
+CRITICAL (11:31:26): Original:
+CRITICAL (11:31:27): Candidato creado.
+CRITICAL (11:31:28): Subsistema creado.
+CRITICAL (11:31:30): empieza.
+CRITICAL (11:31:39): Original creado.
+CRITICAL (11:31:41): Original:
+CRITICAL (11:31:42): Candidato creado.
+CRITICAL (11:31:44): Subsistema creado.
+CRITICAL (11:31:45): empieza.
+  k5(Q.G.)
+  # 17/50  BCDEFGHIJKLMNO / BCDEFGHIJKLMNOCRITICAL (11:31:55): Original creado.
+CRITICAL (11:31:56): Original:
+CRITICAL (11:31:58): Candidato creado.
+CRITICAL (11:31:59): Subsistema creado.
+  QN2=.CRITICAL (11:32:47): Original creado.
+CRITICAL (11:32:48): Original:
+CRITICAL (11:32:50): Candidato creado.
+CRITICAL (11:32:51): Subsistema creado.
+CRITICAL (11:32:52): empieza.
+  Geo2=.CRITICAL (11:33:02): Original creado.
+CRITICAL (11:33:03): Original:
+CRITICAL (11:33:04): Candidato creado.
+CRITICAL (11:33:06): Subsistema creado.
+CRITICAL (11:33:07): empieza.
+CRITICAL (11:33:17): Original creado.
+CRITICAL (11:33:18): Original:
+CRITICAL (11:33:20): Candidato creado.
+CRITICAL (11:33:21): Subsistema creado.
+CRITICAL (11:33:22): empieza.
+  k3(Q.G.)CRITICAL (11:33:32): Original creado.
+CRITICAL (11:33:33): Original:
+CRITICAL (11:33:35): Candidato creado.
+CRITICAL (11:33:36): Subsistema creado.
+CRITICAL (11:33:37): empieza.
+CRITICAL (11:33:47): Original creado.
+CRITICAL (11:33:49): Original:
+CRITICAL (11:33:50): Candidato creado.
+CRITICAL (11:33:51): Subsistema creado.
+CRITICAL (11:33:53): empieza.
+  k4(Q.G.)CRITICAL (11:34:03): Original creado.
+CRITICAL (11:34:04): Original:
+CRITICAL (11:34:05): Candidato creado.
+CRITICAL (11:34:07): Subsistema creado.
+CRITICAL (11:34:08): empieza.
+CRITICAL (11:34:18): Original creado.
+CRITICAL (11:34:20): Original:
+CRITICAL (11:34:21): Candidato creado.
+CRITICAL (11:34:22): Subsistema creado.
+CRITICAL (11:34:24): empieza.
+  k5(Q.G.)
+  # 18/50  BCDEFGHIJKLMNO / BCDEFGHIJKLMNCRITICAL (11:34:34): Original creado.
+CRITICAL (11:34:36): Original:
+CRITICAL (11:34:37): Candidato creado.
+CRITICAL (11:34:38): Subsistema creado.
+  QN2=.CRITICAL (11:35:12): Original creado.
+CRITICAL (11:35:14): Original:
+CRITICAL (11:35:15): Candidato creado.
+CRITICAL (11:35:17): Subsistema creado.
+CRITICAL (11:35:18): empieza.
+  Geo2=.CRITICAL (11:35:23): Original creado.
+CRITICAL (11:35:25): Original:
+CRITICAL (11:35:26): Candidato creado.
+CRITICAL (11:35:28): Subsistema creado.
+CRITICAL (11:35:29): empieza.
+CRITICAL (11:35:34): Original creado.
+CRITICAL (11:35:36): Original:
+CRITICAL (11:35:37): Candidato creado.
+CRITICAL (11:35:39): Subsistema creado.
+CRITICAL (11:35:40): empieza.
+  k3(Q.G.)CRITICAL (11:35:46): Original creado.
+CRITICAL (11:35:47): Original:
+CRITICAL (11:35:49): Candidato creado.
+CRITICAL (11:35:50): Subsistema creado.
+CRITICAL (11:35:51): empieza.
+CRITICAL (11:35:57): Original creado.
+CRITICAL (11:35:59): Original:
+CRITICAL (11:36:00): Candidato creado.
+CRITICAL (11:36:01): Subsistema creado.
+CRITICAL (11:36:03): empieza.
+  k4(Q.G.)CRITICAL (11:36:09): Original creado.
+CRITICAL (11:36:10): Original:
+CRITICAL (11:36:12): Candidato creado.
+CRITICAL (11:36:13): Subsistema creado.
+CRITICAL (11:36:14): empieza.
+CRITICAL (11:36:20): Original creado.
+CRITICAL (11:36:22): Original:
+CRITICAL (11:36:23): Candidato creado.
+CRITICAL (11:36:25): Subsistema creado.
+CRITICAL (11:36:26): empieza.
+  k5(Q.G.)
+  # 19/50  BCDEFGHIJKLMNO / ABDEGHJKMNCRITICAL (11:36:32): Original creado.
+CRITICAL (11:36:34): Original:
+CRITICAL (11:36:35): Candidato creado.
+CRITICAL (11:36:36): Subsistema creado.
+  QN2=.CRITICAL (11:36:55): Original creado.
+CRITICAL (11:36:56): Original:
+CRITICAL (11:36:58): Candidato creado.
+CRITICAL (11:36:59): Subsistema creado.
+CRITICAL (11:37:01): empieza.
+  Geo2=.CRITICAL (11:37:03): Original creado.
+CRITICAL (11:37:05): Original:
+CRITICAL (11:37:06): Candidato creado.
+CRITICAL (11:37:08): Subsistema creado.
+CRITICAL (11:37:09): empieza.
+CRITICAL (11:37:11): Original creado.
+CRITICAL (11:37:13): Original:
+CRITICAL (11:37:14): Candidato creado.
+CRITICAL (11:37:16): Subsistema creado.
+CRITICAL (11:37:17): empieza.
+  k3(Q.G.)CRITICAL (11:37:20): Original creado.
+CRITICAL (11:37:22): Original:
+CRITICAL (11:37:23): Candidato creado.
+CRITICAL (11:37:25): Subsistema creado.
+CRITICAL (11:37:26): empieza.
+CRITICAL (11:37:29): Original creado.
+CRITICAL (11:37:30): Original:
+CRITICAL (11:37:32): Candidato creado.
+CRITICAL (11:37:33): Subsistema creado.
+CRITICAL (11:37:35): empieza.
+  k4(Q.G.)  k5(QXGX)
+  # 20/50  BCDEFGHIJKLMNO / ACEGIKMO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 21/50  BCDEFGHIJKLMNO / BDFHJLN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 22/50  BCDEFGHIJKLMN  / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 23/50  BCDEFGHIJKLMN  / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 24/50  BCDEFGHIJKLMN  / BCDEFGHIJKLMNO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 25/50  BCDEFGHIJKLMN  / BCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 26/50  BCDEFGHIJKLMN  / ABDEGHJKMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 27/50  BCDEFGHIJKLMN  / ACEGIKMO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 28/50  BCDEFGHIJKLMN  / BDFHJLN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 29/50  ABDEGHJKMN     / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 30/50  ABDEGHJKMN     / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 31/50  ABDEGHJKMN     / BCDEFGHIJKLMNO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 32/50  ABDEGHJKMN     / BCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 33/50  ABDEGHJKMN     / ABDEGHJKMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 34/50  ABDEGHJKMN     / ACEGIKMO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 35/50  ABDEGHJKMN     / BDFHJLN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 36/50  ACEGIKMO       / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 37/50  ACEGIKMO       / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 38/50  ACEGIKMO       / BCDEFGHIJKLMNO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 39/50  ACEGIKMO       / BCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 40/50  ACEGIKMO       / ABDEGHJKMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 41/50  ACEGIKMO       / ACEGIKMO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 42/50  ACEGIKMO       / BDFHJLN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 43/50  BDFHJLN        / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 44/50  BDFHJLN        / ABCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 45/50  BDFHJLN        / BCDEFGHIJKLMNO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 46/50  BDFHJLN        / BCDEFGHIJKLMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 47/50  BDFHJLN        / ABDEGHJKMN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 48/50  BDFHJLN        / ACEGIKMO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 49/50  BDFHJLN        / BDFHJLN  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  # 50/50  BCDEFGJKLMNO   / BCDEFGHIJKLMNO  QN2=X  Geo2=X  k3(QXGX)  k4(QXGX)  k5(QXGX)
+  n=15 completado: 50 filas
+
+Resultados guardados en: C:\Users\Manu\Documents\Semestre 2026 - 01\Analisis y diseño de algoritmos\projecto-analisis-20261\GeoMIP\results\benchmark_completo_2026-05-17_11h40.xlsx
+Total filas: 99

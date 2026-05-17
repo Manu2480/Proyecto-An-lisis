@@ -80,7 +80,7 @@ def main():
         states = 2 ** n
         ram_gb = states * n * 4 / 1e9  # float32
         print(f"\n{'='*50}")
-        print(f"n={n}: {states:,} estados, RAM estimada ≈ {ram_gb:.2f} GB")
+        print(f"n={n}: {states:,} estados, RAM estimada ~{ram_gb:.2f} GB")
 
         for v in args.variants.upper():
             if v not in SEEDS:
@@ -103,10 +103,10 @@ def main():
             save_csv_chunked(tpm, fpath)
             t2 = time.perf_counter()
             size_mb = os.path.getsize(fpath) / 1e6
-            zeros = np.mean(tpm == 0) * 100
+            zeros = float(np.mean(tpm == 0) * 100)
             del tpm
 
-            print(f"save={t2-t1:.1f}s | {size_mb:.0f} MB | {zeros:.1f}% ceros ✓")
+            print(f"save={t2-t1:.1f}s | {size_mb:.0f} MB | {zeros:.1f}% ceros OK")
 
     print("\nListo. Copiar los .csv a GeoMIP/data/samples/")
 

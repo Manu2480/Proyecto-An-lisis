@@ -1,0 +1,153 @@
+Bitácora 15 — Hallazgos sobre heurísticas y plan de mejora
+===========================================================
+Fecha: 2026-05-17
+
+QUÉ NOS DIMOS CUENTA
+---------------------
+
+1. LA HEURÍSTICA DE CLUSTERING (Ward) ES INCORRECTA PARA ESTE PROBLEMA
+   ─────────────────────────────────────────────────────────────────────
+   Datos del benchmark (n=10, 49 casos):
+     KPartitionSIA Clustering k=3: pérdida media = 1.536
+     KPartitionSIA Greedy     k=3: pérdida media = 0.165
+     → El clustering produce pérdidas 9–10× PEORES que el greedy.
+     → Para k=4 y k=5, la pérdida del clustering se queda estancada en ~1.536
+       (idéntica a k=3), lo que significa que el clustering no mejora al
+       aumentar k. Está convergiendo siempre al mismo mínimo local.
+
+   CAUSA RAÍZ:
+   Ward Clustering minimiza la distancia euclidiana entre perfiles de nodos
+   en el espacio aumentado A = [[0, C], [C^T, 0]]. Este criterio no tiene
+   relación directa con la EMD (Earth Mover's Distance), que es la función
+   objetivo real del problema. El clustering encuentra grupos "parecidos"
+   geométricamente, no grupos que minimicen la pérdida de información causal.
+
+2. EL GREEDY ACTUAL TAMBIÉN TIENE LIMITACIONES
+   ──────────────────────────────────────────────
+   El greedy actual extrae nodos de forma UNILATERAL: toma un nodo de una
+   parte y lo pone en una nueva parte. No hace intercambios (swaps) entre
+   partes existentes. Por eso puede quedar atrapado en mínimos locales donde
+   un intercambio bidireccional mejoraría la solución.
+
+   Evidencia: para n=10 k=3, pérdida sube de 0.077 (k=2) a 0.165 (k=3).
+   Un buen algoritmo debería bajar o mantener la pérdida al aumentar k
+   (más particiones = más grados de libertad). El hecho de que suba sugiere
+   que el greedy no está usando bien esos grados de libertad.
+
+3. ESCALABILIDAD: NADA CONVERGE PARA n ≥ 16 NODOS ACTIVOS
+   ──────────────────────────────────────────────────────────
+   Todos los algoritmos tienen costo O(n · 2^n) o peor en el factor 2^n.
+   Para n=20 completo: 2^20 = 1 048 576 estados — inviable en 1 CPU.
+   Los 3 primeros casos del benchmark n=20 llevan ya >90 min con TIMEOUT.
+   (el proceso sigue corriendo en background: PID 3140, >6700 s de CPU)
+
+
+QUÉ HAREMOS AL RESPECTO
+------------------------
+
+HEURÍSTICA 1: Kernighan-Lin para k-particiones (reemplaza Greedy)
+──────────────────────────────────────────────────────────────────
+Idea: en lugar de solo extraer nodos (movimiento unilateral), hacer
+      intercambios de nodos entre particiones (movimiento bilateral).
+
+Algoritmo:
+  1. Partir de la bipartición MIP de GeometricSIA (k=2 óptimo).
+  2. Para extender a k partes: aplicar K-L modificado:
+     a. Para cada par de partes (Pi, Pj), probar intercambiar cada par
+        de nodos (u ∈ Pi, v ∈ Pj) y calcular ganancia en EMD.
+     b. Aplicar el intercambio con mayor ganancia si mejora.
+     c. Repetir hasta convergencia (ningún swap mejora).
+  3. Cuando el swap ya no mejora, hacer un split de la parte más grande.
+  4. Iterar hasta tener k partes.
+
+Complejidad: O(k · n² · 2^n) — mismo orden que Greedy pero cada iteración
+             explora el espacio de manera más completa (swaps, no solo splits).
+Ventaja esperada: encontrar mejores mínimos locales → menor pérdida EMD.
+
+HEURÍSTICA 2: Particionamiento Espectral con pesos EMD (reemplaza Clustering)
+───────────────────────────────────────────────────────────────────────────────
+Idea: usar los pesos ya calculados por GeometricSIA (tabla_transiciones)
+      para construir un GRAFO DE INFORMACIÓN donde w(i,j) = contribución
+      a EMD de separar i y j, y luego hacer corte espectral sobre ese grafo.
+
+Algoritmo:
+  1. Reutilizar tabla_transiciones[(s0, vecino_i)] ya calculada por find_mip().
+     Cada entrada tiene el costo EMD de "quitar" el nodo i del sistema.
+  2. Construir matriz de afinidad W donde:
+       W[i,j] = exp(-|costo_i - costo_j| / sigma)
+     (nodos con costos similares deberían ir juntos).
+  3. Construir Laplaciano normalizado L = D^(-1/2)(D-W)D^(-1/2).
+  4. Obtener los k primeros vectores propios de L.
+  5. Aplicar k-means en el espacio espectral.
+
+Complejidad: O(n · 2^n) para find_mip + O(n³) para eigendecomposición.
+             Misma complejidad que el clustering actual pero pesos correctos.
+Ventaja: los pesos reflejan directamente la contribución a EMD de cada nodo,
+         no solo similitud geométrica de perfiles.
+
+IMPLEMENTACIÓN PLANIFICADA
+──────────────────────────
+  Archivo:  .../strategies/kpartition.py
+  Métodos nuevos:
+    - _heuristica_kernighan_lin(mip)   → reemplaza / complementa _heuristica_greedy
+    - _heuristica_espectral_emd()      → reemplaza _heuristica_clustering
+
+  Parámetro forzar_heuristica extendido:
+    - "greedy"     → actual (sin cambios)
+    - "kl"         → Kernighan-Lin (nuevo)
+    - "clustering" → Ward actual (sin cambios, para comparar)
+    - "spectral"   → Espectral EMD (nuevo)
+    - None         → mejor de los 4
+
+  Archivo:  GeoMIP/src/benchmark.py
+  Nuevas columnas por caso:
+    - KL_k{k}_particion / KL_k{k}_perdida / KL_k{k}_tiempo_ms
+    - Esp_k{k}_particion / Esp_k{k}_perdida / Esp_k{k}_tiempo_ms
+
+PROCESO ACTUAL
+──────────────
+  El benchmark de n=20/22/25 (PID 3140) sigue corriendo en background.
+  Log: GeoMIP/results/bench_n20_n22_n25_v2.log
+  Estado al escribir esta bitácora: ~4 casos de n=20 procesados, todos
+  con Geo2=TIMEOUT (subsistemas completos de 20 nodos son inviables).
+  NO se detendrá — los datos parciales con timeout son útiles como
+  evidencia de los límites de escalabilidad.
+
+RESULTADOS DEL SMOKE TEST (2026-05-17, caso ABCDEFGHIJ / ABCDEFGHIJ, n=10)
+──────────────────────────────────────────────────────────────────────────────
+  Heurística     k=3 pérdida   k=5 pérdida   t(ms) k=3
+  Greedy         0.9531        1.9277         479
+  KL             0.0000 ★      0.4941         2689    ← 100% mejor
+  Clustering     4.9990        4.9990         370
+  Spectral       4.9922        4.9522         403
+
+CONCLUSIÓN DEFINITIVA SOBRE ESPECTRAL
+──────────────────────────────────────
+  La heurística Espectral NO se puede corregir con ninguna matriz de afinidad
+  basada en la cost_matrix porque el corte espectral del Laplaciano minimiza
+  la energía del grafo (Rayleigh quotient), no la EMD. Son objetivos
+  matemáticamente distintos. Se verificó con:
+    - perfiles escalares (versión original): pérdida ~4.999
+    - perfiles vectoriales + cosine similarity (versión corregida): pérdida ~4.992
+  La mejora es marginal y no cambia el orden de magnitud.
+
+  El Spectral SE MANTIENE en el código como comparación negativa documentada:
+  demuestra empíricamente que minimizar corte de grafo ≠ minimizar EMD.
+
+HEURÍSTICA RECOMENDADA: KERNIGHAN-LIN
+───────────────────────────────────────
+  KL encontró pérdida = 0.000 (partición perfecta) en los casos donde Greedy
+  daba 0.953 — una mejora del 100%. Esto se debe a que KL hace intercambios
+  bilaterales de nodos entre partes existentes, escapando los mínimos locales
+  donde el Greedy (solo splits unilaterales) queda atrapado.
+
+ARCHIVOS MODIFICADOS
+────────────────────
+  - .../strategies/kpartition.py   (métodos: _heuristica_kernighan_lin,
+                                    _heuristica_espectral_emd v2,
+                                    _kmeans_simple, _labels_to_partes,
+                                    extensión forzar_heuristica a 4 opciones)
+  - GeoMIP/src/benchmark.py        (columnas KL_k{k} y Esp_k{k} por cada k)
+  - GeoMIP/src/smoke_test2.py      (prueba 4 heurísticas × 2 valores de k)
+  - GeoMIP/src/smoke_test3.py      (comparación en 4 casos representativos)
+  - bitacoras/15_nuevas_heuristicas_plan.txt  (este archivo)

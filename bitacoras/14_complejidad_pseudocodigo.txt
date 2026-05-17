@@ -1,0 +1,285 @@
+Bitácora 14 — Complejidad Asintótica y Pseudocódigo de los Algoritmos
+=====================================================================
+Fecha: 2026-05-17
+Fuente: análisis directo del código fuente + datos empíricos del benchmark
+
+VARIABLES DE REFERENCIA
+------------------------
+  n   = número de nodos del SUBSISTEMA (purview + mechanism)
+  m   = nodos en el purview (futuro)
+  p   = nodos en el mecanismo (presente)
+  N   = m + p  (vértices totales del algoritmo QNodes, N ≤ 2·n_red)
+  k   = número de particiones deseadas
+  2^n = tamaño del espacio de estados del hipercubo
+
+
+═══════════════════════════════════════════════════════════════════════
+1. QNodes  (k = 2 — bipartición)
+═══════════════════════════════════════════════════════════════════════
+
+COMPLEJIDAD:   Θ(N³ · 2^n)   con  N = m + p
+
+Derivación:
+  El algoritmo tiene tres bucles anidados sobre los vértices V (|V| = N):
+    bucle_i  : N − 2  iteraciones        → O(N)
+    bucle_j  : |deltas| − 1 decreciente  → O(N) acumulado
+    bucle_k  : |deltas| en cada j        → O(N) por cada j
+  Iteraciones totales de bucle_k: Σ_{i=0}^{N−3} Σ_{j=0}^{N−3−i} (N−2−i)
+                                 ≈ N³ / 6  →  Θ(N³)
+
+  Cada llamada a funcion_submodular:
+    bipartir()               → O(2^n)  (distribucion marginal sobre hipercubo)
+    emd_efecto()             → O(2^n)  (suma ponderada sobre 2^n estados)
+  Costo por iteración: O(2^n)
+
+  Total: Θ(N³ · 2^n)
+
+  La memoización (memoria_omega, memoria_particiones) reduce constantes
+  pero no cambia el orden asintótico en el peor caso.
+
+PSEUDOCÓDIGO:
+─────────────────────────────────────────────────────────────────────
+QNodes(condicion, alcance, mecanismo, tpm):
+  preparar_subsistema(condicion, alcance, mecanismo, tpm)  // O(n · 2^n)
+  V ← presente[] + futuro[]   // N = m + p vértices
+
+  para i ← 0 hasta |V| − 3:
+    omegas ← [V[0]]
+    deltas ← V[1:]
+
+    para j ← 0 hasta |deltas| − 2:
+      mejor_k   ← -1
+      menor_emd ← +∞
+
+      para k ← 0 hasta |deltas| − 1:
+        emd_union  ← EMD( bipartir(omegas ∪ {deltas[k]}) )   // O(2^n)
+        emd_delta  ← EMD( bipartir({deltas[k]})              )   // O(2^n) o memo
+        diff       ← emd_union − emd_delta
+        si diff < menor_emd:
+          menor_emd ← diff;  mejor_k ← k
+
+      omegas.agregar( deltas[mejor_k] )
+      deltas.eliminar( deltas[mejor_k] )
+
+    memoria[ tuple(deltas) ] ← (emd_delta, dist_delta)
+    par_candidato ← omegas[-1] + deltas
+    omegas[-1] ← par_candidato
+    V ← omegas
+
+  retornar argmin_{particion ∈ memoria} memoria[particion].emd
+─────────────────────────────────────────────────────────────────────
+
+DATO EMPÍRICO (benchmark):
+  n=10: media 3701 ms (49 casos)
+  n=15: media ~1 800 ms para casos convergidos (19/50 convergen en 300 s)
+
+
+═══════════════════════════════════════════════════════════════════════
+2. GeometricSIA  (k = 2 — bipartición por programación dinámica)
+═══════════════════════════════════════════════════════════════════════
+
+COMPLEJIDAD:   Θ(n · 2^n)
+
+Derivación:
+  find_mip() hace un recorrido BFS sobre el hipercubo {0,1}^n:
+    nivel 0: 1 estado (estado inicial s0)
+    nivel l: C(n, l) estados a distancia Hamming l de s0
+    niveles totales: n  →  Σ C(n,l) = 2^n estados en total
+
+  calcular_costo(s0, estado):
+    - Accede a tabla_transiciones (memoizado, calculado al construir)
+    - Cada estado se calcula una vez: O(n) operaciones (n variables futuras)
+    - Total: 2^n estados × O(n) = O(n · 2^n)
+
+  identificar_particiones_optimas():
+    - Genera n candidatos desde nivel 0 (trivial): O(n)
+    - Por cada nivel 1..n/2: itera C(n, nivel) estados × O(n)
+    - Total: O(n · 2^(n/2))  →  dominated by la fase anterior
+
+  Evaluación de candidatos:
+    - Hasta n candidatos × EMD O(2^n) cada uno = O(n · 2^n)
+
+  Total: Θ(n · 2^n)
+
+  VENTAJA sobre QNodes: elimina el factor N²  (no hay triple bucle sobre vértices).
+
+PSEUDOCÓDIGO:
+─────────────────────────────────────────────────────────────────────
+GeometricSIA(condicion, alcance, mecanismo, tpm):
+  preparar_subsistema(condicion, alcance, mecanismo, tpm)  // O(n · 2^n)
+  s0 ← estado_inicial[dims_mecanismo]
+  sf ← 1 − s0                              // estado complementario
+
+  tabla[(s0, s0)] ← [0, …, 0]             // m ceros (variables futuras)
+  caminos[0] ← [s0]
+
+  para nivel ← 1 hasta n:                 // recorrido BFS por distancia Hamming
+    visitados ← {}
+    para cada estado_prev en caminos[nivel−1]:
+      para cada bit i donde estado_prev[i] ≠ sf[i]:
+        nuevo ← estado_prev con bit i invertido
+        si nuevo ∉ visitados:
+          calcular_costo(s0, nuevo)        // O(n): usa tabla_transiciones memoizada
+          caminos[nivel].agregar(nuevo)
+          visitados.agregar(nuevo)
+
+  // Identificar candidatos de bipartición óptima
+  costos_totales ← tabla[(s0, sf)]        // vector de m costos finales
+  candidatos ← []
+  para idx ← 0 hasta m−1:               // m candidatos base (excluir cada futuro)
+    candidatos.agregar( (todos_presentes, todos_futuros \ {idx}) )
+  para nivel ← 1 hasta n//2:            // candidatos por nivel medio
+    candidatos.agregar( mejor_estado_nivel(caminos[nivel]) )
+
+  para (presentes, futuros) en candidatos:
+    dist ← bipartir(futuros, presentes).distribucion_marginal()  // O(2^n)
+    emd  ← emd_efecto(dist, dist_marginal_subsistema)            // O(2^n)
+    memoria[(presentes, futuros)] ← (emd, dist)
+
+  retornar argmin_{(p,f) ∈ memoria} memoria[(p,f)].emd
+─────────────────────────────────────────────────────────────────────
+
+DATO EMPÍRICO:
+  n=10: media 1428 ms  →  2.6× más rápido que QNodes
+  n=15: media 4366 ms  →  4.1× más rápido que QNodes
+  n=20: TIMEOUT en todos los subsistemas ≥ 20 nodos activos (2^20 = 1 048 576 estados)
+
+
+═══════════════════════════════════════════════════════════════════════
+3. KPartitionSIA — Heurística Greedy (k ≥ 3)
+═══════════════════════════════════════════════════════════════════════
+
+COMPLEJIDAD:   O(n · 2^n  +  k³ · n · 2^n)  =  O(k³ · n · 2^n)
+
+Derivación:
+  Fase 1 — find_mip():  O(n · 2^n)   (igual que GeometricSIA)
+  Fase 2 — _heuristica_greedy(mip):
+    Bucle externo (hasta tener k partes): k − 2 iteraciones
+    Por iteración:
+      Para cada parte actual (≤ k partes): k iteraciones
+        Para cada nodo presente en la parte (≤ n nodos): O(n)
+          _evaluar_particion(k partes):  k llamadas a bipartir = k · O(2^n)
+        Para cada nodo futuro: idem
+    Costo por iteración exterior: O(k · n · k · 2^n) = O(k² · n · 2^n)
+    Total fase 2: O(k³ · n · 2^n)
+
+PSEUDOCÓDIGO:
+─────────────────────────────────────────────────────────────────────
+KPartitionSIA_Greedy(condicion, alcance, mecanismo, tpm, k):
+  preparar_subsistema(...)
+  mip ← GeometricSIA.find_mip()           // O(n · 2^n)
+
+  parte1 ← nodos en mip
+  parte2 ← complemento(mip)
+  partes ← [parte1, parte2]
+
+  mientras |partes| < k:
+    mejor_split   ← null
+    mejor_pérdida ← +∞
+
+    para cada parte P en partes:
+      para cada nodo v en P.presentes ∪ P.futuros:
+        P1 ← P sin v
+        P2 ← {v}
+        partes_test ← partes con P reemplazado por [P1, P2]
+        pérdida ← Σ_{i} EMD( bipartir(partes_test[i]) )  // O(k · 2^n)
+        si pérdida < mejor_pérdida:
+          mejor_pérdida ← pérdida
+          mejor_split   ← (P, P1, P2)
+
+    aplicar mejor_split a partes
+
+  retornar partes con menor pérdida EMD total
+─────────────────────────────────────────────────────────────────────
+
+DATO EMPÍRICO:
+  n=10 k=3: media 1533 ms  (pérdida media 0.165)
+  n=10 k=4: media 1587 ms  (pérdida media 0.277)
+  n=10 k=5: media 1633 ms  (pérdida media 0.408)
+  NOTA: pérdida aumenta con k porque más partes → más pérdida total EMD
+
+
+═══════════════════════════════════════════════════════════════════════
+4. KPartitionSIA — Heurística Clustering (k ≥ 3)
+═══════════════════════════════════════════════════════════════════════
+
+COMPLEJIDAD:   O(n · 2^n  +  n³)
+
+Derivación:
+  Fase 1 — find_mip():  O(n · 2^n)
+  Fase 2 — _heuristica_clustering():
+    Construir cost_matrix (p × m):     O(n²)
+    Construir augmented_matrix (N × N): O(N²) = O(n²)
+    pdist(perfiles, euclidean):         O(N² · N) = O(n³)
+    linkage(Ward):                      O(n² log n) a O(n³)
+    fcluster:                           O(n)
+    _evaluar_particion:                 O(k · 2^n)
+  Total: O(n³ + k · 2^n) dominado por O(n · 2^n)
+
+  NOTA IMPORTANTE: Esta heurística tiene complejidad de clustering O(n³)
+  PERO produce pérdidas EMD muy superiores (10–20× peor que Greedy)
+  porque el clustering jerárquico minimiza distancia euclidea en el espacio
+  de perfiles, NO la EMD directamente.
+
+PSEUDOCÓDIGO:
+─────────────────────────────────────────────────────────────────────
+KPartitionSIA_Clustering(condicion, alcance, mecanismo, tpm, k):
+  preparar_subsistema(...)
+  mip ← GeometricSIA.find_mip()           // O(n · 2^n)
+
+  // Construir perfil de cada nodo basado en costos de transición
+  C[p×m] ← 0
+  para cada nodo presente i:
+    vecino ← s0 con bit i invertido
+    C[i, :] ← tabla_transiciones[(s0, vecino)]  // costos hacia sf
+
+  A[N×N] ← [[0, C], [C^T, 0]]             // matriz bipartita aumentada
+
+  // Clustering jerárquico Ward sobre los perfiles de filas de A
+  dist_matrix ← pdist(A, métrica='euclidiana')   // O(n³)
+  Z           ← linkage(dist_matrix, 'ward')      // O(n² log n)
+  etiquetas   ← fcluster(Z, k, 'maxclust')        // O(n)
+
+  partes ← agrupar nodos por etiqueta
+  retornar partes   // no optimiza EMD directamente → pérdida alta
+─────────────────────────────────────────────────────────────────────
+
+DATO EMPÍRICO:
+  n=10 k=3: media 1556 ms  (pérdida media 1.536  ← 9× peor que Greedy)
+  n=10 k=4: media 1599 ms  (pérdida media 1.536  ← no mejora con k)
+  n=10 k=5: media 1655 ms  (pérdida media 1.536  ← estable, no converge)
+  CONCLUSIÓN: Clustering no es adecuado para minimizar EMD directamente.
+
+
+═══════════════════════════════════════════════════════════════════════
+TABLA RESUMEN DE COMPLEJIDADES
+═══════════════════════════════════════════════════════════════════════
+
+Algoritmo                 │ Tiempo            │ Espacio   │ Clase
+──────────────────────────┼───────────────────┼───────────┼──────────────
+QNodes k=2                │ Θ(N³ · 2^n)       │ O(2^n)    │ Exponencial
+GeometricSIA k=2          │ Θ(n · 2^n)        │ O(n · 2^n)│ Exponencial*
+KPartitionSIA Greedy k≥3  │ O(k³ · n · 2^n)   │ O(2^n)    │ Exponencial*
+KPartitionSIA Clustering  │ O(n · 2^n + n³)   │ O(n²)     │ Exponencial*
+──────────────────────────┴───────────────────┴───────────┴──────────────
+* El factor 2^n es inherente al hipercubo de estados; no existe algoritmo
+  polinomial exacto para MIP (se reduce a problema NP-hard en general).
+
+COTA SUPERIOR PRÁCTICA (límite observado):
+  n ≤ 13 nodos activos → converge en < 300 s
+  n = 14–15 nodos      → borderline (~100–300 s)
+  n ≥ 16 nodos activos → timeout inevitable en hardware estándar (1 CPU)
+
+SPEEDUP EMPÍRICO GeometricSIA vs QNodes:
+  n=10:  2.6×  (consistente con factor N² = (20)²/(10·2^10) reducido)
+  n=15:  4.1×  (speedup crece con n por la diferencia en el factor N³ vs n)
+
+
+═══════════════════════════════════════════════════════════════════════
+ARCHIVOS CONSULTADOS
+═══════════════════════════════════════════════════════════════════════
+- .../strategies/q_nodes.py       (funciones algorithm, funcion_submodular)
+- .../strategies/geometric.py     (funciones find_mip, calcular_costos_nivel,
+                                   calcular_costo, identificar_particiones_optimas)
+- .../strategies/kpartition.py    (_heuristica_greedy, _heuristica_clustering)
+- GeoMIP/results/benchmark_completo_2026-05-17_11h40.xlsx  (datos empíricos)

@@ -1,0 +1,86 @@
+================================================================================
+BITÁCORA 18 — n=20 INVIABLE: PROCESO DETENIDO, ANÁLISIS DE TIEMPOS
+Fecha: 2026-05-17  16:06
+================================================================================
+
+DECISIÓN
+--------
+El proceso de benchmark para n=20, 22, 25 fue detenido manualmente después de
+2 horas y 32 minutos de ejecución. Se completaron 4 de 50 casos de n=20 antes
+de la terminación.
+
+Razón de la decisión:
+  • Ritmo observado: ~35–40 min por caso
+  • Proyección para completar n=20: ~25 horas adicionales
+  • Riesgo para el equipo: sobrecalentamiento y posible pérdida de datos
+  • Valor marginal: los 4 casos completados ya demuestran el patrón de inviabilidad
+  • Los datos de n=10 y n=15 (100 casos completos) son suficientes para el
+    análisis comparativo entre estrategias
+
+DATOS EXTRAÍDOS DEL LOG (bench_n20_n22_n25_v2.log)
+----------------------------------------------------
+Configuración: n=20, TPM=N20A.csv, timeout=300 s/estrategia
+
+Caso  | Purview           | Mecanismo          | Inicio   | k3 fin  | k4 fin  | k5 fin  | Duración total
+------|-------------------|--------------------|----------|---------|---------|---------|---------------
+  1   | ABCDEFGHIJKLMN    | ABCDEFGHIJKLMN     | 13:34:47 | 13:49:51| 13:59:55| ~14:10  | ~35 min
+  2   | ABCDEFGHIJKLMN    | ABCDEFGHIJKLMN     | 14:10:00 | 14:25:13| 14:35:19| ~14:45  | ~35 min
+  3   | ABCDEFGHIJKLMN    | BCDEFGHIJKLMNO     | 14:45:26 | 15:00:44| 15:10:55| ~15:21  | ~35 min
+  4   | ABCDEFGHIJKLMN    | BCDEFGHIJKLMNO     | 15:21:04 | 15:36:31| 15:50:38| ~16:00  | ~39 min
+  5   | ABCDEFGHIJKLMN    | ABDEGHJKMNPQST     | 16:00:39 | KILLED  |   —     |   —     | incompleto
+
+Código de resultado por estrategia: "QXGX"
+  Q = QNodes (omitido para n≥20 por diseño — O(N³·2^n) inviable)
+  X = resultado X → no se ejecutó / timeout
+  G = GeometricSIA (Θ(n·2^n)) → timeout en todos los casos
+  X = KPartition (Greedy+KL) → timeout en todos los casos
+
+  En todos los casos completados TODAS las estrategias alcanzaron el límite de
+  300 segundos sin converger. Esto es coherente con la complejidad teórica:
+  para subsistemas de 14 nodos, 2^14 = 16.384 estados → cada evaluación de EMD
+  implica resolver un problema de transporte sobre distribuciones de 16K entradas.
+
+NOTA SOBRE DATOS PERDIDOS
+--------------------------
+No se generó ningún archivo .xlsx de checkpoint para n=20.
+Motivo: el benchmark guarda checkpoint al COMPLETAR cada caso; como cada caso
+tardaba ~35 min y el proceso fue detenido entre el caso 4 y el 5, el checkpoint
+del caso 4 nunca se escribió a disco.
+
+Los únicos registros de los 4 casos son los timestamps del log:
+  GeoMIP/results/logs/bench_n20_n22_n25_v2.log
+
+CONCLUSIÓN ACADÉMICA
+--------------------
+n=20 con subsistemas de 14 nodos es COMPUTACIONALMENTE INVIABLE en la
+implementación actual. Esto es un resultado válido del proyecto, no un fracaso:
+
+  1. Confirma empíricamente la complejidad teórica:
+     - Θ(n·2^n) para GeometricSIA: con n=20 → 20·1.048.576 ≈ 20M operaciones
+     - O(k³·n·2^n) para KPartitionSIA: con k=5, n=20 → ~525M operaciones por caso
+     - A diferencia de n=10 (1K estados) o n=15 (32K estados), n=20 (1M estados)
+       supone un salto de ~32x en costo respecto a n=15.
+
+  2. Establece un límite práctico del algoritmo:
+     - n ≤ 15: completamente viable (segundos a minutos por caso)
+     - n = 20: inviable sin optimizaciones adicionales (>35 min/caso, timeouts)
+
+  3. Los 4 casos donde todo hizo timeout (300 s) son evidencia empírica directa
+     de este límite y pueden presentarse en el informe como tal.
+
+ESTADO FINAL DEL PROCESO
+-------------------------
+  PIDs detenidos: 3140, 14144
+  Log preservado: GeoMIP/results/logs/bench_n20_n22_n25_v2.log  (5.3 KB)
+  Checkpoints Excel: ninguno generado
+  Proceso n=10/15 (v3): sigue activo (PIDs 19016, 19180)
+
+PRÓXIMOS PASOS RECOMENDADOS
+----------------------------
+  1. Esperar a que el proceso n=10/15 v3 termine (~20 min más)
+  2. Con esos resultados hacer el análisis comparativo definitivo (Greedy vs KL)
+  3. Documentar n=20 como "límite de escalabilidad" en el informe final
+  4. Opcionalmente: en el informe, reportar las 4 duraciones observadas como
+     evidencia cuantitativa de la inviabilidad
+
+================================================================================

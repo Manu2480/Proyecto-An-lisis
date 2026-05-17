@@ -1,0 +1,115 @@
+================================================================================
+BITÁCORA 17 — LIMPIEZA Y REORGANIZACIÓN DE GeoMIP/results/
+Fecha: 2026-05-17  20:54 – 21:00
+================================================================================
+
+CONTEXTO
+--------
+La carpeta GeoMIP/results/ acumuló decenas de archivos a lo largo de múltiples
+sesiones de benchmark (días 16 y 17 de mayo). Antes de la limpieza contenía:
+
+  • 27 archivos .xlsx en la raíz (checkpoints intermedios, resultados completos,
+    resultados de formato antiguo)
+  • 7 archivos .log (algunos vacíos, algunos de ejecuciones interrumpidas)
+  • 4 subcarpetas con nombres informales heredados de sesiones anteriores:
+      - "intento1 nuevo/"         (12 archivos, benchmarks del 16-may noche)
+      - "result pre cur/"         (29 archivos, formato per-red/per-k)
+      - "resultados con euristica domingo 10/"  (36 archivos, ídem pero más completo)
+      - "_archive/"               (63 archivos de ejecuciones muy antiguas, 16-may tarde)
+  • 1 carpeta "n10/" con checkpoints del run activo v3
+
+DECISIONES TOMADAS
+------------------
+
+1. CONSERVAR EN finales/
+   → benchmark_completo_2026-05-17_11h40.xlsx
+   Razón: es el único resultado COMPLETO para n=10 y n=15 con Greedy + KL.
+   Contiene 50 filas de n=10 y 50 filas de n=15 (formato wide, columnas por
+   estrategia). Es la fuente de verdad para el análisis comparativo.
+   NOTA: al momento de la limpieza el archivo estaba abierto en el IDE (bloqueado).
+         Debe moverse manualmente a finales/ cerrando el visor primero,
+         o simplemente tenerlo presente — ya está listado en esta bitácora.
+
+2. CONSERVAR EN logs/
+   → bench_n10_n15.log           (103 KB, ejecución completa de referencia)
+   → bench_n10_n15_v3.log        (activo, escribe el proceso en curso)
+   → bench_n20_n22_n25_v2.log    (activo, escribe el proceso n≥20)
+
+3. MOVER A historico/
+   → "intento1 nuevo/"
+     Contiene resultados del 16-may con formato antiguo (benchmark global +
+     checkpoints de n=6 y n=15). No replicable con el formato nuevo, se guarda
+     como referencia histórica.
+   → "result pre cur/"
+     Resultados individuales por red (N3–N15) del formato original por-estrategia.
+     Útil si se quieren comparar con resultados previos al refactor.
+   → "resultados con euristica domingo 10/"
+     Versión más completa del anterior: incluye k=3,4,5 para N3–N15. Relevante
+     como evidencia de las heurísticas antiguas (antes de KL y Spectral).
+   Razón: ninguno de estos datasets corresponde al protocolo de DatosPruebas2026_1.md
+   ni usa las heurísticas definitivas, pero tienen valor histórico/comparativo.
+
+4. MANTENER _archive/ SIN CAMBIOS
+   Contenía 63 archivos de sesiones del 16-may (tarde), incluyendo
+   pruebas_Metodo1.xlsx, Pruebas_Metodo2.xlsx, resultados_Geometric_*.xlsx.
+   Estas son las pruebas preliminares de validación del código antes del benchm-
+   ark formal. Se dejan intactas como soporte de verificación de correctitud.
+
+5. ELIMINAR
+   → bench_n10_n15_err.log           (0 KB, vacío)
+   → bench_n10_n15_v2_err.log        (0 KB, vacío)
+   → bench_n10_n15_v2.log            (50 KB, ejecución con 4 heurísticas
+                                       interrumpida a la mitad — datos parciales
+                                       ya capturados en bench_n10_n15.log)
+   → bench_n20_n22_n25.log           (1.3 KB, primer intento n≥20, abortado)
+   → bench_n20_n22_n25_err.log       (0 KB, vacío)
+   → Todos los checkpoints intermedios de n=10 (benchmark_n10_10h44..10h56):
+     9 archivos redundantes, el estado final está en benchmark_completo_*.xlsx
+   → Todos los checkpoints intermedios de n=15 (benchmark_n15_11h08..11h39):
+     7 archivos redundantes, ídem.
+
+ESTRUCTURA FINAL DESPUÉS DE LA LIMPIEZA
+----------------------------------------
+
+  GeoMIP/results/
+  ├── finales/                          ← RESULTADOS PRINCIPALES
+  │   └── benchmark_completo_2026-05-17_11h40.xlsx  (31 KB, n=10 + n=15 completo)
+  │       [PENDIENTE de mover — archivo bloqueado por el IDE]
+  │
+  ├── n10/                              ← CHECKPOINTS RUN ACTIVO (v3, Greedy+KL)
+  │   ├── checkpoint_2026-05-17_15h44.xlsx
+  │   ├── checkpoint_2026-05-17_15h46.xlsx
+  │   ├── checkpoint_2026-05-17_15h48.xlsx
+  │   ├── checkpoint_2026-05-17_15h53.xlsx
+  │   ├── checkpoint_2026-05-17_15h54.xlsx
+  │   ├── checkpoint_2026-05-17_15h55.xlsx
+  │   └── checkpoint_2026-05-17_15h57.xlsx
+  │
+  ├── logs/                             ← LOGS DE EJECUCIÓN
+  │   ├── bench_n10_n15.log             (referencia, ejecución completa 11h40)
+  │   ├── bench_n10_n15_v3.log          (ACTIVO — proceso corriendo)
+  │   └── bench_n20_n22_n25_v2.log      (ACTIVO — proceso corriendo)
+  │
+  ├── historico/                        ← VERSIONES ANTERIORES (referencia)
+  │   ├── intento1 nuevo/               (12 archivos, 16-may noche)
+  │   ├── result pre cur/               (29 archivos, formato per-k antiguo)
+  │   └── resultados con euristica domingo 10/  (36 archivos)
+  │
+  └── _archive/                         ← ARCHIVOS MUY ANTIGUOS (no tocar)
+      └── 63 archivos (pruebas Método1/2, resultados Geometric, checkpoints 16-may tarde)
+
+  Archivos sueltos en raíz (temporales mientras procesos están activos):
+  ├── benchmark_completo_2026-05-17_11h40.xlsx  [MOVER a finales/ al cerrar IDE]
+  ├── bench_n10_n15_v3.log        (proceso v3 escribiendo aquí)
+  ├── bench_n10_n15_v3_err.log    (stderr proceso v3, activo)
+  ├── bench_n20_n22_n25_v2.log    (proceso n≥20 escribiendo aquí)
+  └── bench_n20_n22_n25_v2_err.log (stderr proceso n≥20, activo)
+
+RESUMEN DE ARCHIVOS
+-------------------
+  Antes: ~120 archivos dispersos en raíz y subcarpetas sin criterio
+  Después: 5 categorías claras (finales / n10 / logs / historico / _archive)
+  Eliminados: 18 archivos (16 checkpoints redundantes + 5 logs vacíos/interrumpidos)
+  Movidos a historico/: 77 archivos (3 carpetas)
+
+================================================================================

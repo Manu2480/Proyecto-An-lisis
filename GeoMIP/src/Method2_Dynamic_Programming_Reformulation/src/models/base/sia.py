@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import copy
 import time
 
 import numpy as np
@@ -17,6 +18,22 @@ from src.constants.base import (
 from src.constants.error import (
     ERROR_INCOMPATIBLE_SIZES,
 )
+
+# Cache de subsistemas preparados: evita reconstruir el mismo subsistema
+# múltiples veces para el mismo caso (condicion, alcance, mecanismo, tpm).
+# Clave: (id(tpm), condicion, alcance, mecanismo)
+# Valor: (subsistema, dists_marginales)  ← objetos originales, se retornan deep-copies
+_SUBSYSTEM_CACHE: dict = {}
+
+
+def limpiar_cache_subsistemas() -> None:
+    """Vacía el caché de subsistemas.
+
+    Llamar entre casos de benchmark para liberar memoria y evitar que el caché
+    crezca indefinidamente. No es necesario llamarlo entre estrategias del mismo
+    caso (ese es exactamente el escenario de reutilización que se quiere aprovechar).
+    """
+    _SUBSYSTEM_CACHE.clear()
 
 
 class SIA(ABC):
@@ -86,6 +103,21 @@ class SIA(ABC):
         # Preparar directorio de salida
         self.sia_gestor.output_dir.mkdir(parents=True, exist_ok=True)
 
+        # ── Caché de subsistemas ─────────────────────────────────────────────
+        # Para un benchmark, la misma (condicion, alcance, mecanismo, tpm) se
+        # consulta hasta 8 veces por caso (una por estrategia/k). Construir el
+        # subsistema implica marginalizar NCubes de forma (2,)^n, operación O(2^n).
+        # El caché evita repetir ese trabajo costoso: la 1ª llamada computa y
+        # almacena; las siguientes recuperan en O(1) + deep-copy barato.
+        cache_key = (id(tpm), condicion, alcance, mecanismo)
+        if cache_key in _SUBSYSTEM_CACHE:
+            cached_sub, cached_dists = _SUBSYSTEM_CACHE[cache_key]
+            self.sia_subsistema      = copy.deepcopy(cached_sub)
+            self.sia_dists_marginales = cached_dists.copy()
+            self.sia_tiempo_inicio   = time.time()
+            return
+        # ────────────────────────────────────────────────────────────────────
+
         # Cargar y preparar datos
         # tpm = self.sia_cargar_tpm() #! DESCOMENTAR PARA UN SOLO ESTADO INICIAL
         estado_inicial = np.array(
@@ -109,9 +141,15 @@ class SIA(ABC):
         # self.sia_logger.debug(f"{dims_alcance, dims_mecanismo=}")
         # self.sia_logger.debug(subsistema)
 
-        self.sia_subsistema = subsistema
+        self.sia_subsistema       = subsistema
         self.sia_dists_marginales = subsistema.distribucion_marginal()
-        self.sia_tiempo_inicio = time.time()
+        self.sia_tiempo_inicio    = time.time()
+
+        # Almacenar en caché para reutilizar en el mismo caso
+        _SUBSYSTEM_CACHE[cache_key] = (
+            copy.deepcopy(subsistema),
+            self.sia_dists_marginales.copy(),
+        )
 
     def chequear_parametros(self, candidato: str, futuro: str, presente: str):
         """Valida que los datos enviados por el usuario sean correctos, donde no hay problema si tienen la misma longitud puesto se están asignando los valores correspondientes a cada variable.
