@@ -1,6 +1,6 @@
 # README para Mauricio — Proyecto K-QGMIP
 
-Hola Mauri, te dejo esta guía para que puedas ponerte al día y ejecutar tu parte del proyecto sin complicaciones. Yo voy a correr la red de **n=22** y tú la de **n=10**.
+Hola Mauri, te dejo esta guía para que puedas ponerte al día y ejecutar tu parte del proyecto sin complicaciones. Yo voy a correr la red de **n=22** y tú la de **n=20**.
 
 ---
 
@@ -29,7 +29,7 @@ Esto viene de la Teoría de Información Integrada (IIT), que es un framework pa
 3. **Resultados ya obtenidos**:
    - n=10 (49 casos): corrió completamente, todos convergieron ✓
    - n=15 (50 casos): corrió completamente, todos convergieron ✓
-   - n=20: inviable con el hardware actual (≥35 min por caso)
+   - n=20: pendiente — te toca a ti ✓
 
 4. **Optimización reciente**: implementé un caché de subsistemas en `sia.py` que evita recalcular 8 veces por caso la misma operación costosa. Esto mejora mucho el rendimiento para redes grandes.
 
@@ -54,41 +54,44 @@ Eso instala todas las dependencias (numpy, pandas, scipy, etc.) en un entorno vi
 
 ---
 
-## Cómo correr el benchmark de n=10
+## Cómo correr el benchmark de n=20
 
 Desde la raíz del repo:
 
 ```bash
 cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
-uv run python ../benchmark.py --n 10
+uv run python ../benchmark.py --n 20
 ```
 
-O si quieres especificar el timeout máximo (en segundos, por estrategia):
+El timeout por defecto ya está configurado en **1800 segundos** (30 min) por estrategia, que es lo que recomienda el spec del proyecto para n>15. No necesitas pasarlo explícitamente, pero si quieres ser explícito:
 
 ```bash
-uv run python ../benchmark.py --n 10 --timeout 120
+uv run python ../benchmark.py --n 20 --timeout 1800
 ```
 
-Para n=10 con 120 segundos de timeout es más que suficiente — cada caso tarda menos de 30 segundos en total.
+> **Importante:** n=20 es computacionalmente exigente. Cada caso puede tardar entre 30 minutos y varias horas dependiendo del subsistema. Te recomiendo dejarlo correr de noche o en un proceso background y revisar los checkpoints al día siguiente.
 
 ### ¿Qué hace exactamente?
 
-Corre estas estrategias sobre los **49 subconjuntos** de la red N10A.csv:
+Corre estas estrategias sobre los **50 subconjuntos** de la red N20A.csv:
 
-| Estrategia       | k | Descripción                            |
-|------------------|---|----------------------------------------|
-| QNodes           | 2 | Heurística greedy base                 |
-| GeometricSIA     | 2 | Programación dinámica (más preciso)    |
-| KPartitionSIA-QN | 3,4,5 | Greedy extendido a k partes        |
-| KPartitionSIA-KL | 3,4,5 | Kernighan-Lin extendido a k partes |
+| Estrategia       | k     | Descripción                             |
+|------------------|-------|-----------------------------------------|
+| GeometricSIA     | 2     | Programación dinámica (QNodes omitido para n≥20) |
+| KPartitionSIA-QN | 3,4,5 | Greedy extendido a k partes             |
+| KPartitionSIA-KL | 3,4,5 | Kernighan-Lin extendido a k partes      |
+
+> Nota: QNodes k=2 se omite automáticamente para n≥20 porque es inviable (exponencial). Solo corren GeometricSIA y KPartitionSIA.
 
 Al final calcula automáticamente qué combinación (k, estrategia) es la mejor para cada caso.
 
 ### ¿Dónde quedan los resultados?
 
-- Checkpoint cada 5 casos: `GeoMIP/results/n10/checkpoint_FECHA.xlsx`
-- Resultado final: `GeoMIP/results/n10/n10_completo_FECHA.xlsx`
+- Checkpoint cada 5 casos: `GeoMIP/results/n20/checkpoint_FECHA.xlsx`
+- Resultado final: `GeoMIP/results/n20/n20_completo_FECHA.xlsx`
 - Excel consolidado (todas las redes): `GeoMIP/results/benchmark_completo_FECHA.xlsx`
+
+Los checkpoints son clave para n=20: si el proceso se interrumpe, ya tienes los primeros casos guardados.
 
 ---
 
@@ -99,9 +102,9 @@ projecto-analisis-20261/
 ├── GeoMIP/
 │   ├── data/
 │   │   └── samples/
-│   │       └── N10A.csv          ← la TPM de tu red (ya está en el repo)
+│   │       └── N20A.csv          ← la TPM de tu red (ya está en el repo, ~80 MB)
 │   ├── results/
-│   │   └── n10/                  ← aquí quedan tus resultados
+│   │   └── n20/                  ← aquí quedan tus resultados
 │   └── src/
 │       ├── benchmark.py          ← el script que corres
 │       └── Method2_Dynamic_Programming_Reformulation/
@@ -121,9 +124,10 @@ projecto-analisis-20261/
 ## Puntos clave que debes saber
 
 - **No modifiques** `sia.py` ni `benchmark.py` sin avisarme, porque yo también los uso para n=22.
-- La red **N10A.csv ya está en el repo** (solo pesa ~1 KB porque son 10 nodos = 1024 filas).
+- La red **N20A.csv ya está en el repo** (~80 MB, 1,048,576 filas = 2^20).
+- n=20 es lento por diseño — cada caso puede tardar 30+ minutos. Es normal, no es un error.
 - Si algo falla al importar, asegúrate de correr el comando desde la carpeta `Method2_Dynamic_Programming_Reformulation/`, no desde la raíz.
-- Los resultados que generes guárdalos en `GeoMIP/results/n10/` (el benchmark lo hace automáticamente).
+- Los resultados que generes quedan automáticamente en `GeoMIP/results/n20/`.
 - Cuando termines, haz commit y push de los Excels de resultados en esa carpeta.
 
 ---
@@ -133,10 +137,10 @@ projecto-analisis-20261/
 ```bash
 cd "GeoMIP/src/Method2_Dynamic_Programming_Reformulation"
 uv sync
-uv run python ../benchmark.py --n 10 --timeout 120
+uv run python ../benchmark.py --n 20
 ```
 
-Tiempo estimado: **menos de 5 minutos** para los 49 casos completos.
+Tiempo estimado: **varias horas** para los 50 casos completos. Déjalo correr en background — los checkpoints se guardan cada 5 casos automáticamente en `GeoMIP/results/n20/`.
 
 ---
 
