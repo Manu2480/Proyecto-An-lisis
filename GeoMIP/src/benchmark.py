@@ -19,6 +19,11 @@ Uso:
   uv run python ../benchmark.py --n 10 15
   uv run python ../benchmark.py --n 20 22 25
   uv run python ../benchmark.py --timeout 21600
+
+Cuando la petición incluye algún n≥20, además de imprimir en consola se escriben
+  GeoMIP/results/logs/n20_plus/benchmark_n<...>_<fecha>_<hora>.stdout.log
+  GeoMIP/results/logs/n20_plus/benchmark_n<...>_<fecha>_<hora>.stderr.log
+(UTF-8). Desactivar con --no-run-log.
 """
 import sys
 import os
@@ -65,6 +70,79 @@ RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 # Cota por estrategia por defecto (~6 h). Casos n=20 pueden tardar horas por find_mip.
 # Se puede subir con CLI:  uv run python ../benchmark.py --timeout 72000
 DEFAULT_TIMEOUT = 21600
+
+
+# ── Logging Tee (n≥20): consola + archivo con fecha en nombre ─────────────────
+
+
+class _TeeTextStream:
+    """Replica cada write/flush a varios streams (p. ej. consola + archivo)."""
+
+    __slots__ = ("_streams",)
+
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data: str) -> int:
+        for s in self._streams:
+            s.write(data)
+        return len(data)
+
+    def flush(self) -> None:
+        for s in self._streams:
+            s.flush()
+
+
+def _large_n_log_paths(ns: list[int]) -> tuple[Path, Path] | None:
+    """Rutas stdout/stderr bajo results/logs/n20_plus/; None si no aplica."""
+    large = sorted({n for n in ns if n >= 20})
+    if not large:
+        return None
+    stamp = datetime.now().strftime("%Y-%m-%d_%Hh%Mm%S")
+    tag = "-".join(str(n) for n in large)
+    log_dir = RESULTS_DIR / "logs" / "n20_plus"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    base = log_dir / f"benchmark_n{tag}_{stamp}"
+    return (base.with_name(base.name + ".stdout.log"), base.with_name(base.name + ".stderr.log"))
+
+
+def _install_large_n_logging(ns: list[int]):
+    """
+    Si hay n≥20, abre .stdout.log / .stderr.log y envuelve sys.stdout/sys.stderr.
+    Retorna (out_file, err_file, prev_stdout, prev_stderr) para restaurar en finally;
+    si no aplica, retorna (None, None, None, None).
+    """
+    paths = _large_n_log_paths(ns)
+    if paths is None:
+        return None, None, None, None
+    out_path, err_path = paths
+    out_f = open(out_path, "w", encoding="utf-8", errors="replace", buffering=1)
+    err_f = open(err_path, "w", encoding="utf-8", errors="replace", buffering=1)
+    prev_out, prev_err = sys.stdout, sys.stderr
+    sys.stdout = _TeeTextStream(prev_out, out_f)
+    sys.stderr = _TeeTextStream(prev_err, err_f)
+    print(f"[run-log] stdout → {out_path}", flush=True)
+    print(f"[run-log] stderr → {err_path}", flush=True)
+    return out_f, err_f, prev_out, prev_err
+
+
+def _uninstall_large_n_logging(out_f, err_f, prev_out, prev_err):
+    if prev_out is None:
+        return
+    try:
+        sys.stdout.flush()
+        sys.stderr.flush()
+    except Exception:
+        pass
+    sys.stdout = prev_out
+    sys.stderr = prev_err
+    try:
+        if out_f:
+            out_f.close()
+        if err_f:
+            err_f.close()
+    except Exception:
+        pass
 
 
 # ── Subconjuntos exactos de DatosPruebas2026_1.md ───────────────────────────
@@ -609,20 +687,30 @@ def main():
     parser.add_argument("--n", nargs="+", type=int, default=[10, 15, 20, 22, 25])
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT,
                         help="Segundos por estrategia y caso (default=%(default)s; use p.ej. 21600 para n>=20)")
+    parser.add_argument("--no-run-log", action="store_true",
+                        help="No escribir logs con fecha en logs/n20_plus/ cuando n≥20")
     args = parser.parse_args()
 
-    print(f"Benchmark K-QGMIP - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    print(f"  n={args.n}  timeout_max={args.timeout}s")
-    print(f"  samples: {SAMPLES_DIR}")
+    out_f = err_f = prev_out = prev_err = None
+    if not args.no_run_log:
+        out_f, err_f, prev_out, prev_err = _install_large_n_logging(args.n)
 
-    resultados = run_benchmark(args.n, args.timeout)
+    try:
+        print(f"Benchmark K-QGMIP - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+        print(f"  n={args.n}  timeout_max={args.timeout}s")
+        print(f"  samples: {SAMPLES_DIR}")
 
-    if resultados:
-        out = save_results(resultados)
-        total = sum(len(df) for df in resultados.values())
-        print(f"Total filas: {total}")
-    else:
-        print("Sin resultados.")
+        resultados = run_benchmark(args.n, args.timeout)
+
+        if resultados:
+            out = save_results(resultados)
+            total = sum(len(df) for df in resultados.values())
+            print(f"Total filas: {total}")
+        else:
+            print("Sin resultados.")
+    finally:
+        if not args.no_run_log:
+            _uninstall_large_n_logging(out_f, err_f, prev_out, prev_err)
 
 
 if __name__ == "__main__":
