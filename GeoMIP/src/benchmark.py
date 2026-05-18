@@ -382,23 +382,33 @@ def run_strategy(strategy_cls, init_kwargs, call_kwargs,
 # ── Heurística: recomendar k óptimo ──────────────────────────────────────────
 def heuristica_k_optimo(fila: dict) -> dict:
     """
-    Dado un dict con las pérdidas y tiempos de k=2,3,4,5 para QNodes y Geo,
+    Dado un dict con las pérdidas y tiempos de k=2,3,4,5,
     recomienda el k que maximiza la relación mejora_perdida / aumento_tiempo.
 
+    Funciona con columnas de n<=15 (QN/KL) y n>=20 (MCTS).
     Retorna: {k_recomendado, estrategia_recomendada, razon, detalle}
     """
-    # Solo las heurísticas activas en el benchmark principal
-    estrategias = [
-        ("QN",  "QNodes-Greedy"),
-        ("KL",  "KL"),
-    ]
     base_perdida = {}
     base_tiempo  = {}
-    for prefijo, _ in estrategias:
-        base_perdida[prefijo] = fila.get(f"{prefijo}_k2_perdida")
-        base_tiempo[prefijo]  = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
 
-    # Fallback: usar Geo k=2 como base si QN no existe (n>=20)
+    # Detectar si es un benchmark n>=20 (columnas MCTS) o n<=15 (QN/KL)
+    tiene_mcts = "MCTS_k2_perdida" in fila
+
+    if tiene_mcts:
+        estrategias = [("MCTS", "MCTS")]
+        for prefijo, _ in estrategias:
+            base_perdida[prefijo] = fila.get(f"{prefijo}_k2_perdida")
+            base_tiempo[prefijo]  = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
+    else:
+        estrategias = [
+            ("QN",  "QNodes-Greedy"),
+            ("KL",  "KL"),
+        ]
+        for prefijo, _ in estrategias:
+            base_perdida[prefijo] = fila.get(f"{prefijo}_k2_perdida")
+            base_tiempo[prefijo]  = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
+
+    # Fallback: usar Geo k=2 como base si ningún prefijo existe
     base_geo2 = fila.get("Geo_k2_perdida")
     t_geo2    = fila.get("Geo_k2_tiempo_ms") or 1
 
@@ -465,6 +475,8 @@ def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
 
         # Para n >= 20 QNodes es inviable (exponencial): solo heuristicas
         usar_qnodes = (n <= 15)
+        # Para n >= 20 KL/Greedy hacen timeout en mecanismos grandes: usar MCTS
+        usar_mcts_explicitamente = (n >= 20)
 
         for idx, (purview, mec_str) in enumerate(pares, 1):
             alcance   = letters_to_binary(purview,  n_val)
@@ -501,25 +513,36 @@ def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
             row["Geo_k2_tiempo_ms"] = r["tiempo_ms"]
             print(f"  Geo2={'.' if r['convergio'] else 'X'}", end="", flush=True)
 
-            # ── k=3,4,5  Greedy + KL ────────────────────────────────────────────
-            # Clustering y Spectral ya están documentados — no se re-ejecutan
-            for k in [3, 4, 5]:
-                heuristicas = [
-                    ("greedy", "QN"),   # Greedy unilateral (original)
-                    ("kl",     "KL"),   # Kernighan-Lin (nuevo)
-                ]
-                simbolos = []
-                for heur, prefijo in heuristicas:
+            if not usar_mcts_explicitamente:
+                # ── n<=15: k=3,4,5  Greedy + KL exactos ─────────────────────
+                for k in [3, 4, 5]:
+                    heuristicas = [
+                        ("greedy", "QN"),   # Greedy unilateral (original)
+                        ("kl",     "KL"),   # Kernighan-Lin (nuevo)
+                    ]
+                    simbolos = []
+                    for heur, prefijo in heuristicas:
+                        r = run_strategy(KPartitionSIA,
+                                         {"gestor": gestor()},
+                                         {"k": k, "forzar_heuristica": heur},
+                                         condicion, alcance, mecanismo, tpm, case_to)
+                        row[f"{prefijo}_k{k}_particion"] = r["particion"]
+                        row[f"{prefijo}_k{k}_perdida"]   = r["perdida"]
+                        row[f"{prefijo}_k{k}_tiempo_ms"] = r["tiempo_ms"]
+                        simbolos.append("." if r["convergio"] else "X")
+
+                    print(f"  k{k}(QN{simbolos[0]}/KL{simbolos[1]})", end="", flush=True)
+            else:
+                # ── n>=20: k=2,3,4,5  MCTS (único viable para mecanismos grandes) ──
+                for k in [2, 3, 4, 5]:
                     r = run_strategy(KPartitionSIA,
                                      {"gestor": gestor()},
-                                     {"k": k, "forzar_heuristica": heur},
+                                     {"k": k, "forzar_heuristica": "mcts"},
                                      condicion, alcance, mecanismo, tpm, case_to)
-                    row[f"{prefijo}_k{k}_particion"] = r["particion"]
-                    row[f"{prefijo}_k{k}_perdida"]   = r["perdida"]
-                    row[f"{prefijo}_k{k}_tiempo_ms"] = r["tiempo_ms"]
-                    simbolos.append("." if r["convergio"] else "X")
-
-                print(f"  k{k}(QN{simbolos[0]}/KL{simbolos[1]})", end="", flush=True)
+                    row[f"MCTS_k{k}_particion"] = r["particion"]
+                    row[f"MCTS_k{k}_perdida"]   = r["perdida"]
+                    row[f"MCTS_k{k}_tiempo_ms"] = r["tiempo_ms"]
+                    print(f"  MCTS_k{k}={'.' if r['convergio'] else 'X'}", end="", flush=True)
 
             # ── Heurística ───────────────────────────────────────────────────
             row.update(heuristica_k_optimo(row))

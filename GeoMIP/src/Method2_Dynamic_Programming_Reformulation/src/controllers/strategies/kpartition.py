@@ -1,4 +1,5 @@
 import time
+import math
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
@@ -67,7 +68,29 @@ class KPartitionSIA(SIA):
                 n_nodos=len(self.sia_gestor.estado_inicial),
                 k=self.k,
             )
-            
+
+        # ── MCTS: bypass find_mip completamente ──────────────────────────────
+        # Activa cuando se fuerza explícitamente O cuando el mecanismo tiene
+        # muchos nodos (>14) y el BFS exacto sería exponencialmente costoso.
+        n_mec = len(self.sia_subsistema.dims_ncubos)
+        usar_mcts = (self.forzar_heuristica == "mcts") or (n_mec > 15)
+
+        if usar_mcts:
+            mejor_particion = self._heuristica_mcts(self.k)
+            mejor_perdida   = self._evaluar_particion(mejor_particion)
+            fmt_particion   = self._fmt_kparticion(mejor_particion)
+            return Solution(
+                estrategia=f"{GEOMETRIC_LABEL}_k{self.k}_MCTS",
+                perdida=mejor_perdida,
+                distribucion_subsistema=self.sia_dists_marginales,
+                distribucion_particion=None,
+                tiempo_total=time.time() - self.sia_tiempo_inicio,
+                particion=fmt_particion,
+                n_nodos=len(self.sia_gestor.estado_inicial),
+                k=self.k,
+            )
+        # ─────────────────────────────────────────────────────────────────────
+
         if self.k == 2:
             return self.geometric_base.aplicar_estrategia(condicion, alcance, mecanismo, tpm)
 
@@ -517,3 +540,253 @@ class KPartitionSIA(SIA):
             bottoms.append(b)
         
         return "".join(tops) + "\n" + "".join(bottoms)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # HEURÍSTICA 5: MCTS + MC-EMD  (para n≥20)
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def _mc_emd(self, partes: list, n_samples: int, rng: np.random.Generator) -> float:
+        """
+        Capa 1 — Estimador Monte Carlo del EMD.
+
+        Reemplaza la evaluación exacta de EMD (que requiere O(2^n_mec) ops)
+        por una estimación sobre S estados muestreados aleatoriamente del
+        espacio {0,1}^n_mec. El estimador es insesgado con error O(1/√S).
+
+        Solo se usa cuando n_samples > 0; de lo contrario se delega a
+        _evaluar_particion (exacto).
+
+        Args:
+            partes:    lista de (presentes, futuros) que define la partición
+            n_samples: número de estados a muestrear (S)
+            rng:       generador de números aleatorios
+        Returns:
+            Estimación del EMD (float)
+        """
+        if not partes:
+            return float('inf')
+
+        dims    = self.sia_subsistema.dims_ncubos
+        s0_full = self.sia_subsistema.estado_inicial
+        n_mec   = len(dims)
+
+        # Muestreo mixto: 70% uniforme + 30% vecinos Hamming de s0
+        # (los vecinos Hamming son más informativos para el cálculo de EMD)
+        n_uniform = int(0.7 * n_samples)
+        n_hamming = n_samples - n_uniform
+
+        s0 = s0_full[dims]
+        samples_u = rng.integers(0, 2, size=(n_uniform, n_mec), dtype=np.int8)
+        samples_h = np.tile(s0, (n_hamming, 1)).astype(np.int8)
+        flip_pos  = rng.integers(0, n_mec, size=n_hamming)
+        samples_h[np.arange(n_hamming), flip_pos] ^= 1
+        samples   = np.vstack([samples_u, samples_h])
+
+        # Construir el sistema particionado (una sola vez)
+        sis_part = self._k_partir(partes)
+
+        total_diff = 0.0
+        for state in samples:
+            # Reconstruir el estado completo (para indexar NCubes con dims globales)
+            s_full      = s0_full.copy().astype(np.int8)
+            s_full[dims] = state
+
+            diff = 0.0
+            for nc_sys, nc_part in zip(self.sia_subsistema.ncubos, sis_part.ncubos):
+                # P(node = OFF | estado) para el sistema original y la partición
+                if nc_sys.dims.size > 0:
+                    idx_sys  = tuple(int(s_full[j]) for j in nc_sys.dims)
+                    p_sys    = 1.0 - float(nc_sys.data[idx_sys])
+                else:
+                    p_sys    = 1.0 - float(nc_sys.data)
+
+                if nc_part.dims.size > 0:
+                    idx_part = tuple(int(s_full[j]) for j in nc_part.dims
+                                     if j < len(s_full))
+                    p_part   = 1.0 - float(nc_part.data[idx_part])
+                else:
+                    p_part   = 1.0 - float(nc_part.data)
+
+                diff += abs(p_sys - p_part)
+            total_diff += diff
+
+        return total_diff / n_samples
+
+    def _heuristica_mcts(
+        self,
+        k: int,
+        n_iter: int      = 300,
+        c_ucb: float     = 1.414,
+        n_samples_emd: int = 0,
+        rollout_depth: int = 6,
+        seed: int        = 42,
+    ) -> list:
+        """
+        Capa 2 — Monte Carlo Tree Search para k-particiones.
+
+        Estructura del árbol MCTS:
+          Nodo   = k-partición (codificada como array de etiquetas enteras)
+          Acción = mover un nodo de su parte actual a otra parte
+          Valor  = −EMD (MCTS maximiza; nosotros minimizamos EMD)
+
+        Por cada iteración:
+          1. Selección:   elige la acción con mayor UCB desde el estado actual
+          2. Expansión:   aplica la acción seleccionada → nuevo estado
+          3. Rollout:     simulación aleatoria con mejora oportunista (depth pasos)
+          4. Backprop:    actualiza visits y values en el árbol
+
+        Capa MC-EMD (opcional): si n_samples_emd > 0, los rollouts usan
+        _mc_emd() en vez de _evaluar_particion(), haciendo cada evaluación
+        ~(2^n_mec / S) veces más rápida con error controlado O(1/√S).
+
+        Args:
+            k:             número de partes deseadas
+            n_iter:        iteraciones MCTS (≥100 para resultados estables)
+            c_ucb:         constante de exploración UCB1 (√2 ≈ 1.414)
+            n_samples_emd: muestras MC-EMD; 0 = evaluación exacta
+            rollout_depth: pasos aleatorios por rollout
+            seed:          semilla para reproducibilidad
+        Returns:
+            Lista de (presentes, futuros) — la mejor k-partición encontrada
+        """
+        rng = np.random.default_rng(seed)
+
+        nodos_pres = list(self.sia_subsistema.dims_ncubos)
+        nodos_fut  = list(self.sia_subsistema.indices_ncubos)
+        n_pres     = len(nodos_pres)
+        n_fut      = len(nodos_fut)
+        n_total    = n_pres + n_fut
+
+        if n_total == 0 or k > n_total:
+            return []
+
+        # ── Representación interna ──────────────────────────────────────────
+        # labels: array int8 de tamaño n_total, cada elemento ∈ [0, k-1]
+        # índices 0..n_pres-1 → nodos presentes
+        # índices n_pres..n_total-1 → nodos futuros
+
+        def labels_to_partes(labels: np.ndarray) -> list:
+            partes = [([], []) for _ in range(k)]
+            for i, lbl in enumerate(labels):
+                lbl = int(lbl) % k
+                if i < n_pres:
+                    partes[lbl][0].append(nodos_pres[i])
+                else:
+                    partes[lbl][1].append(nodos_fut[i - n_pres])
+            return [(p, f) for p, f in partes if p or f]
+
+        def evaluate_exact(labels: np.ndarray) -> float:
+            return self._evaluar_particion(labels_to_partes(labels))
+
+        def evaluate_mc(labels: np.ndarray) -> float:
+            return self._mc_emd(labels_to_partes(labels), n_samples_emd, rng)
+
+        # Función de evaluación activa (exacta o MC)
+        eval_fn = evaluate_mc if n_samples_emd > 0 else evaluate_exact
+
+        # ── Inicialización: partición balanceada aleatoria ──────────────────
+        init_labels = np.array([i % k for i in range(n_total)], dtype=np.int8)
+        rng.shuffle(init_labels)
+
+        best_labels = init_labels.copy()
+        best_emd    = evaluate_exact(best_labels)   # siempre exacto para el resultado
+
+        # ── Estadísticas del árbol MCTS ─────────────────────────────────────
+        # Clave: labels.tobytes() → entero o float
+        visits: dict = {}   # key → número de visitas
+        values: dict = {}   # key → suma de (−EMD) de rollouts que pasaron por aquí
+
+        root_key = best_labels.tobytes()
+        visits[root_key] = 1
+        values[root_key] = -best_emd
+
+        def ucb(child_key: bytes, parent_v: int) -> float:
+            v = visits.get(child_key, 0)
+            if v == 0:
+                return float('inf')
+            parent_v = max(parent_v, 1)
+            return values.get(child_key, 0.0) / v + c_ucb * math.sqrt(math.log(parent_v) / v)
+
+        def rollout(start_labels: np.ndarray) -> tuple:
+            """
+            Simulación aleatoria con mejora oportunista.
+            Aplica hasta rollout_depth movimientos; acepta cada uno solo si
+            mejora el EMD estimado (greedy estocástico).
+            """
+            cur     = start_labels.copy()
+            cur_emd = eval_fn(cur)
+
+            for _ in range(rollout_depth):
+                u = int(rng.integers(0, n_total))
+                j = int(rng.integers(0, k))
+                if cur[u] == j:
+                    continue
+                nxt     = cur.copy()
+                nxt[u]  = j
+                nxt_emd = eval_fn(nxt)
+                if nxt_emd < cur_emd:
+                    cur, cur_emd = nxt, nxt_emd
+
+            return cur_emd, cur
+
+        # ── Loop principal MCTS ─────────────────────────────────────────────
+        current_labels = best_labels.copy()
+        current_key    = root_key
+        current_emd    = best_emd
+
+        for _ in range(n_iter):
+            parent_v = max(visits.get(current_key, 1), 1)
+
+            # 1. Selección: acción con mayor UCB
+            best_ucb_val    = -float('inf')
+            best_child_lbl  = None
+            best_child_key  = None
+
+            for u in range(n_total):
+                cur_part = int(current_labels[u])
+                for j in range(k):
+                    if j == cur_part:
+                        continue
+                    child     = current_labels.copy()
+                    child[u]  = j
+                    ckey      = child.tobytes()
+                    score     = ucb(ckey, parent_v)
+                    if score > best_ucb_val:
+                        best_ucb_val   = score
+                        best_child_lbl = child
+                        best_child_key = ckey
+
+            if best_child_lbl is None:
+                break
+
+            # 2. Expansión + Rollout
+            rollout_emd, rollout_lbl = rollout(best_child_lbl)
+
+            # 3. Backpropagation
+            visits[best_child_key] = visits.get(best_child_key, 0) + 1
+            values[best_child_key] = values.get(best_child_key, 0.0) - rollout_emd
+            visits[current_key]    = visits.get(current_key, 0) + 1
+
+            # 4. Actualizar el mejor global (evaluación exacta)
+            exact_child_emd = evaluate_exact(best_child_lbl)
+            if exact_child_emd < best_emd:
+                best_emd    = exact_child_emd
+                best_labels = best_child_lbl.copy()
+
+            exact_rollout_emd = evaluate_exact(rollout_lbl)
+            if exact_rollout_emd < best_emd:
+                best_emd    = exact_rollout_emd
+                best_labels = rollout_lbl.copy()
+
+            # 5. Próxima iteración: avanzar hacia el rollout si mejoró,
+            #    reset ocasional al mejor global para escapar óptimos locales
+            if rollout_emd < current_emd:
+                current_labels = rollout_lbl.copy()
+                current_key    = current_labels.tobytes()
+                current_emd    = rollout_emd
+            elif rng.random() < 0.15:
+                current_labels = best_labels.copy()
+                current_key    = best_labels.tobytes()
+                current_emd    = best_emd
+
+        return labels_to_partes(best_labels)
