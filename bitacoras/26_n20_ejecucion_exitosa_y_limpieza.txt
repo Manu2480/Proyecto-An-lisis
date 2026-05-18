@@ -1,0 +1,103 @@
+BITÁCORA 26 — Ejecución completa benchmark n=20, depuración de artefactos y conclusiones
+========================================================================================
+Fecha de registro: 2026-05-18
+
+────────────────────────────────────────────────────────────────────────────────────────
+1. RESUMEN EJECUTIVO
+────────────────────────────────────────────────────────────────────────────────────────
+Se completó con éxito una corrida del benchmark oficial para n=20 (DatosPruebas2026, 50 casos,
+TPM N20A.csv) con timeout de 21 600 s por estrategia y caso. El proceso terminó con código de
+salida 0; las 50 filas quedaron guardadas en Excel y el volcado completo en un log con marca
+de tiempo bajo logs/n20_plus/.
+
+Tras validar el resultado, se depuró la carpeta results dejando solo la evidencia canónica de
+esta fase (detalle en sección 4).
+
+
+────────────────────────────────────────────────────────────────────────────────────────
+2. CONFIGURACIÓN Y TRAZABILIDAD
+────────────────────────────────────────────────────────────────────────────────────────
+  • Comando (desde Method2_Dynamic_Programming_Reformulation):
+      uv run python ../benchmark.py --n 20
+  • Timeout: 21 600 s por estrategia y por caso (default del script).
+  • Salida automática (benchmark.py con logging para n≥20):
+      GeoMIP/results/logs/n20_plus/benchmark_n20_2026-05-17_22h32m26.stdout.log
+    (stderr vacío en esa corrida.)
+  • Hora de inicio impresa en log: 2026-05-17 22:32 (hora local del entorno).
+  • Duración aproximada del job: ~6,1 h (orden de 2,2×10^7 ms según terminal Cursor).
+  • Resultado final por red:
+      GeoMIP/results/n20/n20_completo_2026-05-18_04h38.xlsx
+  • Consolidado (misma corrida, hoja n20):
+      GeoMIP/results/benchmark_completo_2026-05-18_04h38.xlsx
+
+
+────────────────────────────────────────────────────────────────────────────────────────
+3. COMPORTAMIENTO OBSERVADO (CONVERGENCIA Y TIEMPOS)
+────────────────────────────────────────────────────────────────────────────────────────
+  • Log de línea: en los 50 casos aparece Geo2=. y k3/k4/k5 con marcadores “.” (sin “X”) en
+    todas las estrategias registradas en consola — coherente con convergencia / solución dentro
+    del límite para cada hebra.
+  • QNodes k=2: no aplica en n≥20 en este benchmark (columnas N/A en Excel); el coste
+    dominante está en GeometricSIA k=2 y en las corridas KPartition (greedy QN + KL) para k=3–5.
+  • Tiempos reportados en el Excel (suma por caso de las columnas *tiempo_ms efectivas, excl.
+    QN_k2 que es NaN):
+      – Mínimo ~0,06 min por caso; máximo ~25,5 min; media ~7,3 min.
+  • Geometric k=2 solo: media ~3,9 min por caso (mín. ~0,02 min, máx. ~14,0 min).
+  • Columna heuristica_k (regla del benchmark sobre mejoras relativas): en los 50 casos salió
+    k=3, con heuristica_estrategia “QNodes-Greedy” según la tabla.
+
+
+────────────────────────────────────────────────────────────────────────────────────────
+4. DEPURACIÓN DE ARCHIVOS n=20 (QUÉ SE ELIMINÓ Y POR QUÉ)
+────────────────────────────────────────────────────────────────────────────────────────
+Criterio: conservar solo lo que aporta datos finales o trazabilidad única; quitar checkpoints
+intermedios, intentos abortados o logs parcialmente solapados con la corrida exitosa.
+
+Eliminado en GeoMIP/results/n20/:
+  • Todos los checkpoint_*.xlsx intermedios y el checkpoint final con la misma marca horaria que
+    el “completo” — la versión definitiva es n20_completo_2026-05-18_04h38.xlsx; los
+    checkpoints de 5 en 5 eran redundantes tras validar el cierre limpio del proceso.
+
+Eliminado en GeoMIP/results/logs/n20_plus/:
+  • n20_benchmark_stdout_partial.log — corrida previa incompleta, sustituida por el stdout
+    con marca temporal de la ejecución completa.
+  • n20_benchmark_stdout_2026-05-17_2123.log — fragmento antiguo, mismo motivo.
+  • bench_n20_300s_timeout.log — experimento con timeout corto; no refleja el protocolo final.
+  • bench_n20_n22_n25_v2.log y _v2_err.log — corrida antigua con timeout 300 s y n≥20 parcial;
+    la evidencia actual de n=20 es el Excel + log benchmark_n20_* .
+  • benchmark_n20_2026-05-17_22h32m26.stderr.log — archivo vacío, sin información adicional.
+
+Conservado (evidencia acordada):
+  • GeoMIP/results/n20/n20_completo_2026-05-18_04h38.xlsx
+  • GeoMIP/results/logs/n20_plus/benchmark_n20_2026-05-17_22h32m26.stdout.log
+  • GeoMIP/results/benchmark_completo_2026-05-18_04h38.xlsx
+
+Nota: bitácoras más antiguas que citan rutas de logs v2 o de la raíz de results pueden seguir
+siendo útiles como narrativa histórica, pero los ficheros físicos citados en algunos casos ya
+no existen en disco tras esta limpieza; la referencia canónica para n=20 queda en la lista
+anterior.
+
+
+────────────────────────────────────────────────────────────────────────────────────────
+5. CONCLUSIONES
+────────────────────────────────────────────────────────────────────────────────────────
+  1. Límite práctico anterior (timeouts bajos, RAM, caché): los intentos documentados con
+     300 s por estrategia mostraban “inviabilidad” operativa; con timeout de horas, memoización
+     y el entorno actual, el benchmark n=20 en 50 casos es viable en una sola noche de cómputo
+     en esta máquina.
+
+  2. Coste relativo: GeometricSIA k=2 concentra la mayor parte del tiempo por caso; las
+     extensiones k=3–5 (QN greedy + KL) quedan en promedio bajo el minuto por estrategia en los
+     datos medidos, una vez resuelto el cuello k=2.
+
+  3. Patrón heurístico codificado en el Excel: la regla implementada eligió siempre k=3 para
+     ‘heuristica_k’ en este conjunto — útil para el informe como observación empírica sobre el
+     dataset, no como óptimo global teórico.
+
+  4. Trazabilidad: el logging automático en logs/n20_plus/ con fecha y hora en el nombre
+     evita confusiones con redirecciones manuales y queda alineado con la bitácora 25 sobre
+     reorganización de results.
+
+  5. Próximos pasos sugeridos (fuera del alcance de esta bitácora): repetir lógica para n=22 y
+     n=25 si el proyecto lo exige, o focalizar el informe en la caracterización n=10–15 + n=20
+     completo ya disponible.

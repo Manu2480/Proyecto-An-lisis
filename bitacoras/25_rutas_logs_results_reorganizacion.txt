@@ -73,3 +73,10 @@ Nota
 ----
 Si alguien busca en el repositorio una ruta antigua y no encuentra el archivo, conviene
 buscar por nombre de fichero (p. ej. bench_n10_n15_v3.log) dentro de GeoMIP/results/logs/.
+
+Actualización (2026-05-18)
+La depuración posterior a la ejecución completa de n=20 eliminó del disco varios logs
+históricos citados arriba (p. ej. bench_n20_n22_n25_v2*.log, parciales y timeout 300 s).
+Detalle y conclusiones: bitacoras/26_n20_ejecucion_exitosa_y_limpieza.txt. Evidencia
+canónica n=20: GeoMIP/results/n20/n20_completo_2026-05-18_04h38.xlsx y el .stdout.log
+benchmark_n20_2026-05-17_22h32m26 en logs/n20_plus/.
