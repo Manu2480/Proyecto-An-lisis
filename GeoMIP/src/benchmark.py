@@ -6,7 +6,7 @@ Benchmark completo del proyecto K-QGMIP.
 Ejecuta para n in {10, 15, 20, 22, 25} los subconjuntos EXACTOS de
 DatosPruebas2026_1.md con las estrategias:
   k=2: QNodes, GeometricSIA
-  k=3: KPartitionSIA(greedy=QNodes-style), KPartitionSIA(clustering=Geo-style)
+  k=3,4,5: KPartitionSIA greedy (prefijo tablas QN_*) + KPartitionSIA KL
   k=4: idem
   k=5: idem
 
@@ -17,7 +17,8 @@ Uso:
   cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
   uv run python ../benchmark.py
   uv run python ../benchmark.py --n 10 15
-  uv run python ../benchmark.py --timeout 300
+  uv run python ../benchmark.py --n 20 22 25
+  uv run python ../benchmark.py --timeout 21600
 """
 import sys
 import os
@@ -50,7 +51,7 @@ if str(METHOD2_ROOT) not in sys.path:
     sys.path.insert(0, str(METHOD2_ROOT))
 
 from src.controllers.manager import Manager
-from src.controllers.strategies.geometric  import GeometricSIA
+from src.controllers.strategies.geometric  import GeometricSIA, limpiar_cache_find_mip
 from src.controllers.strategies.kpartition import KPartitionSIA
 from src.controllers.strategies.q_nodes    import QNodes
 from src.models.base.sia import limpiar_cache_subsistemas
@@ -61,7 +62,9 @@ profiler_manager.enabled = False
 
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-DEFAULT_TIMEOUT = 1800  # 30 min — cota superior per PROMPT_PROYECTO_KQMIP.md §4
+# Cota por estrategia por defecto (~6 h). Casos n=20 pueden tardar horas por find_mip.
+# Se puede subir con CLI:  uv run python ../benchmark.py --timeout 72000
+DEFAULT_TIMEOUT = 21600
 
 
 # ── Subconjuntos exactos de DatosPruebas2026_1.md ───────────────────────────
@@ -385,28 +388,29 @@ def heuristica_k_optimo(fila: dict) -> dict:
     Dado un dict con las pérdidas y tiempos de k=2,3,4,5,
     recomienda el k que maximiza la relación mejora_perdida / aumento_tiempo.
 
-    Funciona con columnas de n<=15 (QN/KL) y n>=20 (MCTS).
+    Funciona con columnas QN/KL (benchmark estándar) o MCTS_* si algún ejecutable
+      antiguo lo generó explícitamente.
     Retorna: {k_recomendado, estrategia_recomendada, razon, detalle}
     """
     base_perdida = {}
     base_tiempo  = {}
 
-    # Detectar si es un benchmark n>=20 (columnas MCTS) o n<=15 (QN/KL)
+    # Columnas greedies (nombre histórico "QN_*" = mismo prefijo para n grandes)
     tiene_mcts = "MCTS_k2_perdida" in fila
 
     if tiene_mcts:
         estrategias = [("MCTS", "MCTS")]
         for prefijo, _ in estrategias:
             base_perdida[prefijo] = fila.get(f"{prefijo}_k2_perdida")
-            base_tiempo[prefijo]  = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
+            base_tiempo[prefijo] = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
     else:
         estrategias = [
-            ("QN",  "QNodes-Greedy"),
-            ("KL",  "KL"),
+            ("QN", "QNodes-Greedy"),
+            ("KL", "KL"),
         ]
         for prefijo, _ in estrategias:
             base_perdida[prefijo] = fila.get(f"{prefijo}_k2_perdida")
-            base_tiempo[prefijo]  = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
+            base_tiempo[prefijo] = fila.get(f"{prefijo}_k2_tiempo_ms") or 1
 
     # Fallback: usar Geo k=2 como base si ningún prefijo existe
     base_geo2 = fila.get("Geo_k2_perdida")
@@ -436,6 +440,8 @@ def heuristica_k_optimo(fila: dict) -> dict:
 # ── Benchmark principal ───────────────────────────────────────────────────────
 def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
     """Retorna un dict {n: DataFrame} con formato ancho (1 fila por caso)."""
+    os.environ.setdefault("KQGMIP_QUIET", "1")
+
     resultados = {}
 
     for n in ns:
@@ -455,28 +461,24 @@ def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
             print(f"[SKIP] n={n}: sin TPM en {SAMPLES_DIR}")
             continue
 
-        # Timeout adaptativo por n  (según PROMPT_PROYECTO_KQMIP.md §4)
-        # n>=20: sin QNodes, solo GeometricSIA + KPartitionSIA (heuristicas)
+        # Todas las estrategias del caso comparten el mismo límite (segundos por hebra).
+        # El CLI --timeout marca el tope máximo por estrategia (no usar min con 1800,
+        # eso impedía lanzar cortas de 5–6 h aun pasando --timeout alto).
         if n <= 10:
-            case_to = min(timeout, 120)
+            case_to = timeout
         elif n <= 15:
-            case_to = min(timeout, 300)
-        elif n <= 20:
-            case_to = min(timeout, 1800)  # 30 min: subsistemas 14-nodos son pesados
+            case_to = timeout
         else:
-            case_to = min(timeout, 1800)  # n=22,25: misma cota superior
+            case_to = min(timeout, 86400)
 
         print(f"\n{'='*65}")
         print(f"n={n}  TPM={tpm_path.name}  casos={len(pares)}  timeout={case_to}s/estrategia")
         print(f"{'='*65}")
 
-        tpm = np.genfromtxt(tpm_path, delimiter=",")
+        tpm = np.asarray(np.genfromtxt(tpm_path, delimiter=","), dtype=np.float64)
         rows = []
 
-        # Para n >= 20 QNodes es inviable (exponencial): solo heuristicas
-        usar_qnodes = (n <= 15)
-        # Para n >= 20 KL/Greedy hacen timeout en mecanismos grandes: usar MCTS
-        usar_mcts_explicitamente = (n >= 20)
+        usar_qnodes = n <= 15
 
         for idx, (purview, mec_str) in enumerate(pares, 1):
             alcance   = letters_to_binary(purview,  n_val)
@@ -488,6 +490,7 @@ def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
             # Limpiar caché entre casos: cada caso tiene distintos (alcance,mecanismo),
             # por lo que el caché del caso anterior no es reutilizable y ocupa memoria.
             limpiar_cache_subsistemas()
+            limpiar_cache_find_mip()
 
             row = {"#Prueba": idx, "Purview": purview, "Mecanismo": mec_str}
             gestor = lambda: Manager(estado_inicial=estado)
@@ -513,36 +516,31 @@ def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
             row["Geo_k2_tiempo_ms"] = r["tiempo_ms"]
             print(f"  Geo2={'.' if r['convergio'] else 'X'}", end="", flush=True)
 
-            if not usar_mcts_explicitamente:
-                # ── n<=15: k=3,4,5  Greedy + KL exactos ─────────────────────
-                for k in [3, 4, 5]:
-                    heuristicas = [
-                        ("greedy", "QN"),   # Greedy unilateral (original)
-                        ("kl",     "KL"),   # Kernighan-Lin (nuevo)
-                    ]
-                    simbolos = []
-                    for heur, prefijo in heuristicas:
-                        r = run_strategy(KPartitionSIA,
-                                         {"gestor": gestor()},
-                                         {"k": k, "forzar_heuristica": heur},
-                                         condicion, alcance, mecanismo, tpm, case_to)
-                        row[f"{prefijo}_k{k}_particion"] = r["particion"]
-                        row[f"{prefijo}_k{k}_perdida"]   = r["perdida"]
-                        row[f"{prefijo}_k{k}_tiempo_ms"] = r["tiempo_ms"]
-                        simbolos.append("." if r["convergio"] else "X")
+            # ── k=3,4,5 Greedy + KL (mismo esquema n pequeños y grandes; find_mip
+            # está memoizado dentro del caso tras la corrida Geo k=2)
+            for k in [3, 4, 5]:
+                heuristicas = [
+                    ("greedy", "QN"),
+                    ("kl", "KL"),
+                ]
+                simbolos = []
+                for heur, prefijo in heuristicas:
+                    r = run_strategy(
+                        KPartitionSIA,
+                        {"gestor": gestor()},
+                        {"k": k, "forzar_heuristica": heur},
+                        condicion,
+                        alcance,
+                        mecanismo,
+                        tpm,
+                        case_to,
+                    )
+                    row[f"{prefijo}_k{k}_particion"] = r["particion"]
+                    row[f"{prefijo}_k{k}_perdida"] = r["perdida"]
+                    row[f"{prefijo}_k{k}_tiempo_ms"] = r["tiempo_ms"]
+                    simbolos.append("." if r["convergio"] else "X")
 
-                    print(f"  k{k}(QN{simbolos[0]}/KL{simbolos[1]})", end="", flush=True)
-            else:
-                # ── n>=20: k=2,3,4,5  MCTS (único viable para mecanismos grandes) ──
-                for k in [2, 3, 4, 5]:
-                    r = run_strategy(KPartitionSIA,
-                                     {"gestor": gestor()},
-                                     {"k": k, "forzar_heuristica": "mcts"},
-                                     condicion, alcance, mecanismo, tpm, case_to)
-                    row[f"MCTS_k{k}_particion"] = r["particion"]
-                    row[f"MCTS_k{k}_perdida"]   = r["perdida"]
-                    row[f"MCTS_k{k}_tiempo_ms"] = r["tiempo_ms"]
-                    print(f"  MCTS_k{k}={'.' if r['convergio'] else 'X'}", end="", flush=True)
+                print(f"  k{k}(QN{simbolos[0]}/KL{simbolos[1]})", end="", flush=True)
 
             # ── Heurística ───────────────────────────────────────────────────
             row.update(heuristica_k_optimo(row))
@@ -610,7 +608,7 @@ def main():
     parser = argparse.ArgumentParser(description="Benchmark K-QGMIP — DatosPruebas2026")
     parser.add_argument("--n", nargs="+", type=int, default=[10, 15, 20, 22, 25])
     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT,
-                        help="Timeout maximo en segundos (ajustado automaticamente por n)")
+                        help="Segundos por estrategia y caso (default=%(default)s; use p.ej. 21600 para n>=20)")
     args = parser.parse_args()
 
     print(f"Benchmark K-QGMIP - {datetime.now().strftime('%Y-%m-%d %H:%M')}")

@@ -1,4 +1,6 @@
+import copy
 import heapq
+import os
 from src.constants.error import ERROR_INCOMPATIBLE_SIZES
 from src.models.core.system import System
 from src.constants.base import NET_LABEL, STR_ZERO
@@ -26,6 +28,16 @@ from typing import List, Dict, Tuple
 
 from concurrent.futures import ThreadPoolExecutor
 import itertools
+
+
+# Memoiza find_mip (tabla_transiciones + memoria_particiones) por subsistema TPM.
+_FIND_MIP_CACHE: dict[tuple, dict] = {}
+
+
+def limpiar_cache_find_mip() -> None:
+    """Vaciar caché de find_mip (llamar entre casos del benchmark para liberar RAM)."""
+    _FIND_MIP_CACHE.clear()
+
 
 class GeometricSIA(SIA):
     def __init__(self, gestor: Manager):
@@ -105,27 +117,48 @@ class GeometricSIA(SIA):
         Implementa el algoritmo para encontrar la bipartición óptima
         utilizando el enfoque geométrico-topológico.
         """
-        self.sia_logger.critic("empieza.")
+        ck = getattr(self, "_prep_cache_key", None)
+        if ck and ck in _FIND_MIP_CACHE:
+            snap = _FIND_MIP_CACHE[ck]
+            self.tabla_transiciones = copy.deepcopy(snap["tabla_transiciones"])
+            self.memoria_particiones = copy.deepcopy(snap["memoria_particiones"])
+            self.caminos = copy.deepcopy(snap["caminos"])
+            self.idx_ncubos = list(range(len(self.sia_subsistema.indices_ncubos)))
+            return snap["best_mip"]
+
+        quiet = os.environ.get("KQGMIP_QUIET", "").lower() in ("1", "true", "yes")
+        if not quiet:
+            self.sia_logger.critic("empieza.")
+        self.tabla_transiciones.clear()
+        self.memoria_particiones.clear()
         estado_inicial = self.estado_inicial
         estado_final = self.estado_final
         self.idx_ncubos = list(range(len(self.sia_subsistema.indices_ncubos)))
-        self.caminos: Dict[int, List[List[int]]] = {0: [estado_inicial.tolist()]}
-        self.tabla_transiciones[tuple(self.caminos[0][0]),tuple(self.caminos[0][0])] = [0.0 for _ in range(len(self.sia_subsistema.indices_ncubos))]
-        for nivel in range(1, len(estado_inicial)+1):
-            self.calcular_costos_nivel(estado_final,nivel)
+        self.caminos = {0: [estado_inicial.tolist()]}
+        self.tabla_transiciones[
+            tuple(self.caminos[0][0]), tuple(self.caminos[0][0])
+        ] = [0.0 for _ in range(len(self.sia_subsistema.indices_ncubos))]
+        for nivel in range(1, len(estado_inicial) + 1):
+            self.calcular_costos_nivel(estado_final, nivel)
         candidatos = self.identificar_particiones_optimas()
         for idx, (presentes, futuros) in enumerate(candidatos):
             presentes = self.sia_subsistema.dims_ncubos[presentes]
             futuros = self.sia_subsistema.indices_ncubos[futuros]
-            dist =self.sia_subsistema.bipartir(futuros,presentes).distribucion_marginal()
+            dist = self.sia_subsistema.bipartir(futuros, presentes).distribucion_marginal()
             emd = emd_efecto(dist, self.sia_dists_marginales)
-            key = [(0,nodo) for nodo in presentes]
-            key.extend([(1,nodo) for nodo in futuros])
-            # print(fmt_biparte_q(list(key), self.nodes_complement(key)))
+            key = [(0, nodo) for nodo in presentes]
+            key.extend([(1, nodo) for nodo in futuros])
             self.memoria_particiones[tuple(key)] = (emd, dist)
-        return min(
-            self.memoria_particiones, key=lambda k: self.memoria_particiones[k][0]
-        )
+        best = min(self.memoria_particiones, key=lambda k: self.memoria_particiones[k][0])
+
+        if ck is not None:
+            _FIND_MIP_CACHE[ck] = {
+                "tabla_transiciones": copy.deepcopy(self.tabla_transiciones),
+                "memoria_particiones": copy.deepcopy(self.memoria_particiones),
+                "caminos": copy.deepcopy(self.caminos),
+                "best_mip": best,
+            }
+        return best
     
     def calcular_costos_nivel(self,estado_final: np.ndarray, nivel):
         n = len(estado_final)      

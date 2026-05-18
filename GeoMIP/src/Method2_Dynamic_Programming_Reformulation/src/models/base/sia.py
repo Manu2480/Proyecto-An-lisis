@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import copy
+import os
 import time
 
 import numpy as np
@@ -110,6 +111,7 @@ class SIA(ABC):
         # El caché evita repetir ese trabajo costoso: la 1ª llamada computa y
         # almacena; las siguientes recuperan en O(1) + deep-copy barato.
         cache_key = (id(tpm), condicion, alcance, mecanismo)
+        self._prep_cache_key = cache_key
         if cache_key in _SUBSYSTEM_CACHE:
             cached_sub, cached_dists = _SUBSYSTEM_CACHE[cache_key]
             self.sia_subsistema      = copy.deepcopy(cached_sub)
@@ -124,20 +126,23 @@ class SIA(ABC):
             [canal for canal in self.sia_gestor.estado_inicial], dtype=np.int8
         )
 
+        quiet = os.environ.get("KQGMIP_QUIET", "").lower() in ("1", "true", "yes")
         # Formación de datos con logs opcionales de ejemplificación
         completo = System(tpm, estado_inicial)
-        self.sia_logger.critic("Original creado.")
-        # self.sia_logger.info(completo)
-        self.sia_logger.critic("Original:")
-        # self.sia_logger.info(completo)
+        if not quiet:
+            self.sia_logger.critic("Original creado.")
+        if not quiet:
+            self.sia_logger.critic("Original:")
 
         candidato = completo.condicionar(dims_condicionadas)
-        self.sia_logger.critic("Candidato creado.")
+        if not quiet:
+            self.sia_logger.critic("Candidato creado.")
         # self.sia_logger.info(f"{dims_condicionadas}")
         # self.sia_logger.debug(candidato)
 
         subsistema = candidato.substraer(dims_alcance, dims_mecanismo)
-        self.sia_logger.critic("Subsistema creado.")
+        if not quiet:
+            self.sia_logger.critic("Subsistema creado.")
         # self.sia_logger.debug(f"{dims_alcance, dims_mecanismo=}")
         # self.sia_logger.debug(subsistema)
 

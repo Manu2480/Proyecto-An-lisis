@@ -49,7 +49,16 @@ Salida:  `GeoMIP/results/resultados_Geometric.xlsx`
 
 ```bash
 cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
-uv run python ../../benchmark.py --n 10 15 --timeout 300 --k 3 4 5
+uv run python ../../benchmark.py --n 20 22 25 --timeout 21600
+```
+
+Salida: `GeoMIP/results/benchmark_YYYY-MM-DD_HHhMM.xlsx`
+
+`--timeout` es el **tope por estrategia y por caso** (segundos). Para n≥20 cada caso ejecuta **7 corridas** (Geométrica k=2 + Greedy/KL × k ∈ {3,4,5}) — sin `QNodes`. Conviene `--timeout ≥ 21600` (6 h) o más según máquina; ~5 h por corrida suele estar en ese rango si el caso es pesado. `find_mip()` se memoiza dentro del mismo caso tras la corrida Geométrica inicial.
+
+```bash
+cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+uv run python ../../benchmark.py --n 10 15 --timeout 300
 ```
 
 Salida: `GeoMIP/results/benchmark_YYYY-MM-DD_HHhMM.xlsx`
