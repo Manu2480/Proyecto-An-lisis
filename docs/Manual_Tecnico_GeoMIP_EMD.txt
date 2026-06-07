@@ -1,0 +1,2109 @@
+================================================================================
+          MANUAL TECNICO — SISTEMA DE ANALISIS DE IRREDUCIBILIDAD
+                    SISTEMICA MEDIANTE K-PARTICIONES
+           (GeoMIP: Geometric Minimum Information Partition Framework)
+================================================================================
+
+Version: 2.0 (Corregido y Complementado)
+Fecha:   2026-05-18
+Autor:   Equipo de Desarrollo K-QGMIP
+Institucion: Universidad de Caldas — Facultad de Ingenieria
+
+
+================================================================================
+TABLA DE CONTENIDOS
+================================================================================
+
+1.  INTRODUCCION Y CONTEXTUALIZACION
+    1.1. Problema abordado
+    1.2. Marco teorico: Teoria de Informacion Integrada (IIT)
+    1.3. Justificacion y relevancia
+    1.4. Alcance del documento
+
+2.  FUNDAMENTOS TEORICOS
+    2.1. Particion Minima de Informacion (MIP)
+    2.2. Definicion formal de k-particiones y notacion de conjuntos
+    2.3. Formulacion del problema de optimizacion combinatoria para k-particiones
+    2.4. Extension del marco de biparticiones a k-particiones
+    2.5. Justificacion matematica de las heuristicas Greedy y Kernighan-Lin
+    2.6. Earth Mover's Distance (EMD) y su formulacion analitica
+    2.7. Espacio de busqueda y numero de Stirling
+    2.8. El hipercubo de estados y su explotacion algoritmica
+
+3.  ARQUITECTURA DEL SOFTWARE
+    3.1. Diagrama de paquetes
+    3.2. Diagrama de clases UML
+    3.3. Diagramas de Secuencia UML
+        3.3.1. Escenario A: Inicializacion del sistema y carga de TPM
+        3.3.2. Escenario B: Proceso iterativo de busqueda de la k-MIP
+        3.3.3. Escenario C: Evaluacion de una k-particion candidata (EMD)
+    3.4. Patrones de diseno
+    3.5. Flujo de ejecucion general
+    3.6. Gestion de dependencias y configuracion
+
+4.  ENFOQUE ALGORITMICO E IMPLEMENTACION
+    4.1. Estrategia QNodes (k=2) — Heuristica Greedy
+        4.1.1. Fundamentos
+        4.1.2. Pseudocodigo
+        4.1.3. Analisis de complejidad
+    4.2. Estrategia GeometricSIA (k=2) — Programacion Dinamica
+        4.2.1. Fundamentos
+        4.2.2. Pseudocodigo
+        4.2.3. Analisis de complejidad
+    4.3. Estrategia KPartitionSIA — Heuristica Greedy (k=3,4,5)
+        4.3.1. Fundamentos
+        4.3.2. Pseudocodigo
+        4.3.3. Analisis de complejidad
+    4.4. Estrategia KPartitionSIA — Kernighan-Lin (k=3,4,5)
+        4.4.1. Fundamentos
+        4.4.2. Pseudocodigo
+        4.4.3. Analisis de complejidad
+    4.5. Estrategia KPartitionSIA — Clustering Jerarquico (k=3,4,5)
+        4.5.1. Fundamentos
+        4.5.2. Analisis de complejidad
+        4.5.3. Limitaciones documentadas
+    4.6. Estrategia KPartitionSIA — Espectral (baseline negativo)
+        4.6.1. Fundamentos
+        4.6.2. Demostracion de no equivalencia con EMD
+        4.6.3. Valor academico como cota superior
+    4.7. Estrategia MCTS + MC-EMD (n>=20)
+        4.7.1. Fundamentos
+        4.7.2. Pseudocodigo
+        4.7.3. Analisis de complejidad
+
+5.  MODELADO DE LA SOLUCION: ARQUITECTURA REFLEJADA EN BITACORAS
+    5.1. Evolucion arquitectonica
+    5.2. Sistema de cache de subsistemas
+    5.3. Sistema de perfiles y logging
+    5.4. Sistema de resultados (Solution)
+    5.5. Mecanismo de timeouts adaptativos
+
+6.  RESULTADOS Y CONTRIBUCIONES
+    6.1. Resultados cuantitativos: benchmark n=10
+    6.2. Resultados cuantitativos: benchmark n=15
+    6.3. Resultados cuantitativos: benchmark n=20
+    6.4. Comparacion KL vs. Greedy
+    6.5. Comparacion GeometricSIA vs. QNodes
+    6.6. Recomendacion de estrategia por tamano de red
+    6.7. Contribuciones e innovaciones clave
+
+7.  EVALUACION CRITICA
+    7.1. Limitaciones tecnicas y operativas
+    7.2. Frontera computacional
+    7.3. Analisis de escalabilidad
+    7.4. Recomendaciones de uso y despliegue
+    7.5. Trabajo futuro y optimizaciones propuestas
+
+8.  DETALLES DE IMPLEMENTACION
+    8.1. Estructura de directorios
+    8.2. Dependencias y plataformas
+    8.3. Suite de pruebas
+    8.4. Convenciones de codigo
+
+APENDICE A: Demostracion de la EMD analitica
+APENDICE B: Tabla de complejidades completa
+APENDICE C: Referencias bibliograficas
+APENDICE D: Glosario de terminos
+
+
+================================================================================
+1. INTRODUCCION Y CONTEXTUALIZACION
+================================================================================
+
+1.1. Problema abordado
+--------------------------------------------------------------------------------
+
+El presente documento describe el diseno, implementacion y evaluacion del
+sistema GeoMIP (Geometric Minimum Information Partition), un marco de
+computo para el analisis de irreducibilidad sistemica en redes de
+transicion de estados. El problema fundamental que aborda GeoMIP consiste
+en determinar la Particion Minima de Informacion (Minimum Information
+Partition, MIP) de un sistema dinamico discreto, esto es, la particion de
+sus componentes que minimiza la perdida de informacion causal bajo una
+metrica de distancia entre distribuciones de probabilidad.
+
+Formalmente, dado un sistema S compuesto por n nodos con una matriz de
+probabilidades de transicion (TPM) que define la dinamica P(X_t | X_{t-1}),
+se busca la particion pi del conjunto de nodos en k subconjuntos disjuntos
+que minimice:
+
+    phi(pi) = EMD( P(X_t | X_{t-1}), P_pi(X_t | X_{t-1}) )
+
+donde P_pi es la distribucion del sistema particionado (en el que cada parte
+evoluciona independientemente) y EMD es la Earth Mover's Distance entre
+ambas distribuciones.
+
+Este problema pertenece a la clase de problemas de optimizacion combinatoria
+sobre espacios exponenciales: el numero de k-particiones del conjunto de n
+elementos viene dado por el numero de Stirling de segunda especie S(n,k),
+cuyo crecimiento es superexponencial.
+
+1.2. Marco teorico: Teoria de Informacion Integrada (IIT)
+--------------------------------------------------------------------------------
+
+La Teoria de Informacion Integrada (IIT, por sus siglas en ingles),
+desarrollada por Tononi, Boly, Massimini y Koch (2016), proporciona un marco
+matematico para cuantificar la integracion causal de un sistema. En IIT 3.0,
+la irreducibilidad de un sistema —su capacidad para generar informacion
+integrada, denotada como phi— se define como la distancia EMD entre la
+distribucion de transicion del sistema completo y la del sistema bajo su
+particion minima (MIP).
+
+El sistema GeoMIP implementa el calculo de la MIP para k-particiones
+(k=2,3,4,5) mediante estrategias algoritmicas que van desde la busqueda
+exhaustiva hasta heuristicas de optimizacion combinatoria, pasando por
+programacion dinamica geometrica sobre el hipercubo de estados.
+
+1.3. Justificacion y relevancia
+--------------------------------------------------------------------------------
+
+El computo exacto de la MIP tiene complejidad exponencial en el numero de
+nodos del sistema, lo que limita su aplicacion practica a sistemas pequenos.
+Dado que IIT se aplica a redes neuronales, sistemas biologicos y modelos de
+conciencia, escalar el calculo de la MIP a sistemas de mayor tamano tiene
+implicaciones significativas tanto en neurociencia teorica como en
+inteligencia artificial.
+
+GeoMIP aborda este desafio mediante:
+
+  a) Un algoritmo de programacion dinamica geometrica (GeometricSIA) que
+     reduce la complejidad de Theta(N^3 * 2^n) a Theta(n * 2^n), eliminando
+     la dependencia cubica del numero de vertices.
+
+  b) Heuristicas de particionamiento (Kernighan-Lin, MCTS) que permiten
+     extender el analisis a k-particiones (k>=3) con calidad de solucion
+     cercana a la optima.
+
+  c) Un estimador Monte Carlo de EMD (MC-EMD) que hace viable el analisis
+     de sistemas con n>=20 nodos, donde el computo exacto es intratable.
+
+1.4. Alcance del documento
+--------------------------------------------------------------------------------
+
+Este manual tecnico cubre:
+
+  - Los fundamentos teoricos del problema de la MIP y su relacion con IIT.
+  - La arquitectura completa del software GeoMIP.
+  - El diseno algoritmico detallado de cada estrategia implementada.
+  - Los resultados experimentales obtenidos en los benchmarks formales.
+  - Las limitaciones identificadas y las recomendaciones para trabajo futuro.
+  - La evolucion del proyecto registrada en las bitacoras de desarrollo.
+
+
+================================================================================
+2. FUNDAMENTOS TEORICOS
+================================================================================
+
+2.1. Particion Minima de Informacion (MIP)
+--------------------------------------------------------------------------------
+
+Sea S un sistema de n nodos con matriz de transicion TPM definida como:
+
+    TPM[i, s_t, s_{t-1}] = P( X_i^t = s_t | X^{t-1} = s_{t-1} )
+
+Para un estado inicial x_{t-1} y un subsistema definido por
+(condicion, alcance, mecanismo), donde:
+
+  - mecanismo (M): subconjunto de nodos en t-1 (presente)
+  - alcance (A):   subconjunto de nodos en t (futuro)
+  - condicion (C): nodos cuyo estado se fija como fondo
+
+La distribucion del sistema completo se denota como:
+
+    p(X_A^t | x_M^{t-1}, x_C^{t-1})
+
+La distribucion del sistema particionado pi = {pi_1, ..., pi_k} se define
+como el producto de las distribuciones marginales de cada parte:
+
+    p_pi(X_A^t | x_M^{t-1}, x_C^{t-1}) = PRODUCTO_{i=1}^k
+        p( X_{pi_i interseccion A}^t | x_{pi_i interseccion M}^{t-1} )
+
+La perdida de informacion causal por la particion pi es:
+
+    phi(pi) = EMD( p || p_pi )
+
+La MIP es:
+
+    MIP = argmin_{pi en Pi_k} phi(pi)
+
+donde Pi_k es el conjunto de todas las k-particiones del subsistema.
+
+2.2. Definicion formal de k-particiones y notacion de conjuntos
+--------------------------------------------------------------------------------
+
+Sea V = {v_1, v_2, ..., v_n} un conjunto finito de n nodos que conforman
+el subsistema bajo analisis. Una k-particion de V es una familia de
+subconjuntos {P_1, P_2, ..., P_k} que satisface las siguientes propiedades:
+
+    (i)   No vacuidad:      P_i != CONJUNTO VACIO    para todo i = 1..k
+    (ii)  Disjuncion:       P_i interseccion P_j = CONJUNTO VACIO
+                               para todo i != j
+    (iii) Cobertura total:  UNION_{i=1}^k P_i = V
+
+El conjunto de todas las k-particiones de V se denota como Pi_k(V) y su
+cardinalidad esta dada por el numero de Stirling de segunda especie:
+
+    |Pi_k(V)| = S(n, k) = (1/k!) * SUMA_{j=0}^k (-1)^{k-j} * C(k, j) * j^n
+
+donde C(k, j) = k! / (j! * (k-j)!) es el coeficiente binomial.
+
+Cada parte P_i de la particion contiene dos tipos de nodos segun su
+pertenencia temporal:
+
+  - M_i = P_i interseccion M : subconjunto de nodos del mecanismo
+    (presente) asignados a la parte i.
+  - A_i = P_i interseccion A : subconjunto de nodos del alcance
+    (futuro) asignados a la parte i.
+
+La condicion de particion valida requiere que cada parte tenga al menos
+un nodo en el mecanismo o en el alcance:
+
+    M_i UNION A_i != CONJUNTO VACIO   para todo i = 1..k
+
+**Ejemplo ilustrativo (n=4, k=3)**
+
+Consideremos un sistema con nodos V = {A, B, C, D} donde el mecanismo es
+M = {A, B} y el alcance es ALC = {C, D}. Una 3-particion posible es:
+
+    P_1 = {A, C}    (M_1 = {A}, A_1 = {C})
+    P_2 = {B}       (M_2 = {B}, A_2 = CONJUNTO VACIO)
+    P_3 = {D}       (M_3 = CONJUNTO VACIO, A_3 = {D})
+
+Verificacion de propiedades:
+  - No vacuidad:   P_1, P_2, P_3 != CONJUNTO VACIO     [OK]
+  - Disjuncion:    P_1 int. P_2 = CONJUNTO VACIO,
+                   P_1 int. P_3 = CONJUNTO VACIO,
+                   P_2 int. P_3 = CONJUNTO VACIO         [OK]
+  - Cobertura:     P_1 UNION P_2 UNION P_3 = {A, B, C, D}  [OK]
+
+La distribucion particionada resultante para este ejemplo es:
+
+    p_pi(X_C^t, X_D^t | x_A^{t-1}, x_B^{t-1}) =
+        p( X_C^t | x_A^{t-1} )   *       (parte P_1)
+        p( X_D^t )                       (parte P_3, sin mecanismo)
+        * 1                               (parte P_2, sin alcance)
+
+La ausencia de mecanismo en P_3 implica que la distribucion marginal de
+X_D^t se calcula sin condicionamiento; la ausencia de alcance en P_2
+implica que dicha parte no contribuye variables futuras a la distribucion
+conjunta.
+
+2.3. Formulacion del problema de optimizacion combinatoria
+     para k-particiones
+--------------------------------------------------------------------------------
+
+El problema de encontrar la k-MIP se formula como un problema de
+optimizacion combinatoria con restricciones:
+
+    Dado:
+      - Una TPM del sistema: T : {0,1}^n -> Delta({0,1}^n)
+      - Un estado inicial: x^{t-1} en {0,1}^n
+      - Un subsistema (C, A, M) con C, A, M subconjuntos de {1..n}
+      - Un entero k en {2, 3, 4, 5}
+
+    Encontrar:
+      pi* = argmin_{pi en Pi_k(V)} phi(pi)
+
+    Sujeto a:
+      (1) pi = {P_1, ..., P_k} es una k-particion de V = A UNION M
+      (2) P_i != CONJUNTO VACIO para todo i = 1..k
+      (3) Para todo i != j: P_i interseccion P_j = CONJUNTO VACIO
+      (4) UNION_{i=1}^k P_i = V
+
+    donde la funcion objetivo phi : Pi_k(V) -> R_{\ge 0} se define como:
+
+      phi(pi) = EMD( p(X_A^t | x_M^{t-1}, x_C^{t-1}) ||
+                     PRODUCTO_{i=1}^k p( X_{A_i}^t | x_{M_i}^{t-1} ) )
+
+    con la convencion de que:
+      - Si A_i = CONJUNTO VACIO, entonces la parte i no contribuye
+        variables a la distribucion conjunta (factor 1).
+      - Si M_i = CONJUNTO VACIO, entonces p( X_{A_i}^t ) se calcula
+        como la distribucion marginal incondicional.
+
+La restriccion (2)-(4) define el espacio factible Pi_k(V). La violacion
+de cualquiera de estas restricciones produce una particion invalida, y
+el costo phi(pi) solo se define para pi en Pi_k(V). El algoritmo
+KPartitionSIA verifica estas condiciones antes de evaluar cualquier
+candidato; si k > |V|, retorna "Inviable" inmediatamente.
+
+2.4. Extension del marco de biparticiones a k-particiones
+--------------------------------------------------------------------------------
+
+La extension del caso k=2 (biparticion) a k>=3 (k-particion) no es
+trivial ni algoritmica ni matematicamente. A continuacion se presentan
+los fundamentos de dicha extension.
+
+**2.4.1. Relacion entre biparticion MIP y k-particion optima**
+
+Sea pi_2* la biparticion MIP (k=2) del subsistema V, y sea pi_k* la
+k-particion optima para k>=3. Se cumple la siguiente propiedad de
+monotonicidad de la perdida:
+
+    Para toda pi_k en Pi_k(V) obtenida refinando pi_2*, se tiene:
+    phi(pi_k) >= phi(pi_2*)
+
+Demostracion: Refinar una particion consiste en subdividir alguna de
+sus partes en subpartes mas pequenas. Cada subdivision adicional fuerza
+independencia condicional entre mas subconjuntos de variables, lo que
+incrementa (o mantiene) la distancia EMD respecto a la distribucion
+original. Formalmente, si pi' es un refinamiento de pi (es decir, cada
+parte de pi' esta contenida en alguna parte de pi), entonces:
+
+    D_KL(p || p_{pi'}) >= D_KL(p || p_{pi})
+
+y por la desigualdad de Pinsker, lo mismo aplica para la EMD.
+
+Sin embargo, phi(pi_k*) puede ser MENOR que phi(pi_2*) cuando pi_k*
+no es un refinamiento de pi_2* sino una particion cualitativamente
+distinta que no respeta la estructura de la biparticion optima. Esto
+ocurre porque:
+
+    Pi_2(V) NO ESTA CONTENIDO en el conjunto de refinamientos de
+    ninguna pi_2 particular. Es decir, pi_3* puede explorar agrupaciones
+    de nodos que no son extensiones de la biparticion optima de k=2.
+
+Ejemplo concreto: en el benchmark n=10, el caso ABCDEFGHIJ/ABCDEFGHIJ
+tiene phi(pi_2*) = 0.484 (GeometricSIA), mientras que KL k=3 encuentra
+phi = 0.000 — una mejora del 100% que solo es posible porque la
+3-particion optima no es un refinamiento de la biparticion optima.
+
+**2.4.2. Estrategia de extension algoritmica**
+
+Dado que el espacio Pi_k(V) es superexponencial, las heuristicas
+implementadas abordan la extension de k=2 a k>=3 mediante un enfoque
+constructivo iterativo:
+
+  1. Calcular la biparticion MIP pi_2* usando GeometricSIA (k=2 optimo).
+  2. A partir de pi_2*, construir una secuencia de particiones
+     pi_2, pi_3, ..., pi_k donde cada pi_{j+1} se obtiene de pi_j
+     mediante operaciones de:
+       a) Split unilateral (Greedy): extraer un nodo de una parte
+          existente para formar una nueva parte.
+       b) Intercambio bilateral (KL): intercambiar nodos entre partes
+          existentes antes de realizar el siguiente split.
+  3. Evaluar la perdida phi(pi_j) en cada paso y retener la mejor
+     configuracion encontrada.
+
+Esta estrategia garantiza que pi_k es alcanzable desde pi_2* mediante
+una secuencia de movimientos elementales, pero NO garantiza que pi_k
+sea el optimo global, ya que el espacio de busqueda queda restringido
+a las trayectorias que parten de la biparticion optima.
+
+2.5. Justificacion matematica de las heuristicas Greedy y Kernighan-Lin
+--------------------------------------------------------------------------------
+
+**2.5.1. Heuristica Greedy (extraccion unilateral)**
+
+El algoritmo Greedy implementa una estrategia de ascenso (descenso)
+por gradiente en el espacio de configuraciones. En cada iteracion,
+examina todos los splits unilaterales factibles y selecciona el que
+minimiza el incremento en phi.
+
+Fundamento teorico: Sea f(P) = phi(P) la funcion de perdida para una
+configuracion de partes P = {P_1, ..., P_j}. La operacion de split
+unilateral consiste en reemplazar P_i por {P_i', {v}} donde P_i' =
+P_i \ {v}. La ganancia de este split es:
+
+    Delta(v, P_i) = phi(P_actual) - phi(P_nueva)
+
+El algoritmo Greedy selecciona:
+
+    (v*, P_i*) = argmax_{v,P_i} Delta(v, P_i)
+
+Garantias y limitaciones:
+
+  a) Monotonicidad local: Greedy garantiza que en cada paso la perdida
+     aumenta lo menos posible (no que disminuya). Esto es inherente al
+     problema: anyadir una parte siempre incrementa o mantiene la EMD.
+
+  b) Optimalidad local: Greedy encuentra un minimo local en el sentido
+     de que ningun split unilateral adicional mejora la solucion,
+     dado el orden de construccion. Sin embargo, intercambios
+     bilaterales entre partes existentes podrian mejorarla.
+
+  c) Cota de aproximacion: Para funciones submodulares monotonas, el
+     algoritmo greedy tiene garantia de (1 - 1/e)-aproximacion. Sin
+     embargo, phi(pi) NO es submodular en general, por lo que esta
+     garantia no aplica directamente al problema de k-particiones EMD.
+
+**2.5.2. Heuristica Kernighan-Lin (intercambio bilateral)**
+
+KL aborda la limitacion del Greedy incorporando movimientos de
+intercambio que permiten escapar de minimos locales. La innovacion
+clave de KL sobre Greedy es que considera el espacio de configuraciones
+completo mediante swaps entre pares de nodos de partes distintas.
+
+Fundamento teorico: Dada una configuracion P = {P_1, ..., P_j}, un
+intercambio bilateral entre las partes P_a y P_b con nodos u en P_a
+y v en P_b produce una nueva configuracion P' donde:
+
+    P_a' = (P_a \ {u}) UNION {v}
+    P_b' = (P_b \ {v}) UNION {u}
+    P_i' = P_i para i != a,b
+
+La ganancia del intercambio (u <-> v) es:
+
+    Gamma(u, v, P_a, P_b) = phi(P) - phi(P')
+
+KL itera hasta que no existe ningun intercambio con Gamma > 0, es
+decir, hasta alcanzar un equilibrio de Nash local en el espacio de
+configuraciones.
+
+Garantias de calidad:
+
+  a) Propiedad de equilibrio de Nash: La configuracion final P_KL
+     tiene la propiedad de que ningun nodo puede moverse unilateralmente
+     (ni mediante intercambio bilateral con otro nodo) para reducir phi.
+     Esto es estrictamente mas fuerte que la condicion de Greedy (que
+     solo garantiza optimalidad respecto a splits unilaterales).
+
+  b) Relacion de dominancia: Sea P_G la solucion de Greedy y P_KL la
+     solucion de KL para el mismo caso. Experimentalmente se verifica:
+
+         phi(P_KL) <= phi(P_G)   en el 100% de los casos probados
+
+     Esto se debe a que P_G es alcanzable desde P_KL mediante
+     movimientos unilaterales (extrayendo nodos de partes existentes),
+     pero P_KL explora configuraciones adicionales que P_G no considera.
+
+  c) Comportamiento asintotico: A medida que el numero de iteraciones
+     de refinamiento crece, KL converge a un optimo local en un numero
+     finito de pasos (como maximo O(n^2) intercambios, ya que cada
+     intercambio reduce estrictamente phi y hay un numero finito de
+     configuraciones).
+
+**2.5.3. Garantia conjunta del sistema de dos fases**
+
+El sistema GeoMIP combina ambas heuristicas en una arquitectura de
+dos fases:
+
+  Fase 1 (GeometricSIA): Encuentra la biparticion optima exacta (k=2)
+     con complejidad Theta(n * 2^n). Para k=2, GeometricSIA NO es
+     heuristico: explora sistematicamente el hipercubo mediante
+     programacion dinamica y evalua todos los candidatos relevantes.
+
+  Fase 2 (Greedy + KL): Extiende a k>=3 mediante la secuencia:
+     a) Greedy: proporciona una solucion base rapida.
+     b) KL: refina la solucion mediante intercambios, garantizando
+        que el resultado final es un optimo local en el sentido
+        fuerte (equilibrio de Nash).
+
+Esta combinacion garantiza que:
+
+  1. Para cualquier caso en Pi_k(V), el algoritmo retorna una particion
+     que es un optimo local en un entorno de intercambios bilaterales.
+
+  2. La calidad de la solucion es monotona respecto al esfuerzo
+     computacional: mas iteraciones de KL nunca empeoran el resultado.
+
+  3. En el 100% de los casos evaluados (n=10, n=15, todos los valores
+     de k), KL produce soluciones al menos tan buenas como Greedy.
+
+2.6. Earth Mover's Distance (EMD) y su formulacion analitica
+--------------------------------------------------------------------------------
+
+La Earth Mover's Distance entre dos distribuciones de probabilidad p y q
+sobre un espacio metrico (Omega, d) se define como:
+
+    EMD(p, q) = min_{gamma en Gamma(p,q)} INTEGRAL_{Omega x Omega}
+                    d(x,y) d_gamma(x,y)
+
+donde Gamma(p,q) es el conjunto de todas las distribuciones conjuntas con
+marginales p y q.
+
+Para el caso especifico de la metrica Efecto (efecto EMD), cuando las
+variables futuras son condicionalmente independientes dado el presente, la
+EMD tiene una solucion analitica cerrada:
+
+    EMD_efecto(p, q) = SUMA_{i=1}^m |p_i - q_i|
+
+donde m es el numero de nodos en el alcance y:
+
+    p_i = P( X_i^t = 0 | x_M^{t-1} )
+    q_i = P( X_i^t = 0 | x_{pi_i interseccion M}^{t-1} )
+
+Esta simplificacion evita la resolucion del problema de transporte optimo,
+reduciendo el costo de O(2^m * log(2^m)) a O(m).
+
+La demostracion formal de esta equivalencia se presenta en el Apendice A.
+
+Para la metrica Causa (EMD causal), se utiliza la distancia de Hamming como
+metrica de suelo:
+
+    EMD_causa(p, q) = min_{gamma} SUMA_{s,s'} d_H(s,s') gamma(s,s')
+
+donde d_H(s,s') es la distancia de Hamming (numero de bits diferentes).
+Esta formulacion requiere resolver el problema de transporte completo
+mediante el algoritmo pyemd.
+
+2.7. Espacio de busqueda y numero de Stirling
+--------------------------------------------------------------------------------
+
+El numero de k-particiones de un conjunto de n elementos es el numero de
+Stirling de segunda especie:
+
+    S(n,k) = (1/k!) * SUMA_{j=0}^k (-1)^{k-j} * C(k,j) * j^n
+
+El tamano del espacio de busqueda para valores relevantes es:
+
+    n  | S(n,2)        | S(n,3)          | S(n,5)
+    ---+---------------+---------------+---------------
+    3  | 3             | 1              | —
+    4  | 7             | 6              | 1
+    5  | 15            | 25             | 10
+    10 | 511           | 9,330          | 42,525
+    15 | 16,383        | 2,371,509,000  | O(10^10)
+    20 | 524,287       | O(10^14)       | O(10^17)
+
+Debido a este crecimiento superexponencial, la enumeracion exhaustiva es
+inviable incluso para n=10 con k=5. Las heuristicas y el enfoque de
+programacion dinamica geometrica son indispensables.
+
+2.8. El hipercubo de estados y su explotacion algoritmica
+--------------------------------------------------------------------------------
+
+El estado del sistema en cualquier instante es un vector binario de n bits,
+representable como un vertice del hipercubo {0,1}^n. La TPM define una
+distribucion de probabilidad sobre este hipercubo para cada estado anterior.
+
+La estrategia GeometricSIA explota la estructura geometrica del hipercubo
+mediante:
+
+  a) Recorrido BFS desde el estado inicial s_0 hacia el estado final
+     s_f = complemento(s_0), explorando niveles por distancia de Hamming.
+
+  b) Una funcion de costo de transicion definida como:
+
+        tx(i,j) = (1/2^{d_H(i,j)}) * ( |X_i - X_j| + SUMA_{k} tx(k, j) )
+
+     donde X_i es el vector de variables futuras en el estado i.
+
+  c) Memoizacion de costos de transicion en tabla_transiciones, evitando
+     recalcular trayectorias comunes.
+
+
+================================================================================
+3. ARQUITECTURA DEL SOFTWARE
+================================================================================
+
+3.1. Diagrama de paquetes
+--------------------------------------------------------------------------------
+
+  +------------------------------------------------------------------+
+  |  Paquete src                                                      |
+  |  +--------------------------+  +------------------------------+  |
+  |  | constants                |  | models                       |  |
+  |  |  - base.py:              |  |  +----- base -----+          |  |
+  |  |    INF, BIN, PATH        |  |  | application.py |          |  |
+  |  |  - error.py:             |  |  |   (Singleton)  |          |  |
+  |  |    ERROR_INCOMPATIBLE    |  |  | sia.py (SIA)   |          |  |
+  |  |  - models.py:            |  |  |   (Abstracto)  |          |  |
+  |  |    EMD_VALOR_DUMMY       |  |  +----- core -----+          |  |
+  |  |                          |  |  | ncube.py       |          |  |
+  |  +--------------------------+  |  | solution.py    |          |  |
+  |                                |  | system.py      |          |  |
+  |  +--------------------------+  |  +----- enums ----+          |  |
+  |  | controllers               |  |  | distance.py   |          |  |
+  |  |  - manager.py:           |  |  | notation.py   |          |  |
+  |  |    Manager(gestor TPM)   |  |  +------------------------------+  |
+  |  |  +-- strategies/ --------+  |                                    |
+  |  |  | force.py (Brute)     |  |  +------------------------------+  |
+  |  |  | geometric.py (Geo)   |  |  | funcs                        |  |
+  |  |  | kpartition.py (KPart)|  |  |  - base.py: EMD, Hamming     |  |
+  |  |  | phi.py (PyPhi)       |  |  |  - format.py: formateo       |  |
+  |  |  | q_nodes.py (QNodes)  |  |  |  - system.py: combinatoria   |  |
+  |  |  +-----------------------+  |  +------------------------------+  |
+  |  +--------------------------+  |                                    |
+  |  +--------------------------+  |  +------------------------------+  |
+  |  | middlewares               |  |  | main.py                      |  |
+  |  |  - profile.py            |  |  |  Orquestador principal       |  |
+  |  |  - slogger.py            |  |  |  ejecutar_desde_excel()      |  |
+  |  +--------------------------+  |  |  ejecutar_kparticion()       |  |
+  +------------------------------------------------------------------+  |
+
+Figura 1: Diagrama de paquetes del sistema GeoMIP. Cada paquete agrupa
+componentes por responsabilidad: constantes globales, modelos de dominio,
+controladores con estrategias intercambiables, funciones matematicas,
+infraestructura transversal (logging/profiling) y punto de orquestacion.
+
+3.2. Diagrama de clases UML
+--------------------------------------------------------------------------------
+
+A continuacion se presenta la representacion textual del diagrama de
+clases UML 2.x del sistema, utilizando la notacion estandar:
+
+  - <<abstract>> para clases abstractas
+  - + para miembros publicos, # para protegidos, - para privados
+  - Las flechas indican: herencia (triangulo vacio), asociacion (linea),
+    composicion (rombo relleno), agregacion (rombo vacio)
+
+  +=======================+       +=========================+
+  | <<abstract>>          |       | <<dataclass,frozen>>   |
+  | SIA                   |<>---->| NCube                   |
+  +-----------------------+       +-------------------------+
+  | # sia_subsistema      |       | - dims: int            |
+  | # sia_dists_marginales|       | - data: NDArray[float] |
+  | - gestor: Manager     |       | + condicionar(dims,    |
+  | - geometric_base      |       |     estado) -> NCube   |
+  +-----------------------+       | + marginalizar(ejes)   |
+  | + aplicar_estrategia()|       |   -> NCube             |
+  |   -> Solution         |       | + __post_init__():void |
+  | + sia_cargar_tpm(     |       +-------------------------+
+  |     archivo) -> TPM   |                 ^
+  | + sia_preparar_sub-   |                 |
+  |   sistema(cond, alc,  |       +---------+---------+
+  |   mec, tpm) -> void   |       | System              |
+  +----------^------------+       +---------------------+
+             |                    | - tpm_path: str     |
+             |                    | - n_cubes: list     |
+  +----------+------------+       | - estado_inicial    |
+  |                         |     +---------------------+
+  | <<strategies>>          |     | + condicionar(dims) |
+  |                         |     |   -> System         |
+  | GeometricSIA            |     | + substraer(alc,    |
+  | BruteForce              |     |     mec) -> System  |
+  | QNodes                  |     | + bipartir(A, M)   |
+  | Phi (PyPhi wrapper)     |     |   -> NCube          |
+  | KPartitionSIA           |     | + distribucion_     |
+  +-------------------------+     |   marginal() -> vec |
+          |                       +---------------------+
+          |       +=========================+
+          +------>| Solution                |
+                  +-------------------------+
+                  | - estrategia: str       |
+                  | - perdida (phi): float  |
+                  | - particion: str        |
+                  | - tiempo_ejecucion: flt |
+                  | - n_nodos: int          |
+                  | - k: int                |
+                  | - distribuciones: tuple |
+                  +-------------------------+
+                  | + tiempo_ms() -> float  |
+                  | + __str__() -> str      |
+                  +-------------------------+
+
+Figura 2: Diagrama de clases UML del sistema GeoMIP. La clase abstracta
+SIA define el contrato que implementan las cinco estrategias concretas.
+NCube y System modelan el hipercubo de estados y las operaciones de
+manipulacion de TPMs. Solution encapsula los resultados de cada ejecucion.
+
+3.3. Diagramas de Secuencia UML
+--------------------------------------------------------------------------------
+
+A continuacion se presentan tres diagramas de secuencia UML que describen
+las interacciones entre los componentes principales del sistema para
+escenarios clave. La notacion sigue el estandar UML 2.x:
+
+  - Cada objeto se representa como:  [NombreObjeto:Clase]
+  - Las lineas de vida son barras verticales punteadas
+  - Los mensajes sincronos usan flecha solida:  ---->
+  - Los mensajes de retorno usan flecha punteada:  ---->
+  - Los bucles se indican con rectangulos con etiqueta "loop"
+  - Las alternativas con rectangulos "alt"
+
+3.3.1. Escenario A: Inicializacion del sistema y carga de TPM
+
+  [Usuario]          [main.py]         [Manager]        [System]         [NCube]
+     |                   |                |                |                |
+     |---iniciar()------>|                |                |                |
+     |                   |                |                |                |
+     |                   |---crear()----->|                |                |
+     |                   |    Manager     |                |                |
+     |                   |                |                |                |
+     |                   |---cargarTPM(   |                |                |
+     |                   |    archivo.csv)|                |                |
+     |                   |--------------->|                |                |
+     |                   |                |---leerCSV()-->|                |
+     |                   |                |                |                |
+     |                   |                |<--data_frame---|                |
+     |                   |                |    (pandas)    |                |
+     |                   |                |                |                |
+     |                   |                |---crear(      |                |
+     |                   |                |   data_frame)--|--------------->|
+     |                   |                |                |---crearNcubes( |
+     |                   |                |                |   por columna) |
+     |                   |                |                |--reshape(2,)^n|
+     |                   |                |                |<---------------|
+     |                   |                |                |                |
+     |                   |                |<--System-------|                |
+     |                   |                |   Instance     |                |
+     |                   |<--System-------|                |                |
+     |                   |    Instance    |                |                |
+     |                   |                |                |                |
+     |                   |---resolverPathTPM(nombre)----->|                |
+     |                   |<--ruta_absoluta-----------------|                |
+     |                   |                |                |                |
+     |                   |---ejecutarEstrategia(estr, k,  |                |
+     |                   |    params)---->|                |                |
+     |                   |                |                |                |
+     |<--[resultados]----|                |                |                |
+     |    en consola     |                |                |                |
+     |                   |                |                |                |
+
+Figura 3: Diagrama de secuencia para la inicializacion del sistema y
+carga de la TPM. main.py orquesta la creacion del Manager, la carga
+del archivo CSV, la construccion del System (que internamente crea
+los NCubes) y la resolucion de rutas antes de invocar la estrategia.
+
+Pasos detallados:
+
+  1. El usuario invoca iniciar() desde exec.py.
+  2. main.py crea una instancia de Manager, que localiza los archivos
+     de TPM en el sistema de directorios.
+  3. Manager.cargarTPM(archivo) lee el CSV mediante pandas.
+  4. Manager.generar_red() construye el objeto System, que:
+     a. Lee cada columna de la TPM.
+     b. Para cada columna, aplica numpy.reshape((2,)^n) para
+        construir los NCubes individuales.
+     c. Almacena los NCubes en una lista interna.
+  5. main.py resuelve la ruta absoluta del TPM mediante
+     resolver_tpm_path(), que busca en multiples directorios
+     (samples, data raiz, etc.)
+  6. main.py invoca ejecutarEstrategia() con el nombre de la
+     estrategia, el valor de k y los parametros del caso.
+
+3.3.2. Escenario B: Proceso iterativo de busqueda de la k-MIP
+
+  [Estrategia]       [GeometricSIA]     [KPartitionSIA]   [System]
+       |                   |                  |               |
+       |  Para k=2:        |                  |               |
+       |---find_mip()----->|                  |               |
+       |                   |---BFS_hipercubo( |               |
+       |                   |    s0, sf)------>|               |
+       |                   |                  |               |
+       |                   |  loop [niveles]: |               |
+       |                   |  |---calcular_   |               |
+       |                   |  |   costo()---->|               |
+       |                   |  |               |---bipartir(  |
+       |                   |  |               |    A_i,M_i)->|
+       |                   |  |               |               |
+       |                   |  |               |<--NCube-------|
+       |                   |  |               |               |
+       |                   |  |<--costo_vector|               |
+       |                   |  |   (memoizado) |               |
+       |                   |                  |               |
+       |                   |<--mip_particion--|               |
+       |                   |   (k=2)          |               |
+       |                   |                  |               |
+       |  Para k>=3:       |                  |               |
+       |---ejecutar(KL,g)-------------------->|               |
+       |                   |                  |               |
+       |                   |                  |  loop [k-2]:  |
+       |                   |                  |  |---splits o |
+       |                   |                  |  |   swaps    |
+       |                   |                  |  |            |
+       |                   |                  |  | loop [por  |
+       |                   |                  |  |  partes]:  |
+       |                   |                  |  |  |---bipar-|
+       |                   |                  |  |  | tir()-->|
+       |                   |                  |  |  |         |
+       |                   |                  |  |  |<--NCube-|
+       |                   |                  |  |  |         |
+       |                   |                  |  |<--perdida--|
+       |                   |                  |               |
+       |                   |                  |<--mejor_parte-|
+       |                   |                  |   (equilibrio|
+       |                   |                  |    de Nash)  |
+       |<--Solution(k,phi)-|                  |               |
+       |                   |                  |               |
+
+Figura 4: Diagrama de secuencia para el proceso iterativo de busqueda
+de la k-MIP, mostrando la interaccion entre la estrategia invocada y
+GeometricSIA (para k=2) o KPartitionSIA (para k>=3).
+
+Pasos detallados:
+
+  1. Para k=2, la estrategia invoca GeometricSIA.find_mip():
+     a. Realiza un recorrido BFS del hipercubo desde s_0 hasta s_f,
+        calculando costos de transicion por nivel de distancia Hamming.
+     b. Cada costo se memoiza en tabla_transiciones para evitar
+        recalcularlo.
+     c. Tras completar el BFS, identifica los candidatos de particion
+        examinando los costos acumulados y las trayectorias optimas.
+     d. Evalua la EMD de cada candidato mediante bipartir().
+     e. Retorna la particion con menor perdida (mip).
+
+  2. Para k>=3, KPartitionSIA recibe la biparticion MIP como punto de
+     partida y ejecuta el ciclo de extension:
+     a. Inicializa las partes a partir de la MIP de k=2.
+     b. Bucle principal (hasta alcanzar k partes):
+        - Greedy: evalua todos los splits unilaterales factibles.
+        - KL: evalua todos los intercambios bilaterales entre partes.
+        - Aplica la operacion que minimiza el incremento en phi.
+     c. Tras cada iteracion, verifica la condicion de parada:
+        equilibrio de Nash (KL) o numero de partes alcanzado.
+     d. Retorna la mejor configuracion encontrada como Solution.
+
+3.3.3. Escenario C: Evaluacion de una k-particion candidata (EMD)
+
+  [Estrategia]       [System]           [NCube]            [EMD]
+       |                |                  |                 |
+       |---bipartir(    |                  |                 |
+       |    A_i, M_i)-->|                  |                 |
+       |                |                  |                 |
+       |                |  loop [partes]:  |                 |
+       |                |  |---marginalizar|                 |
+       |                |  |   (ejes)----->|                 |
+       |                |  |               |                 |
+       |                |  |               |---np.mean(     |
+       |                |  |               |    data, axis) |
+       |                |  |               |                 |
+       |                |  |<--NCube_redu--|                 |
+       |                |  |   cido (2^k)  |                 |
+       |                |                  |                 |
+       |                |<--dist_parcial---|                 |
+       |                |                  |                 |
+       |                |                  |                 |
+       | distribucion_marginal()---------->|                 |
+       |                |                  |                 |
+       |                |<--p_OFF_vector---|                 |
+       |                |   (P_i OFF por   |                 |
+       |                |    cada nodo)    |                 |
+       |                |                  |                 |
+       |---emd_efecto(  |                  |                 |
+       |    p_dist,     |                  |                 |
+       |    p_orig)---->|                  |                 |
+       |                |                  |                 |
+       |                |---|p_i - q_i|--->|                 |
+       |                |   SUMA_i         |                 |
+       |                |                  |                 |
+       |<--phi(pi)=EMD--|                  |                 |
+       |                |                  |                 |
+
+Figura 5: Diagrama de secuencia para la evaluacion de una k-particion
+candidata mediante el calculo de la EMD. Se muestra la interaccion
+entre la estrategia, System, NCube y la funcion de EMD.
+
+Pasos detallados:
+
+  1. La estrategia invoca System.bipartir(A_i, M_i) con los
+     subconjuntos de alcance y mecanismo para una parte dada.
+
+  2. System recorre cada parte y aplica NCube.marginalizar():
+     a. Para cada parte, identifica los ejes a marginalizar (aquellos
+        que no pertenecen a la parte).
+     b. NCube.marginalizar(ejes) aplica numpy.mean(data, axis=ejes)
+        para reducir la dimension del NCube original al subespacio
+        de la parte.
+     c. Retorna un NCube reducido con las dimensiones de la parte.
+
+  3. System.distribucion_marginal() calcula, para cada NCube, la
+     probabilidad marginal del estado OFF (0) de cada nodo en el
+     alcance, produciendo un vector p_OFF de longitud m.
+
+  4. La estrategia invoca emd_efecto(p_dist, p_orig) que:
+     a. Recibe dos vectores de probabilidades marginales OFF.
+     b. Calcula SUMA_i |p_i - q_i| para i = 1..m.
+     c. Retorna el valor escalar phi(pi) = EMD_efecto.
+
+  5. Si se usa EMD causal (metrica Causa), el paso 4 se reemplaza por
+     la resolucion del problema de transporte optimo mediante pyemd,
+     que recibe los NCubes completos y la distancia de Hamming como
+     metrica de suelo.
+
+3.4. Patrones de diseno
+--------------------------------------------------------------------------------
+
+El sistema implementa los siguientes patrones de diseno:
+
+  a) Estrategia (Strategy Pattern):
+     Las clases GeometricSIA, BruteForce, QNodes, Phi, KPartitionSIA
+     implementan la interfaz comun definida por la clase abstracta SIA,
+     permitiendo intercambiar algoritmos sin modificar el codigo cliente.
+
+  b) Singleton:
+     La clase Application en models.base.application implementa un
+     Singleton que mantiene la configuracion global del sistema (notacion,
+     metrica, semilla, habilitacion de profiling).
+
+  c) Fachada (Facade Pattern):
+     El modulo main.py proporciona funciones de alto nivel
+     (ejecutar_desde_excel, ejecutar_kparticion_desde_excel) que orquestan
+     la interaccion entre multiples subsistemas (gestor de TPMs, estrategias,
+     profiling, logging).
+
+  d) Context Manager:
+     ProfilerContext en middlewares/profile.py gestiona el ciclo de vida
+     del profiler PyInstrument, garantizando inicio y finalizacion correctos.
+
+  e) Decorador (Decorator Pattern):
+     profile() y log_execution() son decoradores que anaden funcionalidad
+     transversal (profiling y logging) a metodos sin modificar su codigo.
+
+  f) Cache (Memoization):
+     El sistema implementa dos niveles de memoizacion:
+       1. _SUBSYSTEM_CACHE: evita reconstruir el subsistema para el mismo
+          caso cuando multiples estrategias comparten parametros.
+       2. _FIND_MIP_CACHE: evita recomputar la busqueda BFS de GeometricSIA
+          cuando KPartitionSIA la necesita como base.
+
+3.5. Flujo de ejecucion general
+--------------------------------------------------------------------------------
+
+El flujo general de ejecucion del sistema es:
+
+  1. El punto de entrada (exec.py) invoca iniciar() en src/main.py.
+  2. iniciar() lee el archivo Pruebas_Metodo2.xlsx que define los casos
+     de prueba.
+  3. Para cada fila del Excel, se determina la estrategia a aplicar segun
+     la configuracion y el tamano del sistema.
+  4. La estrategia ejecuta:
+     a. sia_cargar_tpm(): carga la TPM desde el archivo CSV.
+     b. sia_preparar_subsistema(): construye el subsistema (NCubes)
+        aplicando condicionamiento y substraccion.
+     c. aplicar_estrategia(): ejecuta el algoritmo especifico y devuelve
+        una instancia de Solution.
+  5. Los resultados se consolidan en archivos Excel y se registran en logs.
+
+Para ejecuciones batch (benchmark), el flujo se controla desde
+benchmark.py, que itera sobre listas predefinidas de casos, aplica
+timeouts por estrategia y genera checkpoints periodicos.
+
+3.6. Gestion de dependencias y configuracion
+--------------------------------------------------------------------------------
+
+El sistema se gestiona mediante uv (entorno virtual) y pyproject.toml
+define las dependencias:
+
+  - numpy:       manipulacion de arrays y operaciones vectorizadas
+  - pandas:      manejo de datos tabulares (lectura de Excel, CSV)
+  - openpyxl:    lectura/escritura de archivos Excel
+  - pyphi:       integracion con IIT 3.0 (estrategia Phi)
+  - pyemd:       computo de Earth Mover's Distance con distancia de Hamming
+  - pyinstrument: profiling de rendimiento
+  - colorama:    salida de terminal coloreada
+  - pyttsx3:     anuncios por voz de resultados
+
+La configuracion global se almacena en Application (src/models/base/
+application.py) y el archivo pyphi_config.yml desactiva el mensaje de
+bienvenida de PyPhi.
+
+Para sistemas con n>=20, se requiere mayor tiempo de computo y el uso de
+la estrategia MCTS+MC-EMD, que depende exclusivamente de numpy.
+
+
+================================================================================
+4. ENFOQUE ALGORITMICO E IMPLEMENTACION
+================================================================================
+
+4.1. Estrategia QNodes (k=2) — Heuristica Greedy
+--------------------------------------------------------------------------------
+
+4.1.1. Fundamentos
+
+QNodes implementa una heuristica greedy de tipo submodular para la
+busqueda de la biparticion optima. El algoritmo construye iterativamente
+un conjunto omega (una parte de la particion) seleccionando en cada paso
+el nodo delta que minimiza la diferencia entre la EMD de la union y la
+EMD individual del delta.
+
+La funcion submodular evaluada en cada iteracion es:
+
+    f(omega, delta) = EMD( omega UNION {delta} ) - EMD( {delta} )
+
+que mide la "contribucion marginal" de anadir delta a omega. El algoritmo
+selecciona el delta con la menor contribucion marginal en cada paso.
+
+4.1.2. Pseudocodigo
+
+    ALGORITHM QNodes(condicion, alcance, mecanismo, tpm):
+        subsistema <- preparar_subsistema(condicion, alcance, mecanismo, tpm)
+        V <- presente[] + futuro[]          // N = m + p vertices
+        memoria_omega <- {}                 // memoizacion de EMD por conjunto
+        memoria_particiones <- {}           // memoizacion de particiones
+
+        PARA i <- 0 HASTA |V| - 3:
+            omega <- [V[0]]
+            deltas <- V[1:]
+            PARA j <- 0 HASTA |deltas| - 2:
+                mejor_k <- -1
+                menor_diff <- infinito
+
+                PARA k <- 0 HASTA |deltas| - 1:
+                    emd_union <- EMD(bipartir(omega UNION {deltas[k]}))
+                    emd_delta <- EMD(bipartir({deltas[k]}))
+                    diff <- emd_union - emd_delta
+                    SI diff < menor_diff:
+                        menor_diff <- diff
+                        mejor_k <- k
+
+                omega.agregar(deltas[mejor_k])
+                deltas.eliminar(deltas[mejor_k])
+
+            // Guardar candidato
+            memoria_particiones[omega] <- (emd_omega, dist_omega)
+            // Reorganizar para proxima iteracion
+            par_candidato <- omega[-1] + deltas[0]
+            omega[-1] <- par_candidato
+            V <- omega
+
+        RETORNAR argmin_{particion en memoria_particiones} perdida
+
+4.1.3. Analisis de complejidad
+
+    Tiempo:       Theta(N^3 * 2^n)
+    Espacio:      O(N^2 * 2^n)
+
+    donde N = m + p (vertices del subsistema), n = nodos totales.
+    Tres bucles anidados sobre los vertices generan Theta(N^3) iteraciones,
+    cada una con evaluacion EMD de costo O(2^n).
+
+4.2. Estrategia GeometricSIA (k=2) — Programacion Dinamica
+--------------------------------------------------------------------------------
+
+4.2.1. Fundamentos
+
+GeometricSIA explota la geometria del hipercubo de estados para reducir la
+complejidad de la busqueda. En lugar de evaluar todas las biparticiones
+posibles directamente, el algoritmo realiza un recorrido estructurado desde
+el estado inicial s_0 hasta su complemento s_f, calculando costos de
+transicion de forma recursiva con memoizacion.
+
+La funcion de costo recursiva se define como:
+
+    C(nuevo) = SUMA_{i en F} [ y_i * ( |X_i - X_j| + SUMA_{k en sucesores} C(k) ) ]
+
+    donde: y_i = 1 / 2^{d_H(prev, nuevo)}
+
+El algoritmo identifica candidatos de particion examinando los caminos de
+costo minimo y seleccionando aquellos puntos donde la separacion de
+variables futuras minimiza la EMD.
+
+4.2.2. Pseudocodigo
+
+    ALGORITHM GeometricSIA(condicion, alcance, mecanismo, tpm):
+        subsistema <- preparar_subsistema(condicion, alcance, mecanismo, tpm)
+        s0 <- estado_inicial[dims_mecanismo]
+        sf <- complemento(s0)
+
+        // Inicializar tabla de transiciones (memoizacion)
+        tabla_transiciones[(s0, s0)] <- vector_cero(m)
+        caminos[0] <- [s0]
+
+        // Recorrido BFS por niveles de distancia Hamming
+        PARA nivel <- 1 HASTA n:
+            visitados <- {}
+            PARA cada estado_prev EN caminos[nivel-1]:
+                PARA cada bit i DONDE estado_prev[i] != sf[i]:
+                    nuevo <- invertir_bit(estado_prev, i)
+                    SI nuevo NOT IN visitados:
+                        costo <- calcular_costo(s0, nuevo)
+                        tabla_transiciones[(s0, nuevo)] <- costo
+                        caminos[nivel].agregar(nuevo)
+                        visitados.agregar(nuevo)
+
+        // Identificar candidatos de biparticion
+        candidatos <- []
+        costos_totales <- tabla_transiciones[(s0, sf)]
+        PARA idx <- 0 HASTA m-1:
+            candidatos.agregar( (todos_presentes, todos_futuros \ {idx}) )
+        PARA nivel <- 1 HASTA n//2:
+            candidatos.agregar( mejor_estado_nivel(caminos[nivel]) )
+
+        // Evaluar candidatos
+        PARA cada (presentes, futuros) EN candidatos:
+            dist <- bipartir(futuros, presentes).distribucion_marginal()
+            perdida <- emd_efecto(dist, dist_marginal_subsistema)
+            memoria_particiones[(presentes, futuros)] <- perdida
+
+        RETORNAR argmin_{(p,f) en memoria_particiones} perdida
+
+4.2.3. Analisis de complejidad
+
+    Tiempo:       Theta(n * 2^n)
+    Espacio:      O(n * 2^n)
+
+    La reduccion respecto a QNodes (Theta(N^3 * 2^n)) es significativa:
+    se elimina el factor cubico N^3, dejando solo el factor exponencial
+    2^n inherente al espacio de estados.
+
+    Speedup empirico: 2.8x (n=10) a 4.1x (n=15) sobre QNodes.
+
+4.3. Estrategia KPartitionSIA — Heuristica Greedy (k=3,4,5)
+--------------------------------------------------------------------------------
+
+4.3.1. Fundamentos
+
+Extiende la biparticion de GeometricSIA a k particiones mediante un
+proceso iterativo de extraccion unilateral de nodos. Parte de la MIP (k=2)
+encontrada por GeometricSIA y divide recursivamente las partes existentes
+extrayendo nodos para formar nuevas partes.
+
+En cada iteracion, el algoritmo:
+
+  1. Toma cada parte P de las partes actuales.
+  2. Para cada nodo v en P (tanto presente como futuro), crea una
+     parte nueva P2 = {v} y P1 = P \ {v}.
+  3. Evalua la perdida EMD total de la configuracion resultante.
+  4. Aplica el split que minimiza la perdida.
+  5. Repite hasta alcanzar k partes.
+
+4.3.2. Pseudocodigo
+
+    ALGORITHM KPartitionSIA_Greedy(condicion, alcance, mecanismo, tpm, k):
+        GeometricSIA.find_mip()                     // O(n * 2^n)
+        mip <- memoria_particiones.min()
+        partes <- [parte1(mip), parte2(mip)]
+
+        MIENTRAS |partes| < k:
+            mejor_split <- null
+            mejor_perdida <- infinito
+
+            PARA cada parte P EN partes:
+                PARA cada nodo v EN P.presentes UNION P.futuros:
+                    P1 <- P \ {v}
+                    P2 <- {v}
+                    partes_test <- partes con reemplazo(P, [P1, P2])
+                    perdida <- SUMA_i EMD(bipartir(partes_test[i]))
+                    SI perdida < mejor_perdida:
+                        mejor_perdida <- perdida
+                        mejor_split <- (P, P1, P2)
+
+            aplicar_split(mejor_split)
+
+        RETORNAR partes con menor perdida EMD total
+
+4.3.3. Analisis de complejidad
+
+    Tiempo:       O(k^3 * n * 2^n)
+    Espacio:      O(2^n)
+
+    La dependencia k^3 proviene de los bucles anidados sobre partes actuales
+    y nodos, repetidos para cada nivel hasta alcanzar k partes.
+
+4.4. Estrategia KPartitionSIA — Kernighan-Lin (k=3,4,5)
+--------------------------------------------------------------------------------
+
+4.4.1. Fundamentos
+
+Kernighan-Lin (KL) mejora la heuristica greedy al incorporar intercambios
+bilaterales entre partes. En lugar de solo extraer nodos (movimiento
+unilateral), KL considera intercambiar pares de nodos entre partes
+existentes, lo que permite escapar de minimos locales.
+
+El algoritmo:
+
+  1. Parte de la biparticion MIP de GeometricSIA.
+  2. Bucle de refinamiento: para cada par de partes (P_i, P_j), prueba
+     intercambiar cada par de nodos (u en P_i, v en P_j) y calcula la
+     ganancia en EMD.
+  3. Aplica el intercambio con mayor ganancia positiva.
+  4. Repite hasta que ningun intercambio mejora la solucion.
+  5. Si se requieren mas partes, divide la parte mas grande y repite.
+
+4.4.2. Pseudocodigo
+
+    ALGORITHM KPartitionSIA_KL(condicion, alcance, mecanismo, tpm, k):
+        GeometricSIA.find_mip()
+        mip <- memoria_particiones.min()
+        partes <- [parte1(mip), parte2(mip)]
+
+        MIENTRAS |partes| < k:
+            // Refinamiento KL: intercambios bilaterales
+            MEJORA <- True
+            MIENTRAS mejora:
+                mejora <- False
+                PARA cada par (P_i, P_j) EN partes x partes, i < j:
+                    PARA cada (u en P_i, v en P_j):
+                        perdida_actual <- evaluar_partes(partes)
+                        partes_prueba <- intercambiar(P_i, P_j, u, v)
+                        perdida_nueva <- evaluar_partes(partes_prueba)
+                        ganancia <- perdida_actual - perdida_nueva
+                        SI ganancia > 0:
+                            aplicar_intercambio(partes, u, v)
+                            mejora <- True
+
+            // Split de la parte mas grande para nueva iteracion
+            IF |partes| < k:
+                P_grande <- max(partes, key=size)
+                mejor_split <- mejor_split_unilateral(P_grande)
+                aplicar_split(mejor_split)
+
+        RETORNAR partes con menor perdida EMD total
+
+4.4.3. Analisis de complejidad
+
+    Tiempo:       O(k * n^2 * 2^n * iter_KL)
+    Espacio:      O(2^n)
+
+    donde iter_KL es el numero de iteraciones de refinamiento (tipicamente
+    5-20). Aunque KL es mas costoso que Greedy en cada iteracion, la
+    calidad superior de la solucion compensa el costo adicional.
+
+    Relacion empirica calidad/tiempo:
+      - n=10: KL 1.4x mas lento, 79% mejor perdida (k=3)
+      - n=15: KL 1.1x mas lento, 66% mejor perdida (k=3)
+
+4.5. Estrategia KPartitionSIA — Clustering Jerarquico (k=3,4,5)
+--------------------------------------------------------------------------------
+
+4.5.1. Fundamentos
+
+Construye una matriz de costos de transicion a partir de la tabla generada
+por GeometricSIA y aplica clustering jerarquico de Ward para agrupar los
+nodos en k clusters. La matriz aumentada A = [[0, C], [C^T, 0]] captura
+las relaciones entre nodos presentes y futuros.
+
+4.5.2. Analisis de complejidad
+
+    Tiempo:       O(n * 2^n + n^3)
+    Espacio:      O(n^2)
+
+    El clustering (pdist + linkage Ward) tiene costo O(n^3), dominado por
+    el termino O(n * 2^n) de la fase de GeometricSIA.
+
+4.5.3. Limitaciones documentadas
+
+El clustering jerarquico minimiza la distancia euclidiana entre perfiles
+de nodos, no la EMD. Esto produce perdidas 9-10x peores que Greedy:
+
+    n=10, k=3:  Greedy=0.165, Clustering=1.536
+
+Esta heuristica se mantiene exclusivamente como comparacion negativa y
+demostracion de que la similitud geometrica no equivale a la minimizacion
+de EMD.
+
+4.6. Estrategia KPartitionSIA — Espectral (baseline negativo)
+--------------------------------------------------------------------------------
+
+4.6.1. Fundamentos
+
+Implementa el algoritmo de clustering espectral normalizado (Ng, Jordan &
+Weiss, 2001) sobre la matriz de afinidad derivada de los costos EMD
+individuales por nodo. Construye el Laplaciano normalizado:
+
+    L_sym = D^{-1/2}(D - W)D^{-1/2}
+
+donde W[i,j] = exp(-|costo_i - costo_j| / sigma), obtiene los k primeros
+vectores propios y aplica k-means en el espacio espectral.
+
+4.6.2. Demostracion de no equivalencia con EMD
+
+El particionamiento espectral resuelve el problema de relajacion continua
+del minimo corte normalizado (Normalized Cut, Shi & Malik, 2000):
+
+    min_{A subconjunto V} cut(A, complemento(A))/vol(A)
+        + cut(A, complemento(A))/vol(complemento(A))
+
+El problema que requiere el proyecto es:
+
+    min_{pi en Pi_k} EMD(p_pi || p_sistema)
+
+Demostracion por contraejemplo: en el caso ABCDEFGHIJ/ABCDEFGHIJ (n=10,
+k=3), la particion de minimo corte espectral produce EMD = 4.992, mientras
+que KL encuentra una particion con EMD = 0.000. La EMD de una k-particion
+no es aditiva sobre aristas del grafo, por lo que el Laplaciano no puede
+capturarla.
+
+4.6.3. Valor academico como cota superior
+
+El spectral se mantiene como baseline negativo documentado que:
+
+  a) Demuestra empiricamente que algoritmos correctos para similitud
+     estructural no son transferibles directamente a distancia
+     probabilistica.
+
+  b) Proporciona una cota superior util: cualquier heuristica que supere
+     al spectral en perdida EMD ya es una contribucion valida.
+
+  c) Ilustra el trade-off tiempo/calidad: spectral O(n^3) es rapido pero
+     produce perdidas inaceptables; KL es mas lento pero produce perdidas
+     optimas.
+
+4.7. Estrategia MCTS + MC-EMD (n>=20)
+--------------------------------------------------------------------------------
+
+4.7.1. Fundamentos
+
+Para sistemas con n>=20, donde el costo exponencial de la evaluacion exacta
+de EMD es prohibitivo, se implementa una estrategia de dos capas:
+
+  Capa 1 — MC-EMD (Estimacion Monte Carlo de EMD):
+     Reemplaza la evaluacion exacta de EMD sobre los 2^{n_mec} estados
+     del subsistema por un promedio sobre S muestras aleatorias uniformes:
+
+        EMD_MC(p, q) = (1/S) * SUMA_{s=1}^S |p(s) - q(s)|
+
+     Error: O(1/sqrt(S)) — insesgado, controlable.
+     Speedup: (2^{n_mec}) / S — para n_mec=14, S=2000: ~8x.
+
+  Capa 2 — MCTS (Monte Carlo Tree Search):
+     Reemplaza la busqueda local de KL por una busqueda global basada en
+     arbol. Cada nodo del arbol representa una asignacion parcial de
+     nodos a k partes. La exploracion se guia por Upper Confidence Bound
+     (UCB):
+
+        UCB(v) = Q(v) + c * sqrt(ln(N_parent) / N_v)
+
+     donde Q(v) es la recompensa media, N_v el numero de visitas y
+     c = sqrt(2) la constante de exploracion.
+
+4.7.2. Pseudocodigo
+
+    ALGORITHM MCTS_MCEMD(condicion, alcance, mecanismo, tpm, k,
+                          n_iter=300, n_samples=2000):
+        subsistema <- preparar_subsistema(...)
+        raiz <- Nodo(asignacion_vacia, visitas=0, recompensa=0)
+
+        PARA iter <- 1 HASTA n_iter:
+            nodo <- raiz
+
+            // Fase 1: Seleccion
+            MIENTRAS nodo NO expandido Y nodo NO terminal:
+                nodo <- UCB_seleccion(nodo.hijos, c=1.41)
+
+            // Fase 2: Expansion
+            SI nodo NO terminal:
+                nodo <- expandir(nodo)
+
+            // Fase 3: Simulacion (rollout)
+            asignacion <- copia(nodo.asignacion)
+            MIENTRAS asignacion INCOMPLETA:
+                nodo_restante <- nodos_sin_asignar(asignacion)
+                v <- seleccion_aleatoria(nodo_restante)
+                parte <- seleccion_aleatoria({1..k})
+                asignacion[v] <- parte
+
+            // Fase 4: Evaluacion con MC-EMD
+            perdida <- MC_EMD(asignacion, subsistema, n_samples)
+
+            // Fase 5: Retropropagacion
+            MIENTRAS nodo != null:
+                nodo.visitas += 1
+                nodo.recompensa += (-perdida)
+                nodo <- nodo.padre
+
+        asignacion_optima <- mejor_asignacion(raiz)
+        RETORNAR perdida_optima, particion_optima
+
+4.7.3. Analisis de complejidad
+
+    Tiempo:       O(I * n * k * S)
+    Espacio:      O(n * k)
+
+    donde I = iteraciones MCTS, S = numero de muestras MC-EMD.
+    Para n=22, k=3, I=300, S=2000: ~39.6M operaciones numpy, frente a
+    ~64.8M operaciones Python de KL exacto (con ventaja adicional de
+    vectorizacion numpy ~1000x por operacion).
+
+
+================================================================================
+5. MODELADO DE LA SOLUCION: ARQUITECTURA REFLEJADA EN BITACORAS
+================================================================================
+
+5.1. Evolucion arquitectonica
+--------------------------------------------------------------------------------
+
+La arquitectura final del sistema es el resultado de una evolucion
+registrada en 26 bitacoras de desarrollo (16-18 mayo 2026), cuyos hitos
+principales son:
+
+  Fase 0 (Diagnostico, Bitacora 01):
+    - Verificacion de que geometric.py reproduce la Tabla 4.2 del
+      documento GeoMIP original (N3C, error < 1e-4).
+    - Correccion de bug en BruteForce (falta de argumento 'tpm' en
+      sia_preparar_subsistema).
+    - Correccion de np.infty obsoleto a np.inf en force.py.
+
+  Fase 1 (Refactorizacion, Bitacoras 02-04):
+    - Archivado de archivos experimentales (hyper-v*.py) a _archive/.
+    - Estandarizacion de la clase Solution con campos n_nodos, k, tiempo_ms.
+    - Suite de 34 tests de regresion con 100% de paso.
+    - Correccion de bug en q_nodes.py (mismo problema que BruteForce).
+
+  Fase 2 (Validacion, Bitacoras 05-06):
+    - Validador de 27 TPMs (N3-N22) con formato correcto.
+    - Documentacion de limites practicos en README.
+
+  Fase 3 (Benchmark, Bitacoras 07-13):
+    - Creacion de benchmark.py con medicion de tiempo, memoria, timeout.
+    - Correccion de timeout para Windows (threading en lugar de SIGALRM).
+    - Benchmark n=10 (49 casos, 3 min, 100% convergencia).
+    - Correccion de subconjuntos segun DatosPruebas2026_1.md.
+    - Integracion de BruteForce para validacion cruzada (n<=6).
+
+  Fase 4 (Heuristicas y Optimizaciones, Bitacoras 14-24):
+    - Analisis formal de complejidad asintotica (Bitacora 14).
+    - Implementacion de heuristica Kernighan-Lin (Bitacora 15).
+    - Implementacion de baseline espectral (Bitacora 16).
+    - Analisis de resultados n=10/n=15 (Bitacora 19).
+    - Cache de subsistemas (Bitacora 20).
+    - Implementacion MCTS + MC-EMD (Bitacora 23).
+    - Cache de find_mip (Bitacora 24).
+    - Benchmark n=20 completo exitoso (Bitacora 26).
+
+5.2. Sistema de cache de subsistemas
+--------------------------------------------------------------------------------
+
+Implementado en SIA (src/models/base/sia.py) para evitar la reconstruccion
+redundante del mismo subsistema cuando multiples estrategias procesan el
+mismo caso.
+
+  Clave de cache: (id(tpm), condicion, alcance, mecanismo)
+  Mecanismo: diccionario de modulo _SUBSYSTEM_CACHE con copia profunda
+             para seguridad.
+  Limpieza: limpiar_cache_subsistemas() entre casos de benchmark.
+
+Impacto: reduce 8 construcciones de subsistema por caso (7 estrategias + 1)
+a 1 construccion + 7 deep-copies (~1 ms cada una).
+
+5.3. Sistema de perfiles y logging
+--------------------------------------------------------------------------------
+
+El logging (middlewares/slogger.py) proporciona:
+  - Salida coloreada por consola via colorama.
+  - Rotacion de logs por fecha en directorios estructurados.
+  - Decorador log_execution() para trazabilidad automatica.
+
+El profiling (middlewares/profile.py) proporciona:
+  - Profiling por funcion via PyInstrument.
+  - Context manager ProfilerContext para control granular.
+  - Decorador profile() para profiling selectivo.
+  - Salida HTML con linea de tiempo.
+
+Para benchmark con n>=20, el logging automatico genera archivos
+separados stdout/stderr con marca temporal en logs/n20_plus/.
+
+5.4. Sistema de resultados (Solution)
+--------------------------------------------------------------------------------
+
+La clase Solution (src/models/core/solution.py) encapsula:
+
+  - estrategia: nombre del algoritmo utilizado
+  - perdida (phi): valor EMD minimo encontrado
+  - particion: representacion textual de la particion
+  - tiempo_ejecucion: tiempo de CPU en segundos
+  - n_nodos: numero de nodos del sistema
+  - k: numero de particiones
+  - distribuciones: distribuciones original y particionada
+
+Propiedades computadas: tiempo_ms = tiempo_ejecucion * 1000.
+
+La salida a Excel consolida todas las estrategias por fila de caso,
+facilitando el analisis comparativo.
+
+5.5. Mecanismo de timeouts adaptativos
+--------------------------------------------------------------------------------
+
+El benchmark implementa timeouts configurables por estrategia y tamano
+de red:
+
+  n <= 10:      timeout = 120s  (por estrategia)
+  n <= 15:      timeout = 300s
+  n <= 20:      timeout = 1800s (mejorado a 21600s en version final)
+  n > 20:       timeout = 86400s (maximo configurable)
+
+El mecanismo utiliza threading.Thread + join(timeout=value), funcional
+en Windows (a diferencia de signal.SIGALRM).
+
+Cada estrategia que excede el timeout se marca como "X" (TIMEOUT) en los
+resultados, permitiendo distinguir entre convergencia exitosa (".") y
+fallo por limite de tiempo.
+
+
+================================================================================
+6. RESULTADOS Y CONTRIBUCIONES
+================================================================================
+
+6.1. Resultados cuantitativos: benchmark n=10
+--------------------------------------------------------------------------------
+
+Fuente: benchmark_completo_2026-05-17_16h56.xlsx
+Casos:  49
+Red:    N10A (1024 filas)
+Estado: 100% convergencia en todas las estrategias
+
+Tabla 1: Tiempos medios por estrategia (n=10)
+
+  Estrategia          | Tiempo medio (s) | Desv. estandar
+  --------------------+------------------+----------------
+  QNodes k=2          |     4.38         |    2.12
+  GeometricSIA k=2    |     1.58         |    0.89
+  QN-Greedy k=3       |     1.70         |    0.95
+  KL k=3              |     2.30         |    1.34
+  QN-Greedy k=4       |     1.76         |    0.98
+  KL k=4              |     3.15         |    1.87
+  QN-Greedy k=5       |     1.84         |    1.02
+  KL k=5              |     4.30         |    2.45
+
+Tabla 2: Perdida EMD media por estrategia (n=10)
+
+  Estrategia          | Perdida media | Minimo      | Maximo
+  --------------------+---------------+-------------+--------------
+  QNodes k=2          |   0.079699    |   0.003906  |   0.495117
+  GeometricSIA k=2    |   0.076590    |   0.003906  |   0.484375
+  QN-Greedy k=3       |   0.165079    |   0.010742  |   0.974609
+  KL k=3              |   0.034399    |   0.000000  |   0.511719
+  QN-Greedy k=4       |   0.276566    |   0.023438  |   1.469727
+  KL k=4              |   0.111627    |   0.000000  |   0.762695
+  QN-Greedy k=5       |   0.408203    |   0.035156  |   1.942383
+  KL k=5              |   0.195014    |   0.000000  |   1.062500
+
+6.2. Resultados cuantitativos: benchmark n=15
+--------------------------------------------------------------------------------
+
+Fuente: benchmark_completo_2026-05-17_16h56.xlsx
+Casos:  50
+Red:    N15A (32768 filas)
+Estado: 100% convergencia en todas las estrategias
+
+Tabla 3: Tiempos medios por estrategia (n=15)
+
+  Estrategia          | Tiempo medio (s) | Ratio vs n=10
+  --------------------+------------------+--------------
+  QNodes k=2          |    17.53         |   4.0x
+  GeometricSIA k=2    |     4.30         |   2.7x
+  QN-Greedy k=3       |     4.46         |   2.6x
+  KL k=3              |     4.84         |   2.1x
+  QN-Greedy k=4       |     4.60         |   2.6x
+  KL k=4              |     5.37         |   1.7x
+  QN-Greedy k=5       |     4.50         |   2.5x
+  KL k=5              |     6.82         |   1.6x
+
+Tabla 4: Perdida EMD media por estrategia (n=15)
+
+  Estrategia          | Perdida media | Minimo      | Maximo
+  --------------------+---------------+-------------+--------------
+  QNodes k=2          |   0.001263    |   0.000000  |   0.007097
+  GeometricSIA k=2    |   0.001263    |   0.000000  |   0.007097
+  QN-Greedy k=3       |   0.002711    |   0.000000  |   0.014303
+  KL k=3              |   0.000923    |   0.000000  |   0.007206
+  QN-Greedy k=4       |   0.012963    |   0.000000  |   0.026790
+  KL k=4              |   0.008923    |   0.000000  |   0.026790
+  QN-Greedy k=5       |   0.033527    |   0.005045  |   0.053730
+  KL k=5              |   0.019271    |   0.000081  |   0.026939
+
+Las perdidas en n=15 son ~60x menores que en n=10 porque las distribuciones
+de probabilidad sobre 2^15 = 32768 estados son naturalmente mas difusas,
+lo que reduce la diferencia absoluta entre distribuciones original y
+particionada.
+
+6.3. Resultados cuantitativos: benchmark n=20
+--------------------------------------------------------------------------------
+
+Fuente: benchmark_completo_2026-05-18_04h38.xlsx
+Casos:  50
+Red:    N20A (1048576 filas)
+Timeout: 21600s por estrategia
+Estado: 100% de casos completados (convergencia o timeout documentado)
+
+Tabla 5: Tiempos por estrategia (n=20)
+
+  Estrategia          | Tiempo medio | Minimo    | Maximo
+  --------------------+--------------+-----------+-----------
+  GeometricSIA k=2    |   3.9 min    |  0.02 min | 14.0 min
+  KPartitionSIA (k=3) |  < 1 min     |  —        |  —
+  KPartitionSIA (k=4) |  < 1 min     |  —        |  —
+  KPartitionSIA (k=5) |  < 1 min     |  —        |  —
+
+  Tiempo total por caso (todas las estrategias): media ~7.3 min.
+
+6.4. Comparacion KL vs. Greedy
+--------------------------------------------------------------------------------
+
+Tabla 6: Proporcion de casos donde KL supera a Greedy
+
+           n=10 (49 casos)           n=15 (50 casos)
+  k  | KL mejor | Empate | Greedy  | KL mejor | Empate | Greedy
+  ---+----------+--------+---------+----------+--------+--------
+  3  |  47/49   |   2    |    0    |   5/19   |  14    |    0
+  4  |  48/49   |   1    |    0    |   7/19   |  12    |    0
+  5  |  49/49   |   0    |    0    |  12/18   |   6    |    0
+
+Conclusion: KL NUNCA produce una solucion peor que Greedy.
+
+Mejora porcentual promedio de KL sobre Greedy:
+  n=10, k=3: 79.2% mejor perdida (KL 1.4x mas lento)
+  n=10, k=4: 59.6% mejor perdida (KL 1.8x mas lento)
+  n=10, k=5: 52.2% mejor perdida (KL 2.3x mas lento)
+  n=15, k=3: 65.9% mejor perdida (KL 1.1x mas lento)
+  n=15, k=4: 31.2% mejor perdida (KL 1.2x mas lento)
+  n=15, k=5: 42.5% mejor perdida (KL 1.5x mas lento)
+
+6.5. Comparacion GeometricSIA vs. QNodes
+--------------------------------------------------------------------------------
+
+Para k=2, GeometricSIA produce perdida practicamente identica a QNodes
+con una fraccion del tiempo de computo:
+
+  n=10: Geo=0.076590 vs QN=0.079699  (Geo 4% mejor, 2.8x mas rapido)
+  n=15: Geo=0.001263 vs QN=0.001263  (identicos, Geo 4.1x mas rapido)
+
+Conclusion: Para k=2, siempre preferir GeometricSIA sobre QNodes.
+
+6.6. Recomendacion de estrategia por tamano de red
+--------------------------------------------------------------------------------
+
+Tabla 7: Estrategia recomendada segun tamano de red
+
+  Tamano   | Estrategia recomendada       | Justificacion
+  ---------+------------------------------+------------------------------
+  n <= 10  | KPartitionSIA-KL k=3         | 82% casos optimos con k=3;
+            |                              | KL reduce perdida 79%
+  n 11-15  | GeometricSIA k=2 primero,    | 62% casos: k=2 suficiente;
+            | luego KL k=3 si necesario   | KL solo 1.1x mas lento
+  n 16-20  | MCTS + MC-EMD                | Evaluacion exacta inviable;
+            |                              | estimacion con error O(1/sqrt(S))
+  n > 20   | Inviable con impl. actual    | Ver seccion 7.3
+
+Para k=2 especificamente: GeometricSIA siempre sobre QNodes.
+Para k>=3: KL siempre sobre Greedy cuando sea computacionalmente viable.
+
+6.7. Contribuciones e innovaciones clave
+--------------------------------------------------------------------------------
+
+  1. Algoritmo GeometricSIA: Programacion dinamica geometrica sobre
+     el hipercubo de estados que reduce la complejidad de busqueda de
+     MIP de Theta(N^3 * 2^n) a Theta(n * 2^n), con speedup empirico
+     de 2.8-4.1x sobre QNodes.
+
+  2. Heuristica Kernighan-Lin para k-particiones en contexto IIT:
+     Aplicacion original del algoritmo de intercambio bilateral al
+     problema de MIP, demostrando superioridad consistente sobre la
+     heuristica greedy.
+
+  3. MCTS + MC-EMD: Combinacion de Monte Carlo Tree Search con
+     estimacion Monte Carlo de EMD que extiende la viabilidad
+     computacional de n<=15 a n=20, con error cuantificable O(1/sqrt(S)).
+
+  4. Demostracion academica: Prueba empirica de que el clustering
+     espectral (normalized cut) es inadecuado para minimizar EMD en
+     sistemas IIT, estableciendo una cota superior negativa.
+
+  5. Sistema de cache multinivel: Memoizacion de subsistemas y
+     resultados de find_mip que elimina redundancia computacional
+     entre estrategias, reduciendo hasta 8x el costo de preparacion
+     por caso.
+
+
+================================================================================
+7. EVALUACION CRITICA
+================================================================================
+
+7.1. Limitaciones tecnicas y operativas
+--------------------------------------------------------------------------------
+
+  a) Escalabilidad exponencial: Todos los algoritmos implementados
+     tienen complejidad que incluye el factor 2^n (espacio de estados
+     del subsistema). Para n>20, el costo computacional es prohibitivo
+     en hardware de CPU estandar.
+
+  b) Dependencia de la metrica Efecto: La EMD analitica (EMD_efecto)
+     solo es valida bajo el supuesto de independencia condicional de
+     las variables futuras. Para sistemas con correlaciones fuertes,
+     se requiere EMD causal (con distancia de Hamming), que es
+     sustancialmente mas costosa.
+
+  c) Heuristicas no garantizan optimalidad: Ni Greedy ni KL garantizan
+     encontrar la particion optima global. KL supera sistematicamente
+     a Greedy pero puede quedar atrapado en minimos locales.
+
+  d) MCTS + MC-EMD produce resultados aproximados: El error de
+     estimacion O(1/sqrt(S)) es controlable pero no nulo. Para S=2000,
+     el error tipico es ~2%.
+
+  e) Limitacion de k: El sistema soporta k=2..5. Particiones con k>5
+     incrementan la perdida EMD sin beneficio compensatorio en los
+     conjuntos de datos evaluados.
+
+  f) Compatibilidad con PyPhi: La integracion con pyphi requiere
+     parches de compatibilidad para Python 3.10+ (collections.abc).
+
+7.2. Frontera computacional
+--------------------------------------------------------------------------------
+
+Tabla 8: Frontera computacional observada experimentalmente
+
+  n   | TPM filas    | Tiempo/caso obs. | Estrategia viable
+  ----+--------------+------------------+------------------------
+  10  |       1,024  |      ~10 s       | Todas (QN, Geo, KL, G)
+  15  |      32,768  |      ~35 s       | Todas (QN, Geo, KL, G)
+  20  |   1,048,576  |  ~7.3 min media  | Geo + MCTS + MC-EMD
+  22  |   4,194,304  |  >3.5 h (to)     | Solo MC-EMD (aproximado)
+  25  |  33,554,432  |  >1 dia (est.)   | Inviable
+
+  (to) = timeout; (est.) = estimado teorico
+
+Frontera practica confirmada:
+  - n <= 15: completamente viable (segundos a minutos).
+  - n = 20:  viable con optimizaciones (horas).
+  - n >= 22: inviable con implementacion actual de CPU single-core.
+
+7.3. Analisis de escalabilidad
+--------------------------------------------------------------------------------
+
+El cuello de botella computacional en todos los algoritmos es la operacion
+de marginalizacion de NCubes (bipartir() -> marginalizar() -> np.mean()).
+
+Para n=22 con subsistema de 14 nodos sobre TPM de 4M filas:
+  - 21 biparticiones candidatas * 14 NCubes por particion * 4M entradas
+    por NCube ~= 1.2 * 10^9 operaciones de punto flotante por nivel BFS.
+  - Con hasta 14 niveles BFS -> ~1.7 * 10^10 operaciones por caso.
+  - A ~10^8 operaciones/s en numpy (CPU single-core): ~170 s por nivel
+    -> inviable sin paralelismo u optimizacion adicional.
+
+El crecimiento observado es coherente con el modelo teorico:
+  - n=10 -> n=15: 3.2x medido (32x esperado por 2^n) — mejor de lo esperado
+    porque los subsistemas no escalan al maximo en todos los casos.
+  - n=15 -> n=20: ~60x medido (32x esperado) — coherente con subsistemas
+    mas grandes y mayor overhead de gestion de memoria.
+
+7.4. Recomendaciones de uso y despliegue
+--------------------------------------------------------------------------------
+
+  a) Seleccion de algoritmo:
+     - Para n <= 10: usar KPartitionSIA con heuristica KL y k=3.
+     - Para 11 <= n <= 15: usar GeometricSIA k=2; si se requiere
+       k>2, usar KL con timeout adecuado.
+     - Para n = 20: usar benchmark con timeout >= 21600s, priorizando
+       GeometricSIA y MCTS+MC-EMD para k>2.
+     - Para n > 20: no recomendado sin optimizaciones arquitecturales.
+
+  b) Configuracion de hardware:
+     - RAM minima: 16 GB para n<=15, 32 GB para n=20.
+     - CPU: se beneficia de multiples nucleos, aunque la implementacion
+       actual es single-core para el nucleo algoritmico.
+     - Disco: SSD recomendado para carga de TPMs grandes (N20A: ~1M filas).
+
+  c) Ejecucion:
+     - Usar uv sync para entorno reproducible.
+     - Para benchmarks: uv run python benchmark.py --n 10 15 20.
+     - Para n>=20: incluir --timeout 21600 para permitir convergencia.
+     - Monitorear logs en results/logs/ durante ejecuciones largas.
+
+  d) Validacion:
+     - Ejecutar suite de tests: uv run pytest tests/.
+     - Verificar convergencia cruzada BruteForce en n<=6.
+     - Para resultados criticos, ejecutar multiples semillas.
+
+7.5. Trabajo futuro y optimizaciones propuestas
+--------------------------------------------------------------------------------
+
+Las siguientes optimizaciones (Fase 4 del plan de proyecto) estan
+identificadas pero no implementadas:
+
+  Optimizacion                 | Impacto estimado | Complejidad
+  -----------------------------+------------------+------------------
+  Representacion sparse        | 5-20x speedup    | Alta: modifica
+  (scipy.sparse en NCubes)     | en marginalizar  | NCube/System
+                                |                  |
+  Paralelizacion de            | ~7x speedup      | Media: Process-
+  biparticiones candidatas     | por caso         | PoolExecutor
+                                |                  |
+  float32 en NCube.data        | 2x speedup en    | Baja: cambio
+                                | ops numpy        | de dtype
+                                |                  |
+  Limitacion de purview a      | Permite n>20     | Baja: parametro
+  <=10 nodos por caso          | costo de exact.  | en benchmark
+                                |                  |
+  GPU (CUDA) para              | 10-50x speedup   | Alta: requiere
+  marginalizacion vectorizada  |                  | reescritura core
+
+Se estima que la combinacion de todas las optimizaciones permitiria
+alcanzar n=22 de forma viable. n=25 requeriria un enfoque distribuido
+(cluster o GPU) debido al tamano de la TPM (33M filas).
+
+
+================================================================================
+8. DETALLES DE IMPLEMENTACION
+================================================================================
+
+8.1. Estructura de directorios
+--------------------------------------------------------------------------------
+
+GeoMIP/
+  src/
+    Method2_Dynamic_Programming_Reformulation/
+      exec.py                          # Punto de entrada
+      run_kpart.py                     # Ejecucion batch k-particion
+      debug_kpart.py                   # Depuracion KPartitionSIA
+      pyproject.toml                   # Dependencias
+      pyphi_config.yml                 # Config PyPhi
+      src/
+        main.py                        # Orquestador principal
+        constants/
+          base.py                      # Constantes globales
+          error.py                     # Mensajes de error
+          models.py                    # Constantes de modelos
+        controllers/
+          manager.py                   # Gestor de TPMs
+          strategies/
+            force.py                   # BruteForce (exhaustiva)
+            geometric.py               # GeometricSIA (DP)
+            kpartition.py              # KPartitionSIA (k>=3)
+            phi.py                     # PyPhi (IIT)
+            q_nodes.py                 # QNodes (greedy)
+        funcs/
+          base.py                      # EMD, Hamming, binario
+          format.py                    # Formateo de particiones
+          system.py                    # Particiones/combos
+        middlewares/
+          profile.py                   # Profiling PyInstrument
+          slogger.py                   # Logging coloreado
+        models/
+          base/
+            application.py             # Singleton configuracion
+            sia.py                     # SIA abstracto + cache
+          core/
+            ncube.py                   # NCube (hipercubo)
+            solution.py                # Resultados
+            system.py                  # Sistema/TPM
+          enums/
+            distance.py                # Metricas
+            notation.py                # Notaciones
+
+  data/
+    samples/                           # TPMs (N3-N22)
+    validate_tpms.py                   # Validador
+
+  results/
+    finales/                           # Resultados consolidados
+    n10/, n15/, n20/                   # Resultados por red
+    logs/
+      n10_n15/                         # Logs de benchmarks n<=15
+      n20_plus/                        # Logs de benchmarks n>=20
+    historico/                         # Versiones anteriores
+    _archive/                          # Pruebas muy antiguas
+
+tests/
+  conftest.py                          # Config pytest
+  test_emd.py                          # Tests EMD
+  test_geometric_n3.py                 # Tests N3
+  test_kpart_coherence.py              # Tests k-particion
+  test_solutions.py                    # Tests Solution
+
+docs/
+  ManualTecnico_KQMIP.tex              # Manual LaTeX (historico)
+  gen_tables.py                        # Generador tablas LaTeX
+  tables/                              # Tablas LaTeX generadas
+
+bitacoras/                             # 26 bitacoras de desarrollo
+
+8.2. Dependencias y plataformas
+--------------------------------------------------------------------------------
+
+Requerimientos minimos:
+  - Python >= 3.9.13
+  - numpy (manipulacion de arrays)
+  - pandas, openpyxl (Excel)
+  - pyphi (integracion IIT)
+  - pyemd (computo EMD completo)
+  - pyinstrument (profiling)
+  - colorama (terminal coloreada)
+  - pyttsx3 (anuncios por voz)
+
+Plataformas soportadas:
+  - Windows 10/11 (validado)
+  - Linux (compatibilidad verificada)
+  - macOS (no probado, pero deberia funcionar con dependencias estandar)
+
+8.3. Suite de pruebas
+--------------------------------------------------------------------------------
+
+La suite de tests (pytest) consta de 34 pruebas organizadas en 4 modulos:
+
+  test_emd.py (7 tests):
+    - Verificacion de emd_efecto analitica (casos triviales y bordes).
+
+  test_geometric_n3.py (10 tests):
+    - Reproduccion de la Tabla 4.2 del documento GeoMIP (N3C).
+    - Validacion cruzada GeometricSIA vs BruteForce (N3A).
+    - Verificacion de consistencia de resultados.
+
+  test_kpart_coherence.py (6 tests):
+    - Verificacion de k correcto y n_nodos en resultados.
+    - Validacion de particiones inviables (k > nodos totales).
+
+  test_solutions.py (11 tests):
+    - Campos minimos presentes en todas las estrategias.
+    - Tipos correctos de cada campo.
+    - Consistencia de la propiedad tiempo_ms.
+
+Ejecucion: uv run pytest tests/
+
+8.4. Convenciones de codigo
+--------------------------------------------------------------------------------
+
+  - Nomenclatura: snake_case para funciones y variables, PascalCase
+    para clases, SCREAMING_CASE para constantes.
+  - Tipado: anotaciones de tipo Python (mypy compatible).
+  - Logging: uso de SafeLogger con formato estructurado.
+  - Documentacion: comentarios en espanol (consistente con el equipo).
+  - Gestion de errores: excepciones con mensajes descriptivos en
+    src/constants/error.py.
+  - Archivos de datos: CSV para TPMs, Excel para configuraciones y
+    resultados, YAML para configuracion de librerias externas.
+
+
+================================================================================
+APENDICE A: Demostracion de la EMD analitica
+================================================================================
+
+Para la metrica Efecto, la EMD entre dos distribuciones de probabilidad
+sobre variables binarias condicionalmente independientes tiene solucion
+cerrada.
+
+Dado un sistema con m variables futuras condicionalmente independientes
+dado el presente:
+
+    P(X_1, ..., X_m | x^{t-1}) = PRODUCTO_{i=1}^m P(X_i | x^{t-1})
+
+Sean p_i = P(X_i = 0 | x^{t-1}) y q_i = P(X_i = 0 | x_pi^{t-1}) las
+probabilidades marginales de OFF para cada variable bajo la distribucion
+original y particionada respectivamente.
+
+La EMD con distancia L1 como metrica de suelo entre dos distribuciones
+producto sobre {0,1}^m es:
+
+    EMD(p, q) = SUMA_{i=1}^m |p_i - q_i|
+
+Demostracion:
+
+La distribucion conjunta sobre {0,1}^m es:
+
+    p(s) = PRODUCTO_{i=1}^m ( (1-p_i)^{1-s_i} * p_i^{s_i} )
+
+La distancia L1 en el espacio de estados es d(s, t) = SUMA_i |s_i - t_i|.
+
+El acoplamiento optimo (optimal coupling) que minimiza el costo de
+transporte para distribuciones producto es el acoplamiento independiente:
+
+    gamma(s, t) = p(s) * q(t)
+
+Para este acoplamiento:
+
+    SUMA_{s,t} d(s,t) gamma(s,t) = SUMA_i SUMA_{s_i,t_i} |s_i - t_i|
+                                       p_i(s_i) q_i(t_i)
+                                 = SUMA_i [ p_i(0)q_i(1) + p_i(1)q_i(0) ]
+                                 = SUMA_i [ p_i(1-q_i) + (1-p_i)q_i ]
+                                 = SUMA_i |p_i - q_i|
+
+Por la desigualdad de Kantorovich-Rubinstein, este acoplamiento es optimo
+para distancias L1 en espacios producto, lo que completa la demostracion.
+
+
+================================================================================
+APENDICE B: Tabla de complejidades completa
+================================================================================
+
+Algoritmo                | Tiempo                  | Espacio        | Clase
+-------------------------+-------------------------+----------------+--------------
+QNodes k=2               | Theta(N^3 * 2^n)        | O(N^2 * 2^n)   | Exponencial
+GeometricSIA k=2         | Theta(n * 2^n)          | O(n * 2^n)     | Exponencial*
+BruteForce k=2           | O(S(n,2) * 2^n)         | O(2^n)         | Factorial
+KPart-Greedy k>=3        | O(k^3 * n * 2^n)        | O(2^n)         | Exponencial*
+KPart-KL k>=3            | O(k * n^2 * 2^n*itKL)   | O(2^n)         | Exponencial*
+KPart-Clustering k>=3    | O(n * 2^n + n^3)        | O(n^2)         | Exponencial*
+KPart-Spectral k>=3      | O(n * 2^n + n^3)        | O(n^2)         | Exponencial*
+MCTS + MC-EMD k>=2       | O(I * n * k * S)        | O(n * k)       | Polinomial en S
+
+  * El factor 2^n es inherente al hipercubo de estados; no existe algoritmo
+    polinomial exacto para MIP (problema NP-hard en general).
+
+Donde:
+  n    = nodos del subsistema (purview + mecanismo)
+  N    = vertices totales (presentes + futuros)
+  k    = numero de particiones
+  I    = iteraciones MCTS
+  S    = muestras MC-EMD
+  itKL = iteraciones de refinamiento KL
+
+
+================================================================================
+APENDICE C: Referencias bibliograficas
+================================================================================
+
+  - Tononi, G., Boly, M., Massimini, M., Koch, C. (2016). Integrated
+    information theory: from consciousness to its physical substrate.
+    Nature Reviews Neuroscience, 17(7), 450-461.
+
+  - Shi, J., Malik, J. (2000). Normalized Cuts and Image Segmentation.
+    IEEE Transactions on Pattern Analysis and Machine Intelligence,
+    22(8), 888-905.
+
+  - Ng, A., Jordan, M., Weiss, Y. (2001). On Spectral Clustering:
+    Analysis and an algorithm. NeurIPS 2001.
+
+  - Kernighan, B.W., Lin, S. (1970). An Efficient Heuristic Procedure
+    for Partitioning Graphs. Bell System Technical Journal, 49(2),
+    291-307.
+
+  - Kocsis, L., Szepesvari, C. (2006). Bandit Based Monte-Carlo
+    Planning. ECML 2006, 282-293.
+
+  - Mayner, W.G.P., Marshall, W., Albantakis, L., Findlay, G.,
+    Marchman, R., Tononi, G. (2018). PyPhi: A toolbox for integrated
+    information theory. PLOS Computational Biology, 14(7), e1006343.
+
+  - Rubner, Y., Tomasi, C., Guibas, L.J. (2000). The Earth Mover's
+    Distance as a Metric for Image Retrieval. International Journal
+    of Computer Vision, 40(2), 99-121.
+
+  - Cover, T.M., Thomas, J.A. (2006). Elements of Information Theory
+    (2nd ed.). Wiley-Interscience.
+
+  - Pearl, J. (2009). Causality: Models, Reasoning, and Inference
+    (2nd ed.). Cambridge University Press.
+
+
+================================================================================
+APENDICE D: Glosario de terminos
+================================================================================
+
+  EMD (Earth Mover's Distance):
+    Distancia entre distribuciones de probabilidad que mide el costo
+    minimo de transformar una distribucion en otra.
+
+  IIT (Integrated Information Theory):
+    Teoria que cuantifica la integracion causal de un sistema mediante
+    la informacion integrada phi.
+
+  MIP (Minimum Information Partition):
+    Particion de un sistema que minimiza la perdida de informacion
+    causal, utilizada para calcular phi.
+
+  TPM (Transition Probability Matrix):
+    Matriz de probabilidades de transicion del sistema: define
+    P(X_t | X_{t-1}) para cada posible estado.
+
+  NCube:
+    Estructura de datos que representa una distribucion de probabilidad
+    sobre el hipercubo {0,1}^n con operaciones de condicionamiento y
+    marginalizacion.
+
+  SIA (System Irreducibility Analysis):
+    Clase abstracta que define la interfaz comun para todas las
+    estrategias de busqueda de particiones.
+
+  MC-EMD:
+    Estimacion Monte Carlo de la Earth Mover's Distance, que evalua
+    la EMD sobre un subconjunto aleatorio de estados en lugar del
+    espacio completo.
+
+  MCTS (Monte Carlo Tree Search):
+    Algoritmo de busqueda heuristica para espacios de decision grandes,
+    que combina exploracion (UCB) con simulacion aleatoria.
+
+  KL (Kernighan-Lin):
+    Algoritmo de particionamiento de grafos que utiliza intercambios
+    bilaterales de nodos entre particiones para minimizar una funcion
+    de costo.
+
+  UCB (Upper Confidence Bound):
+    Estrategia de seleccion en MCTS que balancea exploracion y
+    explotacion mediante la formula Q(v) + c * sqrt(ln(N_parent)/N_v).
+
+  K-Particion:
+    Familia de k subconjuntos disjuntos y no vacios cuya union cubre
+    el conjunto total de nodos del sistema.
+
+  Equilibrio de Nash (en particionamiento):
+    Estado en el que ningun nodo puede moverse unilateralmente (ni
+    mediante intercambio bilateral con otro nodo) para reducir la
+    perdida EMD de la particion actual.
+
+
+================================================================================
+FIN DEL MANUAL TECNICO — GeoMIP v2.0
+================================================================================
