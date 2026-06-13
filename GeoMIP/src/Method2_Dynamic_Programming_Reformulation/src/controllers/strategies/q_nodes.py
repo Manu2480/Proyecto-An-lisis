@@ -368,3 +368,7 @@ class QNodes(SIA):
 
     def nodes_complement(self, nodes: list[tuple[int, int]]):
         return list(set(self.vertices) - set(nodes))
+
+
+# Alias del enunciado (KQNodes = heurística Q, k=2).
+KQNodes = QNodes

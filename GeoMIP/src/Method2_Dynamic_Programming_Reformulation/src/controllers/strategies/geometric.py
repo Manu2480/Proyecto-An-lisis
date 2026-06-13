@@ -301,3 +301,7 @@ class GeometricSIA(SIA):
 
     def hamming(self,a: List[int], b: List[int]) -> int:
         return sum(x != y for x, y in zip(a, b))
+
+
+# Alias del enunciado (KGeoMIP = bipartición geométrica, k=2).
+KGeoMIP = GeometricSIA

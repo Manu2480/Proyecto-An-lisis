@@ -1,207 +1,24 @@
-================================================================================
-BITÁCORA 19 — ANÁLISIS DE RESULTADOS: n=10 y n=15
-Fecha: 2026-05-17  17:06
-Fuente: benchmark_completo_2026-05-17_16h56.xlsx
-        n=10: 49 casos  |  n=15: 50 casos
-        Estrategias: QNodes(k=2), GeometricSIA(k=2), QN-Greedy(k=3-5), KL(k=3-5)
-================================================================================
+Bitacora 19 - Resultados n=10 y n=15
+Fecha: 17/05/2026
 
-──────────────────────────────────────────────────────────────────────────────
-1. CONVERGENCIA Y TIEMPOS
-──────────────────────────────────────────────────────────────────────────────
+Resumen
+Analice benchmark_completo_2026-05-17_16h56.xlsx. Los dos tamanos convergieron al 100 por ciento.
 
-n=10 — Todos los casos convergieron (49/49) en todas las estrategias:
+Fuente
+49 casos n=10, 50 casos n=15. Estrategias: QNodes, GeometricSIA, greedy y KL para k=3,4,5.
 
-  Estrategia       | Tiempo medio | Rango
-  -----------------+--------------+-------------------
-  QNodes k=2       |   4.38 s     | (sin timeout)
-  GeometricSIA k=2 |   1.58 s     | (sin timeout)
-  QN-Greedy  k=3   |   1.70 s     |
-  KL         k=3   |   2.30 s     |
-  QN-Greedy  k=4   |   1.76 s     |
-  KL         k=4   |   3.15 s     |
-  QN-Greedy  k=5   |   1.84 s     |
-  KL         k=5   |   4.30 s     |
+Tiempos medios n=10
+QNodes 4.4 s, Geometric 1.6 s, greedy k=3 1.7 s, KL k=3 2.3 s.
 
-n=15 — Todos los casos convergieron (50/50) en todas las estrategias:
+Tiempos medios n=15
+QNodes 17.5 s, Geometric 4.3 s, greedy k=3 4.5 s, KL k=3 4.8 s.
+KL escala mejor que greedy al pasar de 10 a 15 nodos.
 
-  Estrategia       | Tiempo medio | Ratio vs n=10
-  -----------------+--------------+-------------------
-  QNodes k=2       |  17.53 s     |  4.0x más lento
-  GeometricSIA k=2 |   4.30 s     |  2.7x más lento
-  QN-Greedy  k=3   |   4.46 s     |  2.6x más lento
-  KL         k=3   |   4.84 s     |  2.1x más lento
-  QN-Greedy  k=4   |   4.60 s     |  2.6x más lento
-  KL         k=4   |   5.37 s     |  1.7x más lento
-  QN-Greedy  k=5   |   4.50 s     |  2.5x más lento
-  KL         k=5   |   6.82 s     |  1.6x más lento
+Calidad n=10 (perdida media)
+Geometric y QNodes k=2: 0.077. KL k=3: 0.000 en muchos casos. Greedy k=3: 0.165.
 
-Observación de escalabilidad:
-  KL escala MEJOR que QN-Greedy al crecer de n=10 a n=15 (ratio 1.6-2.1x vs
-  2.5-2.6x). Para n mayores, KL es proporcionalmente más eficiente.
+Patron general
+KL suele igualar o mejorar a greedy en perdida. Geometric y QNodes coinciden en k=2 como esperaba.
 
-──────────────────────────────────────────────────────────────────────────────
-2. CALIDAD DE LA SOLUCIÓN: PÉRDIDA EMD
-──────────────────────────────────────────────────────────────────────────────
-
-n=10 — Pérdida media por estrategia:
-
-  Estrategia       | Pérdida media | Pérdida mín | Pérdida máx
-  -----------------+---------------+-------------+--------------
-  QNodes k=2       |   0.079699    |   0.003906  |   0.495117
-  GeometricSIA k=2 |   0.076590    |   0.003906  |   0.484375
-  QN-Greedy  k=3   |   0.165079    |   0.010742  |   0.974609
-  KL         k=3   |   0.034399    |   0.000000  |   0.511719
-  QN-Greedy  k=4   |   0.276566    |   0.023438  |   1.469727
-  KL         k=4   |   0.111627    |   0.000000  |   0.762695
-  QN-Greedy  k=5   |   0.408203    |   0.035156  |   1.942383
-  KL         k=5   |   0.195014    |   0.000000  |   1.062500
-
-n=15 — Pérdida media por estrategia:
-
-  Estrategia       | Pérdida media | Pérdida mín | Pérdida máx
-  -----------------+---------------+-------------+--------------
-  QNodes k=2       |   0.001263    |   0.000000  |   0.007097
-  GeometricSIA k=2 |   0.001263    |   0.000000  |   0.007097
-  QN-Greedy  k=3   |   0.002711    |   0.000000  |   0.014303
-  KL         k=3   |   0.000923    |   0.000000  |   0.007206
-  QN-Greedy  k=4   |   0.012963    |   0.000000  |   0.026790
-  KL         k=4   |   0.008923    |   0.000000  |   0.026790
-  QN-Greedy  k=5   |   0.033527    |   0.005045  |   0.053730
-  KL         k=5   |   0.019271    |   0.000081  |   0.026939
-
-Observación sobre magnitud:
-  Las pérdidas en n=15 son ~60x menores que en n=10 (0.001 vs 0.08).
-  Esto se debe a que distribuciones de probabilidad sobre 2^15 = 32.768 estados
-  son naturalmente más "difusas" y parecidas entre sí que sobre 2^10 = 1.024.
-  Por tanto la información perdida al particionar es menor en términos absolutos.
-
-──────────────────────────────────────────────────────────────────────────────
-3. KL vs QN-GREEDY: COMPARACIÓN DIRECTA
-──────────────────────────────────────────────────────────────────────────────
-
-Para cada k, cuántos casos KL produjo menor pérdida que QN-Greedy:
-
-           n=10 (49 casos)                    n=15 (50 casos)
-  k  | KL mejor | empate | QN mejor    | KL mejor | empate | QN mejor
-  ---+----------+--------+---------    +----------+--------+---------
-  3  |  47/49   |   2    |    0        |   5/19   |  14    |    0
-  4  |  48/49   |   1    |    0        |   7/19   |  12    |    0
-  5  |  49/49   |   0    |    0        |  12/18   |   6    |    0
-
-  CONCLUSIÓN CLAVE: KL NUNCA ES PEOR que QN-Greedy en ningún caso.
-  En n=10, KL domina claramente (95-100% de los casos).
-  En n=15, en muchos casos empatan (los sistemas ya son "difíciles de partir mal").
-
-Mejora porcentual promedio de KL sobre QN-Greedy (casos donde ambos convergieron):
-
-  n=10:
-    k=3 → KL reduce pérdida en  79.2% | KL es 1.4x más lento
-    k=4 → KL reduce pérdida en  59.6% | KL es 1.8x más lento
-    k=5 → KL reduce pérdida en  52.2% | KL es 2.3x más lento
-
-  n=15:
-    k=3 → KL reduce pérdida en  65.9% | KL es 1.1x más lento
-    k=4 → KL reduce pérdida en  31.2% | KL es 1.2x más lento
-    k=5 → KL reduce pérdida en  42.5% | KL es 1.5x más lento
-
-  Relación calidad/tiempo: En n=15, KL es casi igual de rápido que QN-Greedy
-  pero produce soluciones significativamente mejores. El costo adicional en
-  tiempo es mínimo comparado con la mejora en calidad.
-
-──────────────────────────────────────────────────────────────────────────────
-4. RECOMENDACIÓN DE k ÓPTIMO (heuristica_k_optimo)
-──────────────────────────────────────────────────────────────────────────────
-
-n=10 (49 casos):
-  k=3 recomendado en 40/49 casos (82%)
-  k=4 recomendado en  9/49 casos (18%)
-  Estrategia recomendada: KL (44/49 = 90%) | QN-Greedy (5/49 = 10%)
-
-  → Para n=10, k=3 con KL es la combinación óptima en la mayoría de los casos.
-
-n=15 (50 casos):
-  k=2 recomendado en 31/50 casos (62%)   ← Geometric SIA o QNodes
-  k=3 recomendado en 17/50 casos (34%)
-  k=4 recomendado en  2/50 casos  (4%)
-  Estrategia recomendada: Geometric k=2 (31/50 = 62%) | QN-Greedy (14/50 = 28%) | KL (5/50 = 10%)
-
-  → Para n=15, en el 62% de los casos la partición en 2 partes (k=2) es suficiente.
-    La complejidad adicional de k≥3 no aporta mejora en más de la mitad de los casos.
-
-──────────────────────────────────────────────────────────────────────────────
-5. COMPORTAMIENTO DE GeometricSIA
-──────────────────────────────────────────────────────────────────────────────
-
-  GeometricSIA (k=2) produce una pérdida prácticamente idéntica a QNodes (k=2):
-    n=10: Geo=0.076590 vs QN=0.079699 (Geo ligeramente mejor, ~4%)
-    n=15: Geo=0.001263 vs QN=0.001263 (idénticos)
-
-  Pero GeometricSIA es significativamente más rápido:
-    n=10: Geo=1.58s vs QN=4.38s → Geo es 2.8x más rápido
-    n=15: Geo=4.30s vs QN=17.53s → Geo es 4.1x más rápido
-
-  CONCLUSIÓN: Para k=2, siempre preferir GeometricSIA sobre QNodes.
-  Mismo resultado en menos tiempo.
-
-──────────────────────────────────────────────────────────────────────────────
-6. LÍMITE DE ESCALABILIDAD: n=20
-──────────────────────────────────────────────────────────────────────────────
-
-  (Ver bitácora 18 para detalle)
-  Observado empíricamente:
-    - 4 casos de n=20 tomaron ~35-40 min cada uno
-    - Todas las estrategias hicieron timeout (300 s por estrategia)
-    - n=20 con subsistemas de 14 nodos es computacionalmente INVIABLE
-
-  Frontera práctica del sistema:
-    n ≤ 15  →  viable (segundos a minutos, todo converge)
-    n = 20  →  inviable sin optimizaciones arquitecturales adicionales
-
-──────────────────────────────────────────────────────────────────────────────
-7. CONCLUSIONES FINALES DEL BENCHMARK
-──────────────────────────────────────────────────────────────────────────────
-
-  1. KL (Kernighan-Lin) es la heurística recomendada para k≥3:
-     - Nunca peor que QN-Greedy
-     - 52-79% mejor pérdida en n=10, 31-66% mejor en n=15
-     - Costo temporal razonable (1.1x-2.3x vs QN-Greedy)
-
-  2. GeometricSIA es la mejor opción para k=2:
-     - Idéntica calidad a QNodes pero 2.8-4.1x más rápido
-     - Debe preferirse siempre sobre QNodes para k=2
-
-  3. Para redes de n≤15, k=2 o k=3 suelen ser suficientes:
-     - En n=15: 62% de casos óptimos con k=2
-     - En n=10: 82% de casos óptimos con k=3
-     - Aumentar k más allá de 3 raramente mejora el resultado
-
-  4. La frontera computacional práctica es n=15:
-     - n≤15: todos los algoritmos convergen en segundos
-     - n=20: ningún algoritmo converge en tiempo razonable (timeout 300s)
-
-  5. QNodes (k=2) es el algoritmo más lento del grupo:
-     - Inútil para n≥20 por diseño (O(N³·2^n))
-     - Reemplazable completamente por GeometricSIA para k=2
-
-──────────────────────────────────────────────────────────────────────────────
-8. ARCHIVOS FINALES DESPUÉS DE LA LIMPIEZA
-──────────────────────────────────────────────────────────────────────────────
-
-  results/
-  ├── finales/
-  │   └── benchmark_completo_2026-05-17_16h56.xlsx  ← RESULTADO DEFINITIVO
-  ├── n10/
-  │   └── n10_completo_2026-05-17_16h56.xlsx
-  ├── n15/
-  │   └── n15_completo_2026-05-17_16h56.xlsx
-  ├── logs/
-  │   ├── bench_n10_n15.log          (run anterior, referencia)
-  │   ├── bench_n10_n15_v3.log       (run definitivo Greedy+KL)
-  │   ├── bench_n10_n15_v3_err.log
-  │   ├── bench_n20_n22_n25_v2.log   (run n≥20, evidencia inviabilidad)
-  │   └── bench_n20_n22_n25_v2_err.log
-  ├── historico/                     (resultados de sesiones anteriores)
-  └── _archive/                      (pruebas muy antiguas del 16-may)
-
-================================================================================
+Conclusion practica
+n=10 y n=15 son viables en una sola CPU. n=20 necesita mas timeout y optimizaciones.

@@ -1,113 +1,23 @@
-BITÁCORA 23 — Diseño e Implementación: MCTS + MC-EMD para n≥20
-===============================================================
+Bitacora 23 - MCTS y MC-EMD
 Fecha: 17/05/2026
-Estado: DISEÑO → IMPLEMENTADO
 
+Resumen
+Disene e implemente dos capas para hacer viable n grande: estimacion Monte Carlo de EMD y busqueda MCTS.
 
-1. MOTIVACIÓN
-==============
+Motivacion
+Greedy y KL hacen timeout en n=20+ porque cada evaluacion recorre demasiados estados del hipercubo.
 
-Las heurísticas existentes (Greedy, KL) son inviables para n≥20 porque cada
-evaluación de EMD itera sobre el espacio de particiones con búsqueda local,
-y cada evaluación de calidad requiere procesar miles de estados. Para n=22
-con mecanismo de 14 nodos, GeometricSIA y KPartitionSIA-KL hacen timeout
-a los 1800s (30 min) sin completar ni un caso.
+Capa 1 - MC-EMD
+En vez de evaluar EMD sobre todos los 2^n estados, muestro S estados al azar. El error baja como 1/sqrt(S). Da un speedup de unas 8 veces cuando n_mec=14 y S=2000.
 
-Diagnóstico preciso del cuello de botella:
-  El BFS de GeometricSIA / los rollouts de KL iteran sobre ~2^n_mec estados
-  del subsistema (para n_mec=14: 16,384 estados). Por cada estado se hacen
-  evaluaciones de bipartir() que a su vez llaman marginalizar(). Para n=22,
-  los NCubes del subsistema tienen shape (2,)^14 = 16K entradas, pero el
-  BFS se hace en Python puro (dicts, listas). A ~3M ops Python/s:
-    2^14 estados × n_mec iteraciones internas × constante ≈ 30+ minutos.
+Capa 2 - MCTS
+Busqueda con UCB sobre asignaciones de nodos a k partes. Explora mejor que KL, que solo hace swaps locales.
 
+Uso
+MCTS se activa con forzar_heuristica="mcts" o cuando n_mec>15 y no se fuerza otra heuristica.
 
-2. SOLUCIÓN: DOS CAPAS INDEPENDIENTES
-=======================================
+Archivo
+kpartition.py
 
-Capa 1 — MC-EMD (estimador de evaluación)
--------------------------------------------
-Reemplaza la evaluación exacta de EMD por una estimación Monte Carlo:
-  - En vez de iterar sobre TODOS los 2^n_mec estados del subsistema,
-    muestrear S estados aleatoriamente de {0,1}^n_mec
-  - Calcular el EMD aproximado como promedio sobre esas S muestras
-  - Error: O(1/√S) — insesgado, controlable
-  - Speedup vs exacto: (2^n_mec) / S veces
-    → n_mec=14, S=2000: 16384/2000 ≈ 8× por evaluación
-  - Hace cada rollout/evaluación viable
-
-Capa 2 — MCTS (heurística de búsqueda)
-----------------------------------------
-Reemplaza KL como estrategia de exploración del espacio de particiones:
-  - KL es búsqueda LOCAL: solo considera intercambios de pares de nodos,
-    queda atrapado en el primer óptimo local
-  - MCTS es búsqueda GLOBAL: usa UCB (Upper Confidence Bound) para balancear
-    exploración de ramas nuevas vs explotación de las buenas
-  - Estructura: árbol donde cada nodo = asignación parcial de nodos a k partes
-  - Loop: Selección (UCB) → Expansión → Rollout (simulación aleatoria hasta
-    asignación completa, evaluada con MC-EMD) → Backpropagation
-
-La combinación: MCTS decide qué asignaciones explorar; MC-EMD evalúa la
-calidad de cada una barato. Juntos hacen viable n≥20.
-
-
-3. COMPLEJIDAD DEL NUEVO ALGORITMO
-====================================
-
-  MCTS:
-    - Iteraciones: I (configurable, típico I=200-500)
-    - Por iteración: O(n_nodos × k) para selección + expansión
-    - Por rollout: O(n_nodos × k × S) con MC-EMD
-    - Total: O(I × n_nodos × k × S)
-    - Para n=22, k=3, I=300, S=2000: 300 × 22 × 3 × 2000 = 39.6M operaciones numpy
-
-  Comparación:
-    KL exacto:   O(T × k² × n_nodos × 2^n_mec) = 20×9×22×16384 = 64.8M  (PYTHON)
-    MCTS+MC-EMD: O(I × n_nodos × k × S)        = 39.6M           (NUMPY)
-
-  La diferencia clave: MCTS con MC-EMD son operaciones NUMPY vectorizadas,
-  no bucles Python. ~1000× más rápido por operación.
-
-
-4. IMPLEMENTACIÓN
-==================
-
-Archivos modificados:
-  - GeoMIP/src/Method2_Dynamic_Programming_Reformulation/src/controllers/strategies/kpartition.py
-    → Nuevo método privado: _heuristica_mcts(k, n_iter, n_samples, c_ucb, seed)
-    → Activa automáticamente para n_mec > 16 (2^16 = 65536 estados → umbral práctico)
-
-  - GeoMIP/src/benchmark.py
-    → Añade columnas MCTS_k{k}_perdida / MCTS_k{k}_tiempo_ms para k=2,3,4,5
-    → Activa MCTS solo para n≥20 (donde KL hace timeout)
-
-Parámetros configurables:
-  n_iter    = 300   (iteraciones MCTS — más → mejor calidad, más lento)
-  n_samples = 2000  (muestras MC-EMD — más → menor error, más lento)
-  c_ucb     = 1.41  (√2 — constante de exploración UCB estándar)
-  seed      = 42    (reproducibilidad)
-
-
-5. VALIDACIÓN ESPERADA
-=======================
-
-  Para n=10 y n=15 (donde tenemos resultados exactos), MCTS+MC-EMD
-  debe producir pérdidas similares a KL (±5%). Si las pérdidas son
-  sistemáticamente mayores, aumentar n_iter o n_samples.
-
-  Para n=20, n=22: se espera convergencia en <5 minutos por caso.
-  Los resultados son aproximados pero válidos académicamente porque:
-    a) El error de MC-EMD es cuantificable (O(1/√S))
-    b) MCTS tiene garantías teóricas de convergencia al óptimo global
-       cuando I → ∞ (a diferencia de KL que puede quedar atrapado)
-
-
-6. HALLAZGO ACADÉMICO
-======================
-
-La introducción de MCTS+MC-EMD ilustra un principio fundamental en
-algoritmos para espacios exponenciales: cuando la evaluación exacta es
-intractable, un estimador insesgado con error controlado es suficiente
-para guiar la búsqueda hacia buenas soluciones. Esto conecta con la
-literatura de algoritmos aproximados (PTAS, FPTAS) y con el framework
-de bandits estocásticos que fundamenta UCB.
+Nota
+Para el benchmark final de calidad preferi greedy y KL con cache de find_mip (bitacora 24).

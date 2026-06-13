@@ -1,0 +1,39 @@
+Indice de bitacoras
+===================
+
+Aqui registro lo que voy haciendo en el proyecto K-QGMIP, en orden cronologico.
+
+Nota sobre rutas: en las bitacoras viejas aparece GeoMIP/results. Desde la bitacora 27
+todo quedo en GeoMIP/data/results. Si busco un archivo y no esta en la ruta antigua,
+reviso data/results o el nombre del fichero.
+
+Lista
+
+01 - Creacion del sistema de bitacoras (16/05/2026)
+02 - Archivado de videos y resultados viejos (16/05/2026)
+03 - Campos n_nodos y k en Solution (16/05/2026)
+04 - Suite de tests, 34 pruebas (16/05/2026)
+05 - Validador de TPMs (16/05/2026)
+06 - README con limites practicos (16/05/2026)
+07 - Primer benchmark.py (16/05/2026)
+08 - Manual LaTeX y gen_tables.py (16/05/2026)
+09 - Timeout con threading en Windows (16/05/2026)
+10 - Resumen de fases 0 a 5 (16/05/2026)
+11 - Limpieza de resultados tras benchmark n=10 (16/05/2026)
+12 - Benchmark n=6 y n=15, fix del profiler (16/05/2026)
+13 - Casos exactos de DatosPruebas2026 (17/05/2026)
+14 - Complejidad y pseudocodigo de algoritmos (17/05/2026)
+15 - Hallazgos sobre heuristicas y plan KL (17/05/2026)
+16 - Spectral como baseline negativo (17/05/2026)
+17 - Reorganizacion de GeoMIP/results (17/05/2026)
+18 - n=20 inviable con timeout de 300 s (17/05/2026)
+19 - Analisis de resultados n=10 y n=15 (17/05/2026)
+20 - Cache de subsistemas en sia_preparar (17/05/2026)
+21 - n=22 inviable, mismo cuello de botella (17/05/2026)
+22 - Conclusiones del domingo 17 (17/05/2026)
+23 - Diseno MCTS y MC-EMD para n grande (17/05/2026)
+24 - Cache find_mip, timeout real y fix KPartition (17/05/2026)
+25 - Reorganizacion de logs en results (18/05/2026)
+26 - Benchmark n=20 completo y limpieza (18/05/2026)
+27 - Limpieza estructural vs repo base (12/06/2026)
+28 - QNodes k=2 en red n=25 (12/06/2026)

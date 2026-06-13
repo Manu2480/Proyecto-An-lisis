@@ -1,21 +1,18 @@
-BITÁCORA 01 — Creación del sistema de bitácoras
+Bitacora 01 - Creacion del sistema de bitacoras
 Fecha: 16/05/2026
-Fase: Infraestructura
 
-ACCIÓN:
-  Se creó la carpeta /bitacoras/ en la raíz del repositorio para registrar
-  cada acción realizada durante la implementación del proyecto K-QGMIP.
+Resumen
+Cree la carpeta bitacoras en la raiz del repo para ir anotando cada cambio del proyecto.
 
-ARCHIVOS CREADOS:
-  - bitacoras/                         (carpeta nueva)
-  - bitacoras/01_creacion_bitacoras.txt (este archivo)
+Contexto previo (diagnostico inicial)
+- geometric.py reproduce la Tabla 4.2 del doc GeoMIP con N3C.
+- Corregi BruteForce en Method2: faltaba pasar tpm a sia_preparar_subsistema.
+- Cambie np.infty por np.inf en force.py.
+- Copie N3C y otros CSV a GeoMIP/data/samples.
+- Renombre N6A nuevo a N6C para no pisar el existente.
+- Elimine duplicado N21A (1).csv.
+- Copie generate_large_tpms.py a GeoMIP/data.
 
-CONTEXTO PREVIO (resumen del diagnóstico Fase 0):
-  - geometric.py reproduce correctamente la Tabla 4.2 del doc GeoMIP (N3C) ✓
-  - BruteForce en Method2/3 tenía bug (faltaba pasar tpm) → CORREGIDO
-  - np.infty obsoleto en force.py (Method2/3) → CORREGIDO a np.inf
-  - N3C.csv copiado a GeoMIP/data/samples/
-  - CSVs N6B, N17-N22 (A/B) copiados a GeoMIP/data/samples/
-  - N6A nuevo renombrado a N6C.csv (para no pisar el existente)
-  - N21A (1).csv duplicado eliminado
-  - generate_large_tpms.py copiado a GeoMIP/data/
+Archivos nuevos
+- bitacoras/
+- bitacoras/01_creacion_bitacoras.txt

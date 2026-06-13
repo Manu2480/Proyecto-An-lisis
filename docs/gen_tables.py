@@ -10,7 +10,7 @@ Tablas generadas:
 
 Uso:
   python gen_tables.py
-  python gen_tables.py --input GeoMIP/results/benchmark_2026-05-16_18h00.xlsx
+  python gen_tables.py --input GeoMIP/data/results/benchmark_2026-05-16_18h00.xlsx
   python gen_tables.py --out docs/tables/
 """
 import argparse
@@ -23,7 +23,7 @@ import numpy as np
 
 # ── Paths ──────────────────────────────────────────────────────────────────
 DOCS_ROOT    = Path(__file__).resolve().parent
-RESULTS_DIR  = DOCS_ROOT.parent / "GeoMIP" / "results"
+RESULTS_DIR  = DOCS_ROOT.parent / "GeoMIP" / "data" / "results"
 TABLES_DIR   = DOCS_ROOT / "tables"
 TABLES_DIR.mkdir(parents=True, exist_ok=True)
 

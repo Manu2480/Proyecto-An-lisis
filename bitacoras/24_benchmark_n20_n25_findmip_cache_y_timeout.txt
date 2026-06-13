@@ -1,132 +1,21 @@
-BITÁCORA 24 — Benchmark n≥20 ejecutable: caché find_mip, timeout real, bug KPartition
-================================================================================
+Bitacora 24 - Benchmark n grande ejecutable
 Fecha: 17/05/2026
-Contexto: Objetivo de poder correr redes n=20, 22 y 25 con timeouts del orden de horas;
-           referencia externa (~5 h/caso pesado).
 
+Resumen
+Corregi varios problemas que impedian correr n=20, 22 y 25 con timeouts de horas.
 
-════════════════════════════════════════════════════════════════════════
-1. PROBLEMAS QUE SE CORRIGIERON
-════════════════════════════════════════════════════════════════════════
+Problemas que encontre
+1. benchmark.py tenia min(timeout, 1800) para n>=20. Aunque pasara --timeout alto, cortaba a 30 min.
+2. El benchmark solo usaba MCTS en n grande y saltaba greedy y KL.
+3. KPartition activaba MCTS aunque pidiera greedy o kl si n_mec>15.
 
-1.1 Cota efectiva oculta de 1800 s
-----------------------------------
-En GeoMIP/src/benchmark.py, case_to era min(timeout, 1800) para n≥20,
-de modo que aun pasando --timeout alto por CLI el límite real seguía siendo 30 min
-por estrategia → timeouts masivos ya documentados para n=20.
+Cambios
+- Cache de find_mip en geometric.py. La corrida k=2 llena tablas que reutilizan k=3,4,5.
+- limpiar_cache_find_mip al inicio de cada caso.
+- DEFAULT_TIMEOUT subio a 21600 s (6 h).
+- MCTS solo si forzar_heuristica es "mcts" explicitamente.
+- Variable KQGMIP_QUIET para silenciar logs criticos.
+- _prep_cache_key en SIA para claves consistentes.
 
-1.2 Modo exclusivo MCTS para n≥20
-----------------------------------
-El benchmark llamaba sólo KPartitionSIA(forzar_heuristica="mcts") para k=2…5,
-saltando greedy/KL que en pruebas anteriores habían mostrado mejor calidad vs tiempo.
-
-1.3 KPartition ignoraba greedy/KL cuando n_mec > 15
-----------------------------------------------------
-Condición usar_mcts = (forzar_heuristica == "mcts") OR (n_mec > 15)
-provocaba que con "greedy" o "kl" explícitos aún así se entrara por MCTS y no por
-find_mip + tabla de costos — incoherente con el uso del benchmark y de las heurísticas
-documentadas.
-
-
-════════════════════════════════════════════════════════════════════════
-2. OPTIMIZACIONES E IMPLEMENTACIONES NUEVAS
-════════════════════════════════════════════════════════════════════════
-
-2.1 Caché de find_mip (Geometric)
-----------------------------------
-Archivo: GeoMIP/.../src/controllers/strategies/geometric.py
-
-- Diccionario de módulo _FIND_MIP_CACHE[clave], clave igual al triple del preparation
-  compartido con sia: tuple (id(tpm), condicion, alcance, mecanismo) vía propiedad
-  _prep_cache_key en la clase base SIA (véase 2.3).
-- Primera corrida Geométrica k=2 llena tabla_transiciones / memoria_particiones / caminos.
-- Corridas posteriores del mismo caso (KPartition greedy/KL para k=3,4,5) restauran desde
-  deepcopy de la snapshot evitando recomputar el BFS/tablas.
-- función limpiar_cache_find_mip() exportada junto al módulo; el benchmark vacía dicho caché
-  al inicio de cada caso de prueba (junto limpiar_cache_subsistemas) para no acumular RAM.
-
-2.2 Timeout CLI y valores por defecto
--------------------------------------
-- DEFAULT_TIMEOUT benchmark: 21600 s (6 h por estrategia/caso).
-- Para n grandes: case_to = min(timeout, 86400); para n≤15 se usa íntegramente el --timeout pasado.
-
-2.3 _prep_cache_key en SIA
----------------------------
-Archivo: GeoMIP/.../src/models/base/sia.py
-
-- Tras definir cache_key en sia_preparar_subsistema, se asigna self._prep_cache_key = cache_key
-  también en rutas cortas desde caché de subsistema, antes del return temprano.
-- Logs sia_logger.critic en preparación se omiten cuando KQGMIP_QUIET=1 (true/yes).
-
-2.4 Benchmark uniforme greedy/KL
----------------------------------
-Para todo n se ejecuta mismo patrón: QNodes k=2 (sólo si n≤15); Geometric k=2;
-Greedy/KL para k ∈ {3,4,5} con mismas columnas QN_* y KL_* (sin columnas MCTS_* salvo ejecutables legacy).
-
-run_benchmark establece por defecto KQGMIP_QUIET=1.
-
-2.5 KPartition: propagación _prep_cache_key a geometric_base
-------------------------------------------------------------
-Antes de find_mip() en rutas no-MCTS:
-
-  self.geometric_base._prep_cache_key = getattr(self, "_prep_cache_key", None)
-
-2.6 Lógica MCTS revisada
-------------------------
-usar_mcts ⇔ forzar_heuristica == "mcts"
-          OR (forzar_heuristica is None AND n_mec > 15)
-
-Así greedy/kl/clustering/spectral fuerzan siempre ramal find_mip cuando el caso lo permite.
-
-
-════════════════════════════════════════════════════════════════════════
-3. MICRO-CORRECCIONES DE RENDIMIENTO / DIAGNÓSTICO
-════════════════════════════════════════════════════════════════════════
-
-3.1 NCube.condicionar (ncube.py)
---------------------------------
-Eliminados print() accidentales durante condicionamiento (ruido + I/O inútil).
-
-3.2 find_mip (miss de caché)
------------------------------
-Antes de recomputar, self.tabla_transiciones.clear() y memoria_particiones.clear().
-
-
-════════════════════════════════════════════════════════════════════════
-4. TESTS — conftest pytest
-════════════════════════════════════════════════════════════════════════
-
-tests/conftest.py dejó de añadir QNodes al sys.path paralelo a Method2, porque dos árboles
-`src/` provocaban resolver src.constants desde QNodes (sin ERROR_INCOMPATIBLE_SIZES) y
-fallaba la colección.
-
-Sólo se inserta METHOD2_Dynamic_Programming_Reformulation.
-
-
-════════════════════════════════════════════════════════════════════════
-5. DOCUMENTACIÓN
-════════════════════════════════════════════════════════════════════════
-
-README.md actualizado: ejemplo --n 20 22 25 --timeout 21600; cuenta de estrategias/caso
-para n grandes (7 sin QNodes) y mención memoización find_mip.
-
-
-════════════════════════════════════════════════════════════════════════
-6. EJEMPLO DE EJECUCIÓN
-════════════════════════════════════════════════════════════════════════
-
-cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
-uv run python ../../benchmark.py --n 20 --timeout 21600
-
-
-════════════════════════════════════════════════════════════════════════
-7. LIMITACIONES PERSISTENTES
-════════════════════════════════════════════════════════════════════════
-
-- n=22 y n=25 siguen dominados por exponencial sobre dimensión del subsistema find_mip
-  + coste de copia de grandes dicts desde caché (RAM puede ser cuello de botella).
-- Un benchmark COMPLETO 50×7 estrategias con timeout largos puede ocupar semanas-wall;
-  se recomienda validar corto (--n puntual / checkpoint cada 5 filas ya estaba).
-
-
-=========================================================================
+Resultado esperado
+n=20 viable en una noche de computo con la configuracion correcta.

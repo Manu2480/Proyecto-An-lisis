@@ -1,0 +1,37 @@
+Bitacora 28 - QNodes k=2 en red n=25
+Fecha: 12/06/2026
+
+Resumen
+Prepare la corrida de QNodes solo para biparticion k=2 en la red de 25 nodos del DatosPruebas2026.
+
+Rutas acordadas
+- Matriz: GeoMIP/data/samples/N25A.csv
+- Resultados: GeoMIP/data/results/n25/
+
+Matriz N25A
+La genere con generate_large_tpms.py. Son 33 millones de filas, unos 3.4 GB en disco. Tardo unos 7 min en generar y guardar.
+
+Script nuevo
+GeoMIP/src/run_qnodes_k2.py
+- 50 casos exactos de la hoja 25A
+- Solo QNodes k=2
+- Timeout 24 h por caso por defecto
+- Checkpoint Excel cada 5 casos
+
+Como correrlo
+cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+uv run python -u ../run_qnodes_k2.py --n 25
+
+Carga de la TPM
+genfromtxt daba MemoryError. Implemente load_tpm_csv leyendo linea a linea en float32.
+
+Lanzamiento
+Inicie el proceso en background. El caso 1 (sistema completo de 25 nodos) es el mas pesado y puede tardar muchas horas.
+
+Riesgos
+- RAM alta al cargar la matriz
+- Casos con mecanismo grande pueden llegar al timeout
+- benchmark.py sigue sin QNodes para n>15; este script es aparte
+
+Pendiente
+Agregar --desde para saltar el caso 1 si hace falta. Completar los 50 casos y el Excel final.

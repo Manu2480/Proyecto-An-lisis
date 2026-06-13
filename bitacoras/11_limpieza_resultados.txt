@@ -1,21 +1,16 @@
-BITÁCORA 11 — Limpieza de resultados y archivos innecesarios
-=============================================================
-Fecha: 2026-05-16 22:10
-Contexto: Después de completar el benchmark n=10, se limpió la carpeta de resultados.
+Bitacora 11 - Limpieza de resultados
+Fecha: 16/05/2026
 
-ARCHIVOS MOVIDOS A GeoMIP/results/_archive/old_runs/:
-  - benchmark_checkpoint_n10_*.xlsx (x8) → checkpoints intermedios, ya no útiles
-  - benchmark_2026-05-16_18h14.xlsx    → run roto (todos errores)
-  - pruebas_Metodo1.xlsx               → resultados de método no implementado
-  - Pruebas_Metodo2.xlsx               → resultados de prueba obsoleta
-  - resultados_Geometric.xlsx          → run unitario viejo
+Resumen
+Despues del benchmark n=10 limpie GeoMIP/results y arregle el gitignore para CSV grandes.
 
-ARCHIVOS CONSERVADOS en GeoMIP/results/:
-  - benchmark_2026-05-16_21h58.xlsx    → benchmark n=10, 147/147 convergencias ✓
-  - benchmark_summary_2026-05-16.xlsx  → resumen estadístico n=10
-  - resultados_kpartition_N*.xlsx      → datos de k-partición para N3-N15 (útiles)
+Movi a _archive/old_runs
+Checkpoints intermedios, un benchmark roto, pruebas de metodos viejos.
 
-PROBLEMA RESUELTO en .gitignore:
-  - N21A/B.csv y N22A/B.csv (168-352 MB) superaban el límite de GitHub (100 MB)
-  - Se removieron del commit con git rm --cached y se agregaron al .gitignore
-  - Se enmendó el commit para excluirlos del push
+Conserve
+- benchmark_2026-05-16_21h58.xlsx (n=10, 147 convergencias)
+- benchmark_summary_2026-05-16.xlsx
+- resultados_kpartition de N3 a N15
+
+Problema de git
+N21 y N22 superan 100 MB de GitHub. Los saque del commit y los puse en .gitignore.

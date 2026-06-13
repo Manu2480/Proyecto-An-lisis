@@ -1,25 +1,16 @@
-BITÁCORA 07 — Fase 3: Benchmark completo
+Bitacora 07 - Primer benchmark.py
 Fecha: 16/05/2026
-Fase: 3 — Benchmarking de todas las estrategias
 
-ARCHIVOS CREADOS:
-  GeoMIP/src/benchmark.py
-    - Benchmark completo con GeometricSIA, QNodes, KPartitionSIA (k=3,4,5)
-    - Casos de prueba para n=10 (49 subsistemas), n=15 (49), n=20 (7), n=22 (5)
-    - Medición de tiempo_ms (perf_counter), memoria_mb (tracemalloc)
-    - Timeout configurable por caso (default 600s)
-    - Salida: GeoMIP/results/benchmark_YYYY-MM-DD_HHhMM.xlsx + summary
+Resumen
+Cree GeoMIP/src/benchmark.py para correr GeometricSIA, QNodes y KPartitionSIA en varios n.
 
-EJECUCIÓN:
-  Primera ejecución: falló por TypeError (constructor toma 'gestor' no 'manager')
-  Corregido: se cambia manager_kwargs = {"gestor": Manager(...)}
-  Segunda ejecución en curso (n=10, 49 casos × 4 estrategias = 196 filas)
+Que incluye
+- Casos para n=10 (49), n=15 (49), n=20 (7), n=22 (5)
+- Tiempo, memoria, timeout configurable
+- Salida Excel en GeoMIP/results/
 
-BUG CORREGIDO:
-  benchmark.py: manager_kwargs usaba clave 'manager' pero los constructores
-  de las estrategias usan 'gestor' como nombre del parámetro posicional.
+Bug corregido
+Los constructores usan gestor, no manager. Ajuste manager_kwargs en benchmark.py.
 
-MÉTRICAS REGISTRADAS POR FILA:
-  tpm, n, estado_inicial, purview_texto, mecanismo_texto,
-  alcance (binario), mecanismo (binario), k, estrategia,
-  particion, perdida_emd, tiempo_ms, memoria_mb, convergio, error
+Metricas por fila
+tpm, n, purview, mecanismo, k, estrategia, particion, perdida, tiempo_ms, memoria_mb, convergio, error

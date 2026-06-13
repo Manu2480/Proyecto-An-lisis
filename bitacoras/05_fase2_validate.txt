@@ -1,29 +1,13 @@
-BITÁCORA 05 — Fase 2.2: Validador de TPMs
+Bitacora 05 - Validador de TPMs
 Fecha: 16/05/2026
-Fase: 2.2 — Generación y validación de matrices de prueba
 
-ACCIONES:
-  Se creó validate_tpms.py para verificar automáticamente todos los CSV
-  en GeoMIP/data/samples/. Ejecución: 27/27 archivos OK.
+Resumen
+Cree validate_tpms.py y valide 27 archivos CSV en GeoMIP/data/samples. Todos OK.
 
-ARCHIVOS CREADOS:
-  GeoMIP/data/validate_tpms.py
+Archivo nuevo
+- GeoMIP/data/validate_tpms.py
 
-RESULTADO DE LA VALIDACIÓN (27 archivos):
-  N10A           n=10    1024 filas    binaria        [OK]
-  N15A / N15B    n=15   32768 filas    probabilistica [OK]
-  N17A / N17B    n=17  131072 filas    binaria        [OK]
-  N18A / N18B    n=18  262144 filas    binaria        [OK]
-  N19A / N19B    n=19  524288 filas    binaria        [OK]
-  N20A / N20B    n=20 1048576 filas    binaria        [OK]
-  N21A / N21B    n=21  (muestra)       binaria        [OK] (warn: solo 1000 filas)
-  N22A / N22B    n=22  (muestra)       binaria        [OK] (warn: solo 1000 filas)
-  N3A/B/C        n=3       8 filas     bin/prob/bin   [OK]
-  N4A/B/C        n=4      16 filas     bin/prob/bin   [OK]
-  N5A/B, N6A/B/C n=5,6                binaria        [OK]
-  N8A            n=8     256 filas     binaria        [OK]
-
-NOTA:
-  - N15A/B, N3B, N4B son TPMs probabilísticas (valores float en [0,1]) — válido.
-  - N21/N22: carga parcial (1000 filas) por tamaño. Formato correcto confirmado.
-  - TPMs n=23,24,25 pendientes de generar con generate_large_tpms.py.
+Notas
+- N15A/B, N3B, N4B son probabilisticas; el resto binarias.
+- N21 y N22 se validan con muestra parcial por tamano.
+- Falta generar n=23, 24, 25 con generate_large_tpms.py.

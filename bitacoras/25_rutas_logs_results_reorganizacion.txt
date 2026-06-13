@@ -1,82 +1,23 @@
-BITÁCORA 25 — Rutas de logs en GeoMIP/results: reorganización y bitácoras con referencias viejas
-================================================================================================
-Fecha de registro: 2026-05-18
+Bitacora 25 - Reorganizacion de logs
+Fecha: 18/05/2026
 
-Contexto breve
----------------
-Se reorganizó la carpeta GeoMIP/results para concentrar los .log históricos en subcarpetas
-temáticas y se actualizó GeoMIP/src/benchmark.py para que, cuando la petición incluye algún
-n ≥ 20, escriba automáticamente pares .stdout.log / .stderr.log con fecha y hora en el nombre,
-bajo GeoMIP/results/logs/n20_plus/ (opción --no-run-log para desactivar).
+Resumen
+Ordene los logs de benchmark en subcarpetas y actualice benchmark.py para que escriba logs automaticos en n>=20.
 
-Esta bitácora NO modifica las anteriores; solo indica cuáles quedaron desactualizadas en cuanto
-a rutas de archivos de log, y el motivo.
+Que hice
+- Movi logs viejos a logs/n10_n15/ y logs/n20_plus/
+- benchmark.py ahora crea pares stdout/stderr con fecha en el nombre cuando --n incluye n>=20
+- Se puede desactivar con --no-run-log
 
+Rutas en esa fecha (historicas)
+GeoMIP/results/logs/n10_n15/
+GeoMIP/results/logs/n20_plus/
 
-Por qué quedan “desactualizadas”
----------------------------------
-Varias bitácoras describen árboles o rutas donde los logs vivían en:
-  • GeoMIP/results/                    (raíz de results), o
-  • GeoMIP/results/logs/              (sin subcarpeta n10_n15 / n20_plus).
+Bitacoras con rutas viejas
+Las bitacoras 13, 15, 17, 18 y 19 citan paths que ya no son exactos. El relato sigue valido; solo cambio la carpeta en disco.
 
-Tras la limpieza, los .log conservados como evidencia se movieron a:
-  • GeoMIP/results/logs/n10_n15/      — corridas n=10 / n=10+n=15 (referencia, v3, solo n10, etc.)
-  • GeoMIP/results/logs/n20_plus/     — corridas n≥20 (300 s, n20+n22+n25, parciales stdout, etc.)
+Actualizacion posterior
+En bitacora 26 borre varios logs redundantes. En bitacora 27 todo paso a GeoMIP/data/results.
 
-Además, las nuevas corridas con n≥20 ya no dependen de redirigir a mano a nombres fijos tipo
-n20_benchmark_stdout.log: el propio benchmark genera archivos con marca temporal en n20_plus.
-
-Por tanto, cualquier bitácora que cite la ubicación antigua sigue siendo válida como relato
-histórico del trabajo, pero la ruta en disco que menciona puede no existir ya en ese lugar.
-
-
-Bitácoras con referencias de rutas que ya no aplican tal cual
--------------------------------------------------------------
-(El contenido histórico se conserva; solo las rutas concretas pueden ser incorrectas hoy.)
-
-  • bitacoras/13_correcciones_benchmark_DatosPruebas2026.txt
-        Cita: GeoMIP/results/bench_n10_n15.log
-        Hoy (equivalente): GeoMIP/results/logs/n10_n15/bench_n10_n15.log
-
-  • bitacoras/15_nuevas_heuristicas_plan.txt
-        Cita: GeoMIP/results/bench_n20_n22_n25_v2.log
-        Hoy (equivalente): GeoMIP/results/logs/n20_plus/bench_n20_n22_n25_v2.log
-
-  • bitacoras/17_limpieza_carpeta_results.txt
-        Describe árbol con bench_n10_n15*.log y bench_n20_n22_n25_v2*.log bajo results/ o logs/
-        sin las subcarpetas n10_n15 / n20_plus.
-        Hoy esos archivos (si se mantienen) están bajo logs/n10_n15/ y logs/n20_plus/.
-
-  • bitacoras/18_n20_inviable_proceso_detenido.txt
-        Cita: GeoMIP/results/logs/bench_n20_n22_n25_v2.log
-        Hoy (equivalente): GeoMIP/results/logs/n20_plus/bench_n20_n22_n25_v2.log
-
-  • bitacoras/19_analisis_resultados_n10_n15.txt
-       Diagrama con bench_n10_n15*.log y bench_n20_n22_n25_v2*.log al nivel logs/ implícito.
-       Hoy los equivalentes están en logs/n10_n15/ y logs/n20_plus/ respectivamente.
-
-
-Referencia rápida de ubicaciones actuales (2026-05-18)
--------------------------------------------------------
-  Logs n10 / n15 agrupados:
-    GeoMIP/results/logs/n10_n15/
-
-  Logs n≥20 / históricos de gran tamaño:
-    GeoMIP/results/logs/n20_plus/
-
-  Nuevas salidas automáticas del benchmark (n ≥ 20 en --n, sin --no-run-log):
-    GeoMIP/results/logs/n20_plus/benchmark_n<lista>_YYYY-MM-DD_HhMmSs.stdout.log
-    GeoMIP/results/logs/n20_plus/benchmark_n<lista>_YYYY-MM-DD_HhMmSs.stderr.log
-
-
-Nota
-----
-Si alguien busca en el repositorio una ruta antigua y no encuentra el archivo, conviene
-buscar por nombre de fichero (p. ej. bench_n10_n15_v3.log) dentro de GeoMIP/results/logs/.
-
-Actualización (2026-05-18)
-La depuración posterior a la ejecución completa de n=20 eliminó del disco varios logs
-históricos citados arriba (p. ej. bench_n20_n22_n25_v2*.log, parciales y timeout 300 s).
-Detalle y conclusiones: bitacoras/26_n20_ejecucion_exitosa_y_limpieza.txt. Evidencia
-canónica n=20: GeoMIP/results/n20/n20_completo_2026-05-18_04h38.xlsx y el .stdout.log
-benchmark_n20_2026-05-17_22h32m26 en logs/n20_plus/.
+Si busco un archivo
+Busco por nombre del fichero dentro de data/results/logs/.

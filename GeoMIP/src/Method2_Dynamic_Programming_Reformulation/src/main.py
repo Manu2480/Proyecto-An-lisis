@@ -96,6 +96,7 @@ from pathlib import Path
 
 METHOD2_ROOT = Path(__file__).resolve().parents[1]
 GEOMIP_ROOT = Path(__file__).resolve().parents[3]
+RESULTS_DIR = GEOMIP_ROOT / "data" / "results"
 
 def convertir_a_binario(texto, n_bits=20):
     posiciones = "ABCDEFGHIJKLMNOPQRST"[:n_bits]
@@ -343,13 +344,13 @@ def iniciar():
     ruta_entrada = Path(
         os.getenv(
             "GEOMIP_INPUT_XLSX",
-            str(GEOMIP_ROOT / "results" / "Pruebas_Metodo2.xlsx"),
+            str(RESULTS_DIR / "Pruebas_Metodo2.xlsx"),
         )
     )
     ruta_salida = Path(
         os.getenv(
             "GEOMIP_OUTPUT_XLSX",
-            str(GEOMIP_ROOT / "results" / "resultados_Geometric.xlsx"),
+            str(RESULTS_DIR / "resultados_Geometric.xlsx"),
         )
     )
     ejecutar_desde_excel(ruta_entrada, ruta_salida)

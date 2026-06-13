@@ -1,95 +1,19 @@
-BITÁCORA 21 — n=22 Inviable: Mismo Cuello de Botella que n=20, Agravado
-=======================================================================
+Bitacora 21 - n=22 inviable
 Fecha: 17/05/2026
-Estado: PROCESO DETENIDO
 
+Resumen
+Probe n=22 y pare el proceso. Es el mismo problema que n=20 pero peor por el tamano de la TPM.
 
-1. CRONOLOGÍA DEL INTENTO
-==========================
+Cronologia
+- 18:21 lance benchmark con N22A.csv (4 millones de filas)
+- Caso 1: Geometric timeout a los 30 min, luego greedy timeout otros 30 min
+- 19:30 detuve. Llevaba 69 min en un solo caso de 50.
 
-18:21  Benchmark n=22 lanzado. TPM: N22A.csv (352 MB, 2^22 = 4,194,304 filas)
-18:22  Caso 1/50 inicia. Subsistema creado en ~2s (caché funcionó correctamente)
-18:22  GeometricSIA k=2 arranca ("empieza")
-18:52  GeometricSIA k=2 → TIMEOUT (30 min exactos). Geo2=X
-18:52  KPartitionSIA k=3 Greedy arranca
-19:22  KPartitionSIA k=3 Greedy → TIMEOUT (30 min). Aún en caso 1/50
-19:30  Proceso detenido manualmente. Total transcurrido: ~69 minutos en caso 1/50
+Diagnostico
+El cache de subsistemas funciona (2 s para crear). El tiempo se va en marginalizar arrays enormes dentro de bipartir y find_mip.
 
+Estimacion
+Con 1800 s por estrategia y 7 estrategias: unos 3.5 h por caso, 7 dias para los 50.
 
-2. DIAGNÓSTICO
-===============
-
-El patrón es idéntico al de n=20, pero agravado:
-
-  n=20: TPM de 2^20 = 1,048,576 filas  → todas estrategias en timeout a 300s
-  n=22: TPM de 2^22 = 4,194,304 filas  → todas estrategias en timeout a 1800s
-        (4× más grande que n=20)
-
-Con 1800s de timeout y 7 estrategias por caso:
-  Tiempo por caso  = 7 × 1800s = 12,600s = 3.5 horas
-  Tiempo total 50 casos = 175 horas ≈ 7 días
-
-El caché de subsistemas (bitácora 20) funciona correctamente — el subsistema
-se creó en ~2s en lugar de ~1 minuto. Pero el cuello de botella real está
-dentro de la búsqueda de partición óptima, no en la preparación del subsistema.
-
-Análisis del tiempo dentro de find_mip / calcular_costos_nivel para n=22:
-  - Subsistema de 14 nodos → BFS recorre 2^14 = 16,384 estados
-  - Pero cada estado requiere calcular EMD sobre NCubes con data shape (2,)^22
-    es decir, arrays de 4M entradas
-  - bipartir() llama a NCube.marginalizar() sobre estos arrays gigantes:
-    np.mean(shape_(2,)^22) → O(4M) por NCube, y hay hasta 14 NCubes por bipartición
-  - Con ~21 candidatos de bipartición por nivel × 14 niveles BFS × 14 NCubes:
-    21 × 14 × 14 × O(4M) = O(16 billones de operaciones numpy)
-
-Esto explica por qué incluso 1800s no es suficiente.
-
-La operación crítica es `bipartir()` → `marginalizar()` → `np.mean(4M_entries)`,
-NO la preparación del subsistema (que ya optimizamos).
-
-
-3. COMPARACIÓN DE FRONTERAS COMPUTACIONALES
-=============================================
-
-  n=10 (1K filas):  viable, ~30s/caso, todos convergen ✓
-  n=15 (32K filas): viable, ~1min/caso, todos convergen ✓
-  n=20 (1M filas):  inviable con timeout<=300s, inviable prácticamente
-  n=22 (4M filas):  inviable con timeout<=1800s, definitivamente inviable
-
-Frontera práctica confirmada: n ≤ 15 con hardware de CPU single-core estándar.
-
-
-4. ¿QUÉ HARÍA FALTA PARA n=22?
-================================
-
-Según PROMPT_PROYECTO_KQMIP.md §4 (Fase 4 - Optimizaciones):
-
-  a) Representación sparse de NCubes: en lugar de almacenar arrays densos
-     de 4M entradas, usar scipy.sparse para las operaciones de marginalización.
-     La mayoría de entradas en TPMs binarias son 0 o 1, hay mucha redundancia.
-
-  b) Paralelización de biparticiones: los ~21 candidatos por nivel son
-     independientes entre sí y podrían correr en parallel con
-     concurrent.futures.ProcessPoolExecutor.
-
-  c) Reducción de precisión: usar float32 en lugar de float64 reduce el
-     ancho de banda de memoria a la mitad.
-
-  d) Limitar el subsistema: en lugar de usar purviews de 14 nodos, trabajar
-     con subsistemas más pequeños (≤10 nodos) que sean manejables.
-
-Estas son optimizaciones de Fase 4 del proyecto y requieren cambios
-arquitectónicos en System y NCube, que están fuera del alcance del benchmark
-actual.
-
-
-5. DECISIÓN
-============
-
-n=22 y n=25 se documentan como inviables con la implementación actual.
-El proyecto presenta los resultados de n=10 y n=15 como los casos completos,
-y documenta la frontera computacional como hallazgo académico del análisis
-de escalabilidad.
-
-Esta es la conclusión esperada según el spec: demostrar los límites prácticos
-de cada algoritmo y proponer las optimizaciones necesarias para escalar.
+Conclusion
+n=22 y n=25 requieren timeout de horas, cache de find_mip y quizas MC-EMD. Ver bitacora 23 y 24.

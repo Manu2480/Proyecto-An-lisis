@@ -1,0 +1,26 @@
+Bitacora 27 - Limpieza estructural
+Fecha: 12/06/2026
+
+Resumen
+Compare el repo con el proyecto base y deje una estructura simple para k-particiones.
+
+Comparacion con repo base
+El base solo tiene QNodes y Method2 con k=2. Este repo agrega KPartitionSIA, benchmark, tests y datos centralizados.
+
+Que elimine
+archivos nuevo, Method3 duplicado, smoke tests, debug_kpart, review de profiling, videos en _archive, carpeta GeoMIP/results vacia, PROMPT y README_MAURICIO.
+
+Rutas unificadas
+Cree geomip_paths.py. Muestras en data/samples, resultados en data/results.
+
+Herencias
+KPartitionSIA hereda de SIA. GeometricSIA es alias KGeoMIP. QNodes es alias KQNodes. Exporte todo en strategies/__init__.py.
+
+Documentacion
+Reescribi README.md y actualice .gitignore.
+
+Verificacion
+34 tests pasan con pytest.
+
+Pendiente
+Corridas de benchmark n=22/n=25 y QNodes n=25. Opcional: --desde en run_qnodes_k2.py.

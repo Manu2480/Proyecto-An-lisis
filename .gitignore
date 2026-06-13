@@ -57,20 +57,17 @@ build/
 .log
 
 # Archivos CSV grandes (>100 MB, superan el límite de GitHub)
-# N21 - N25: 168 MB hasta 3.2 GB por archivo
 GeoMIP/data/samples/N21*.csv
 GeoMIP/data/samples/N22*.csv
 GeoMIP/data/samples/N23*.csv
 GeoMIP/data/samples/N24*.csv
 GeoMIP/data/samples/N25*.csv
-archivos nuevo/N21*.csv
-archivos nuevo/N22*.csv
-archivos nuevo/N23*.csv
-archivos nuevo/N24*.csv
-archivos nuevo/N25*.csv
 
 # Entorno virtual del proyecto
 **/.venv/
 
-# Logs del benchmark (generados automáticamente)
+# Logs y resultados generados (no versionar corridas locales)
+GeoMIP/data/results/logs/
+GeoMIP/data/results/**/*.xlsx
+GeoMIP/data/results/**/*.log
 GeoMIP/src/Method2_Dynamic_Programming_Reformulation/.logs/

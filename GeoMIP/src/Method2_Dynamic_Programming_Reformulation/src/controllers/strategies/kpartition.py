@@ -4,15 +4,6 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import pdist
 
-import sys
-from pathlib import Path
-
-# Asegurar que el directorio padre de 'src' esté en el PYTHONPATH
-_project_root = Path(__file__).resolve().parents[3]
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
-
-# pyrefly: ignore [missing-import]
 from src.models.base.sia import SIA
 # pyrefly: ignore [missing-import]
 from src.controllers.manager import Manager

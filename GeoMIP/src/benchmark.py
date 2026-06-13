@@ -21,8 +21,8 @@ Uso:
   uv run python ../benchmark.py --timeout 21600
 
 Cuando la petición incluye algún n≥20, además de imprimir en consola se escriben
-  GeoMIP/results/logs/n20_plus/benchmark_n<...>_<fecha>_<hora>.stdout.log
-  GeoMIP/results/logs/n20_plus/benchmark_n<...>_<fecha>_<hora>.stderr.log
+  GeoMIP/data/results/logs/n20_plus/benchmark_n<...>_<fecha>_<hora>.stdout.log
+  GeoMIP/data/results/logs/n20_plus/benchmark_n<...>_<fecha>_<hora>.stderr.log
 (UTF-8). Desactivar con --no-run-log.
 """
 import sys
@@ -46,11 +46,7 @@ import pandas as pd
 sys.setrecursionlimit(10000)
 
 # ── Paths ───────────────────────────────────────────────────────────────────
-BENCHMARK_ROOT = Path(__file__).resolve().parent        # GeoMIP/src/
-GEOMIP_ROOT    = BENCHMARK_ROOT.parent                  # GeoMIP/
-SAMPLES_DIR    = GEOMIP_ROOT / "data" / "samples"
-RESULTS_DIR    = GEOMIP_ROOT / "results"
-METHOD2_ROOT   = GEOMIP_ROOT / "src" / "Method2_Dynamic_Programming_Reformulation"
+from geomip_paths import GEOMIP_ROOT, SAMPLES_DIR, RESULTS_DIR, METHOD2_ROOT
 
 if str(METHOD2_ROOT) not in sys.path:
     sys.path.insert(0, str(METHOD2_ROOT))
@@ -638,7 +634,7 @@ def run_benchmark(ns: list[int], timeout: int) -> dict[int, pd.DataFrame]:
 
 
 def _carpeta_n(n: int) -> Path:
-    """Devuelve (y crea si no existe) la carpeta GeoMIP/results/n{n}/."""
+    """Devuelve (y crea si no existe) la carpeta GeoMIP/data/results/n{n}/."""
     p = RESULTS_DIR / f"n{n}"
     p.mkdir(parents=True, exist_ok=True)
     return p

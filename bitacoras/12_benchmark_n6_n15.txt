@@ -1,32 +1,19 @@
-BITÁCORA 12 — Benchmark n=6 (BruteForce) + n=15 + gen_tables
-==============================================================
-Fecha: 2026-05-16 22:15
-Contexto: Siguientes pasos del PROMPT_PROYECTO_KQMIP.md — Fase 3.4 y Fase 5.
+Bitacora 12 - Benchmark n=6 y n=15
+Fecha: 16/05/2026
 
-CAUSA RAÍZ DEL CRASH HISTÓRICO IDENTIFICADA:
-  - El profiler pyinstrument estaba habilitado por defecto (profiler_habilitado = True)
-  - Al terminar cada estrategia, intentaba renderizar un árbol HTML enorme
-  - Para subsistemas grandes (n=10, 1024 estados), el renderizador recursaba hasta
-    agotar el C stack → crash fatal "lost sys.stderr"
-  FIX: profiler_manager.enabled = False al inicio de benchmark.py
-  RESULTADO: 49/49 casos n=10, 147/147 convergencias, ~3 minutos total ✓
+Resumen
+Encontre por que el benchmark crasheaba y lance corridas para n=6 y n=15.
 
-CAMBIOS EN benchmark.py:
-  + Importado BruteForce (validación cruzada Fase 3.4)
-  + Función build_test_cases_n6(): 21 subsistemas para N=6
-  + configs dict actualizado: {6, 10, 15, 20, 22}
-  + BruteForce se ejecuta para n≤6 (referencia exacta)
-  + Hoja "CrossVal_BF_vs_Geo" en el xlsx: compara emd_bruteforce vs emd_geometric
-    con error relativo y tasa de exactitud
-  + CLI default --n actualizado a [6, 10, 15, 20, 22]
+Causa del crash
+El profiler pyinstrument generaba HTML enorme y agotaba el stack. Lo desactive en benchmark.py.
 
-BENCHMARK EN EJECUCIÓN:
-  Comando: python benchmark.py --n 6 15 --timeout 300 --k 3 4
-  - n=6: 21 casos × 4 estrategias (Geo, BF, QN, KP3, KP4) ≈ 3-5 min
-  - n=15: 49 casos × 3-4 estrategias, timeout=300s ≈ 30-60 min
+Cambios en benchmark.py
+- Agregue BruteForce para n<=6
+- Casos n=6 con 21 subsistemas
+- Hoja CrossVal_BF_vs_Geo en el Excel
 
-GEN_TABLES.PY EJECUTADO:
-  Input:  GeoMIP/results/benchmark_2026-05-16_21h58.xlsx (147 filas, n=10)
-  Output: docs/tables/benchmark_n10.tex    ← tabla LaTeX con resultados n=10
-          docs/tables/benchmark_summary.tex ← tabla resumen estadístico
-  Estado: ✓ generadas sin errores
+Benchmark en curso
+python benchmark.py --n 6 15 --timeout 300
+
+gen_tables.py
+Genere docs/tables/benchmark_n10.tex y benchmark_summary.tex desde el xlsx de n=10.

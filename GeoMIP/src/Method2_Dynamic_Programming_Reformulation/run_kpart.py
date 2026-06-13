@@ -3,11 +3,11 @@ import os
 import re
 from pathlib import Path
 
-_project_root = Path(__file__).resolve().parent.parent.parent
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
+METHOD2_ROOT = Path(__file__).resolve().parent
+if str(METHOD2_ROOT) not in sys.path:
+    sys.path.insert(0, str(METHOD2_ROOT))
 
-from src.main import ejecutar_kparticion_desde_excel, GEOMIP_ROOT, METHOD2_ROOT
+from src.main import ejecutar_kparticion_desde_excel, GEOMIP_ROOT, METHOD2_ROOT, RESULTS_DIR
 
 def get_all_tpms():
     sample_dirs = (
@@ -33,7 +33,7 @@ def get_all_tpms():
 
 if __name__ == "__main__":
     print("Iniciando simulación batch completa para todos los sistemas y particiones k=3, 4, 5...")
-    ruta_entrada = GEOMIP_ROOT / "results" / "Pruebas_Metodo2.xlsx"
+    ruta_entrada = RESULTS_DIR / "Pruebas_Metodo2.xlsx"
     
     all_tpms = list(get_all_tpms())
     if not all_tpms:
@@ -48,7 +48,7 @@ if __name__ == "__main__":
                 print(f"\n⊘ Saltando {name} con k={k} (insuficientes nodos: solo {n_nodos} disponibles)")
                 continue
             
-            ruta_salida = GEOMIP_ROOT / "results" / f"resultados_kpartition_{name}_k{k}.xlsx"
+            ruta_salida = RESULTS_DIR / f"resultados_kpartition_{name}_k{k}.xlsx"
             print(f"\n==========================================")
             print(f" Procesando {name} con k={k} ({n_nodos} nodos)")
             print(f"==========================================")
