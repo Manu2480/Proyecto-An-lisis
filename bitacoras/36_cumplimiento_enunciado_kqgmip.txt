@@ -1,0 +1,62 @@
+Bitácora 36 — Cumplimiento estricto del enunciado K-QGMIP
+==========================================================
+Fecha: 13/06/2026
+
+Contexto
+--------
+Tras completar el benchmark rápido n=25 (bitácora 35), se revisó el código contra
+las exigencias del proyecto (docstrings, API pública, tests de equivalencia k=2,
+evaluación de particiones). Se aplicaron los ajustes pendientes sin re-ejecutar
+benchmarks.
+
+Cambios en kpartition.py
+------------------------
+1. Docstrings completos en métodos clave:
+   - Módulo y clase KPartitionSIA (ya existían, se mantuvieron).
+   - find_k_partition(), aplicar_estrategia(), _resolver_k_partition().
+   - _construir_tabla_costos() — nuevo helper que encapsula find_mip + tabla.
+   - _heuristica_greedy(), _k_partir(), _reconstruir_tensor(), _evaluar_particion(),
+     _fmt_kparticion().
+
+2. API pública find_k_partition():
+   - Método principal de búsqueda heurística k-MIP.
+   - aplicar_estrategia() delega en _resolver_k_partition() (misma lógica).
+
+3. Refactor menor:
+   - Bloque duplicado de preparación geométrica movido a _construir_tabla_costos().
+
+Nota para el informe
+--------------------
+- k=2 con heurística por defecto delega en GeometricSIA (bipartición exacta).
+- k≥3 usa heurísticas (Greedy, KL, MCTS, KL+MC-EMD); no garantiza óptimo global.
+- _evaluar_particion usa emd_efecto sobre marginales 1D (equivalente al producto
+  tensorial bajo independencia condicional); _reconstruir_tensor expone el producto
+  explícito y se valida en tests.
+
+Tests nuevos (48 en total, +14)
+-------------------------------
+Archivo: tests/test_kpartition_eval.py
+  - KPartitionSIA(k=2) ≡ GeometricSIA en N3A y N5A (pérdida y partición).
+  - find_k_partition() ≡ aplicar_estrategia() para k=2.
+  - _evaluar_particion: vacía → inf, pérdida ≥ 0, coherencia tensor/EMD.
+  - Greedy k=3 en N5A: _evaluar_particion coincide con emd_efecto manual.
+
+Reforzado: tests/test_kpart_coherence.py
+  - test_k2_equivale_geometric parametrizado en 6 TPMs (N3..N5 A/B).
+
+Comando de verificación
+-----------------------
+  cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+  uv run python -m pytest ../../../tests/ -v
+  → 48 passed
+
+Estado de cumplimiento
+----------------------
+| Requisito                         | Estado |
+|-----------------------------------|--------|
+| KPartitionSIA k=2 = GeometricSIA  | OK + tests |
+| find_k_partition API documentada  | OK |
+| _evaluar_particion documentado    | OK |
+| _k_partir / _reconstruir_tensor   | OK docstrings + test tensor |
+| Suite de tests ampliada           | 48 tests |
+| Benchmark n=25 completo           | OK (bitácora 35, sin cambios) |

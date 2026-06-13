@@ -78,6 +78,16 @@ class TestKPartitionCoherencia:
         ("N5B", "10000"),
     ]
 
+    @pytest.mark.parametrize("name,estado", TEST_CASES)
+    def test_k2_equivale_geometric(self, name, estado):
+        """Requisito del enunciado: k=2 debe reproducir GeometricSIA."""
+        sol_geo = _run_geo(name, estado)
+        sol_k2  = _run(name, estado, k=2)
+        if sol_geo is None or sol_k2 is None:
+            pytest.skip(f"{name}.csv no disponible")
+        assert sol_k2.perdida == pytest.approx(sol_geo.perdida, abs=1e-6)
+        assert sol_k2.particion.strip() == sol_geo.particion.strip()
+
     def test_coherencia_mayoria(self):
         aciertos, total = 0, 0
         for name, estado in self.TEST_CASES:

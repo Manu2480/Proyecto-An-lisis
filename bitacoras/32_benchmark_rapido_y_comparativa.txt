@@ -28,6 +28,11 @@ Prueba n=10
 Corrida n=15,20,22,25 (12-13/06)
   Completada; ver bitacora 33 para reparacion de n=22.
 
+Prueba n=25 (13/06)
+  50 casos, ~67 min, KL+MC-EMD, 50/50 ok k=2..5.
+  Archivo: rapido/n25/n25_rapido_2026-06-13_09h37.xlsx
+  Detalle dificultades y solucion: bitacora 35.
+
 Comandos
   uv run python ../benchmark_rapido.py --n 10 15 20 22 25
   uv run python ../gen_comparativa.py --n 10 15 20 22 25

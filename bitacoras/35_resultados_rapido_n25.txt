@@ -1,0 +1,132 @@
+Bitacora 35 - Resultados benchmark rapido n=25 y dificultades superadas
+Fecha: 13/06/2026
+
+Resumen
+Logre completar la matriz rapida de n=25 (50 casos, k=2..5) con KL+MC-EMD.
+Fue la ultima red pendiente del benchmark rapido. Sin datos exactos de n=25
+(solo aproximado/heuristico), pero ya hay perdidas validas para comparativas
+y graficos del informe.
+
+
+1. Objetivo
+-----------
+
+Llenar rapido/n25/ con 50 filas de DatosPruebas, una por caso, con perdida y
+tiempo para k=2,3,4,5. Cruzar despues en comparativa/ contra exacto (n10-n22)
+y aprox donde exista.
+
+
+2. Dificultades que aparecieron
+-------------------------------
+
+A) Primera corrida en batch (12/06, n=15,20,22,25 seguidos)
+   - n=25: los 50 casos quedaron con ok=False, perdida vacia, ~130 ms por k.
+   - No era timeout: fallo rapido por memoria/estado sucio tras horas corriendo
+     n=15, n=20 y n=22 en el mismo proceso.
+   - Archivo malo: n25_rapido_2026-06-13_00h58.xlsx (borrado al final).
+
+B) MCTS en k=2 (corrida aislada, antes del fix KL)
+   - Caso 1 en proceso limpio: timeout >300 s y tambien >900 s.
+   - MCTS con mecanismo de 25 nodos es demasiado lento para el benchmark rapido.
+
+C) k=3 fallo aunque k=2 ya funcionara con KL+MC
+   - k=2 convergio con split aleatorio + KL + MC-EMD (sin find_mip).
+   - k=3 seguia entrando a find_mip antes del refinamiento KL y moria por timeout.
+   - Smoke test 788618: k2=. k3=X k4=X (abortado).
+
+D) Carga de TPM
+   - N25A.csv tiene 2^25 filas (~33.5M). Cada proceso nuevo tarda ~7-10 min
+     solo en cargar la matriz en float32 antes del primer caso.
+
+E) Sin benchmark exacto n=25
+   - En data/results/n25/ no hay n25_completo. La comparativa para n=25 solo
+     trae columnas MCTS (rapido); no hay Geo/KL exacto de referencia.
+
+
+3. Como se resolvio (por orden cronologico)
+-------------------------------------------
+
+Paso 1 - Aislar n=25
+  Correr solo --n 25 en proceso nuevo (sin n=15..22 antes).
+  Evita los fallos rapidos por memoria acumulada.
+
+Paso 2 - Cambiar algoritmo para n>=25 en benchmark_rapido.py
+  En lugar de MCTS+MC-EMD, usar forzar_heuristica="kl_mc" con n_samples_mc=2500
+  y perdida_mc_final=True para todos los k.
+
+Paso 3 - k=2 sin find_mip (kpartition.py)
+  Nueva funcion _heuristica_k2_kl_mc_rapida: particion aleatoria en 2 grupos +
+  refinamiento Kernighan-Lin con perdida MC-EMD.
+
+Paso 4 - k=3,4,5 sin find_mip (mismo dia, tras fallo de k=3)
+  Generalice a _heuristica_kpart_kl_mc_rapida(k): split aleatorio en k grupos +
+  _refinar_kl(). Se activa cuando n_mec>17 y forzar_heuristica es kl_mc.
+
+Paso 5 - Validacion incremental
+  - Smoke test caso 1: n25_rapido_2026-06-13_08h30.xlsx (k2..5 todos ok).
+  - Corrida completa 50 casos: ~67 min, exit code 0.
+
+Paso 6 - Limpieza y comparativa
+  - Borre n25_rapido_2026-06-13_00h58.xlsx (datos invalidos).
+  - Regenere gen_comparativa.py --n 10 15 20 22 25.
+  - n25_comparativa.xlsx y comparativa_long.csv ya incluyen las 50 filas nuevas.
+
+(Detalle del algoritmo: ver bitacora 34.)
+
+
+4. Resultados finales
+---------------------
+
+Archivo valido:
+  GeoMIP/data/results/rapido/n25/n25_rapido_2026-06-13_09h37.xlsx
+
+Cobertura:
+  50 casos x 4 valores de k = 200 mediciones
+  ok=True en los 200 (50/50 por cada k)
+
+Estadisticas aproximadas (perdida media | tiempo medio por estrategia):
+  k=2:  perdida ~2.22  |  ~47 s/caso
+  k=3:  perdida ~2.81  |  ~19 s/caso
+  k=4:  perdida ~3.18  |  ~3.6 s/caso
+  k=5:  perdida ~3.48  |  ~3.9 s/caso
+
+Notas de interpretacion:
+  - Las perdidas son aproximadas (MC-EMD), no exactas como en benchmark.py.
+  - k=2 tarda mas porque el mecanismo completo (25 nodos) pesa en KL+MC.
+  - k=4 y k=5 son mas rapidos en promedio (menos iteraciones KL efectivas o
+    mecanismos mas chicos en muchos casos de la matriz).
+  - A mayor k, la perdida media sube en estos datos: trade-off esperado.
+
+Tiempo total corrida completa: ~67 minutos (incluye una sola carga de TPM).
+
+Comparativa actualizada:
+  comparativa/n25_comparativa.xlsx
+  comparativa/comparativa_long.csv (2469 filas totales todos los n)
+  comparativa/comparativa_resumen.xlsx
+
+
+5. Estado del benchmark rapido (todas las redes)
+------------------------------------------------
+
+  n    | Archivo final                         | ok k=2..5
+  -----+---------------------------------------+----------
+  n10  | n10_rapido_2026-06-12_23h00.xlsx      | 49/49
+  n15  | n15_rapido_2026-06-13_00h58.xlsx      | 50/50
+  n20  | n20_rapido_2026-06-13_00h58.xlsx      | 50/50
+  n22  | n22_rapido_2026-06-13_08h02.xlsx      | 50/50 (reparado, bitacora 33)
+  n25  | n25_rapido_2026-06-13_09h37.xlsx      | 50/50
+
+El benchmark rapido queda completo para n=10,15,20,22,25.
+
+
+6. Pendiente / siguientes pasos
+-------------------------------
+
+  - Opcional: anadir heuristica_k_optimo al benchmark_rapido (hoy solo esta en
+    benchmark.py y benchmark_aprox.py) para recomendar k por fila.
+  - Graficos: plot_comparativa.py sobre comparativa_long.csv.
+  - Informe: dejar claro que n=25 rapido es KL+MC-EMD aproximado, no exacto.
+
+Comandos
+  uv run python ../benchmark_rapido.py --n 25 --timeout 600
+  uv run python ../gen_comparativa.py --n 10 15 20 22 25

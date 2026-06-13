@@ -43,3 +43,5 @@ Lista
 32 - Benchmark rapido MCTS y tablas comparativas (12/06/2026)
 33 - Reparacion matriz rapido n=22 (13/06/2026)
 34 - Algoritmo aproximado KL+MC-EMD n=25 y cuello de botella (13/06/2026)
+35 - Resultados benchmark rapido n=25 y dificultades superadas (13/06/2026)
+36 - Cumplimiento enunciado: docstrings, find_k_partition, 48 tests (13/06/2026)
