@@ -1,0 +1,43 @@
+Bitacora 33 - Reparacion matriz rapido n=22
+Fecha: 13/06/2026
+
+Problema
+En la corrida larga n=15,20,22,25 del 12/06, la matriz n=22 quedo a medias:
+  - Casos 1-25: convergieron bien (MCTS k=2..5)
+  - Casos 26-50: todos con ok=False (~130 ms, fallo rapido por memoria acumulada)
+  - Caso 25 ademas tenia k3,k4,k5 en False del batch original
+
+Archivo malo (borrado)
+  rapido/n22/n22_rapido_2026-06-13_00h58.xlsx
+
+Que hice
+1. Re-ejecute solo casos 26-50 en proceso aislado:
+     benchmark_rapido.py --n 22 --desde 26 --timeout 480
+   Todos convergieron (punto en consola).
+
+2. Fusion automatica con merge_with_previous() en benchmark_rapido.py:
+   casos 1-25 del archivo viejo + casos 26-50 nuevos.
+
+3. Borre el xlsx viejo con los False (00h58).
+
+4. Re-ejecute caso 25 suelto (k3-k5 habian fallado):
+     --n 22 --desde 25 --hasta 25
+   Merge sobre la matriz ya reparada.
+
+5. Borre el intermedio 07h58; quedo solo el archivo final limpio.
+
+Archivo final valido
+  rapido/n22/n22_rapido_2026-06-13_08h02.xlsx
+  50 casos, 50/50 ok en k=2,3,4,5
+
+Cambios en codigo (misma sesion)
+  - benchmark_rapido.py: merge parcial, gc.collect(), timeouts por n
+  - n>=25: KL+MC-EMD en lugar de MCTS (k2 agotaba timeout de 900s)
+  - kpartition.py: k=2 rapido con KL+MC sin find_mip para n grande
+
+Pendiente
+  Corrida completa n=25 con KL+MC (50 casos); ver bitacora 34.
+
+Comandos utiles
+  uv run python ../benchmark_rapido.py --n 22 --desde 26
+  uv run python ../gen_comparativa.py --n 22

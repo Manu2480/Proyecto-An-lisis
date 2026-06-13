@@ -30,16 +30,26 @@ class KPartitionSIA(SIA):
         k: int,
         forzar_heuristica: str = None,
         n_samples_mc: int = -1,
+        mcts_n_iter: int = 0,
+        mcts_n_samples: int = 0,
+        mcts_rollout_depth: int = 0,
+        perdida_mc_final: bool = False,
     ):
         """
         Args:
             forzar_heuristica: None, 'greedy', 'kl', 'kl_mc', 'mcts', ...
             n_samples_mc: muestras MC-EMD (-1=auto, 0=exacto, >0=fijo)
+            mcts_*: parametros MCTS; 0 = defaults internos
+            perdida_mc_final: si True y hay MC-EMD, la perdida reportada es aproximada
         """
         super().__init__(gestor)
         self.k = k
         self.forzar_heuristica = forzar_heuristica
         self.n_samples_mc = n_samples_mc
+        self.mcts_n_iter = mcts_n_iter
+        self.mcts_n_samples = mcts_n_samples
+        self.mcts_rollout_depth = mcts_rollout_depth
+        self.perdida_mc_final = perdida_mc_final
         self._rng_mc = None
         self.geometric_base = GeometricSIA(gestor)
         self._flat_data = []
@@ -77,8 +87,22 @@ class KPartitionSIA(SIA):
             usar_mcts = True
 
         if usar_mcts:
-            mejor_particion = self._heuristica_mcts(self.k)
-            mejor_perdida   = self._evaluar_particion(mejor_particion)
+            mcts_kw: dict = {}
+            if self.mcts_n_iter > 0:
+                mcts_kw["n_iter"] = self.mcts_n_iter
+            samples = self.mcts_n_samples or (self.n_samples_mc if self.n_samples_mc > 0 else 0)
+            if samples > 0:
+                mcts_kw["n_samples_emd"] = samples
+            if self.mcts_rollout_depth > 0:
+                mcts_kw["rollout_depth"] = self.mcts_rollout_depth
+
+            mejor_particion = self._heuristica_mcts(self.k, **mcts_kw)
+            if self.perdida_mc_final and samples > 0:
+                mejor_perdida = self._mc_emd(
+                    mejor_particion, samples, self._get_mc_rng()
+                )
+            else:
+                mejor_perdida = self._evaluar_particion(mejor_particion)
             fmt_particion   = self._fmt_kparticion(mejor_particion)
             return Solution(
                 estrategia=f"{GEOMETRIC_LABEL}_k{self.k}_MCTS",
@@ -92,8 +116,23 @@ class KPartitionSIA(SIA):
             )
         # ─────────────────────────────────────────────────────────────────────
 
-        if self.k == 2:
+        if self.k == 2 and self.forzar_heuristica is None:
             return self.geometric_base.aplicar_estrategia(condicion, alcance, mecanismo, tpm)
+
+        if self.k == 2 and self.forzar_heuristica in ("kl", "kl_mc"):
+            return self._solution_kl_mc_rapida(
+                "KL_MC" if self.forzar_heuristica == "kl_mc" else "KL"
+            )
+
+        n_mec = len(self.sia_subsistema.dims_ncubos)
+        if (
+            self.k >= 3
+            and self.forzar_heuristica in ("kl", "kl_mc")
+            and n_mec > 17
+        ):
+            return self._solution_kl_mc_rapida(
+                "KL_MC" if self.forzar_heuristica == "kl_mc" else "KL"
+            )
 
         # Build table T using geometric base
         # This will also populate memoria_particiones in geometric_base
@@ -309,6 +348,102 @@ class KPartitionSIA(SIA):
                 
         return partes
 
+    def _refinar_kl(self, partes: list, max_iter: int) -> list:
+        """Refinamiento KL: mueve nodos entre partes hasta que no mejore."""
+        for _ in range(max_iter):
+            improved = False
+            perdida_actual = self._loss_interna(partes)
+
+            for i in range(len(partes)):
+                pi_pres, pi_fut = partes[i]
+                nodos_i = [('p', v) for v in pi_pres] + [('f', v) for v in pi_fut]
+
+                for j in range(len(partes)):
+                    if i == j:
+                        continue
+                    pj_pres, pj_fut = partes[j]
+
+                    for tipo, nodo in nodos_i:
+                        if tipo == 'p':
+                            new_pi = ([x for x in pi_pres if x != nodo], pi_fut)
+                            new_pj = (pj_pres + [nodo], pj_fut)
+                        else:
+                            new_pi = (pi_pres, [x for x in pi_fut if x != nodo])
+                            new_pj = (pj_pres, pj_fut + [nodo])
+
+                        if not new_pi[0] and not new_pi[1]:
+                            continue
+
+                        partes_test = (partes[:i] + [new_pi] +
+                                       partes[i+1:j] + [new_pj] +
+                                       partes[j+1:])
+                        nueva_perdida = self._loss_interna(partes_test)
+
+                        if nueva_perdida < perdida_actual - 1e-10:
+                            perdida_actual = nueva_perdida
+                            partes = partes_test
+                            pi_pres, pi_fut = new_pi
+                            nodos_i = ([('p', v) for v in pi_pres] +
+                                       [('f', v) for v in pi_fut])
+                            improved = True
+                            break
+                    if improved:
+                        break
+                if improved:
+                    break
+
+            if not improved:
+                break
+
+        return partes
+
+    def _perdida_final_partes(self, partes: list) -> float:
+        samples = self._mc_samples_efectivos()
+        if self.perdida_mc_final and samples > 0:
+            return self._mc_emd(partes, samples, self._get_mc_rng())
+        return self._evaluar_particion(partes)
+
+    def _solution_kl_mc_rapida(self, label: str) -> Solution:
+        partes = self._heuristica_kpart_kl_mc_rapida(self.k)
+        return Solution(
+            estrategia=f"{GEOMETRIC_LABEL}_k{self.k}_{label}",
+            perdida=self._perdida_final_partes(partes),
+            distribucion_subsistema=self.sia_dists_marginales,
+            distribucion_particion=None,
+            tiempo_total=time.time() - self.sia_tiempo_inicio,
+            particion=self._fmt_kparticion(partes),
+            n_nodos=len(self.sia_gestor.estado_inicial),
+            k=self.k,
+        )
+
+    def _heuristica_kpart_kl_mc_rapida(self, k: int) -> list:
+        """k-particion rapida sin find_mip: split aleatorio en k grupos + KL+MC."""
+        rng = self._get_mc_rng()
+        nodos_pres = list(self.sia_subsistema.dims_ncubos)
+        nodos_fut = list(self.sia_subsistema.indices_ncubos)
+        all_nodes = [('p', v) for v in nodos_pres] + [('f', v) for v in nodos_fut]
+        if not all_nodes or len(all_nodes) < k:
+            return []
+
+        order = np.array(all_nodes, dtype=object)
+        rng.shuffle(order)
+        base, extra = divmod(len(order), k)
+        sizes = [base + (1 if i < extra else 0) for i in range(k)]
+
+        partes = []
+        idx = 0
+        for sz in sizes:
+            chunk = order[idx: idx + sz]
+            partes.append(
+                ([v for t, v in chunk if t == 'p'], [v for t, v in chunk if t == 'f'])
+            )
+            idx += sz
+
+        return self._refinar_kl(partes, self._kl_max_iter())
+
+    def _heuristica_k2_kl_mc_rapida(self) -> list:
+        return self._heuristica_kpart_kl_mc_rapida(2)
+
     # ── Heurística 3: Kernighan-Lin ──────────────────────────────────────────
     def _heuristica_kernighan_lin(self, mip, max_iter: int = 20):
         """
@@ -327,57 +462,7 @@ class KPartitionSIA(SIA):
         # Fase 1: partir de la bipartición MIP y extender a k con Greedy
         partes = self._heuristica_greedy(mip)
         max_iter = self._kl_max_iter() if max_iter == 20 else max_iter
-
-        # Fase 2: refinamiento por movimientos de nodo entre pares de partes
-        for _ in range(max_iter):
-            improved = False
-            perdida_actual = self._loss_interna(partes)
-
-            for i in range(len(partes)):
-                pi_pres, pi_fut = partes[i]
-                nodos_i = [('p', v) for v in pi_pres] + [('f', v) for v in pi_fut]
-
-                for j in range(len(partes)):
-                    if i == j:
-                        continue
-                    pj_pres, pj_fut = partes[j]
-
-                    for tipo, nodo in nodos_i:
-                        # Construir partes candidatas al mover 'nodo' de i a j
-                        if tipo == 'p':
-                            new_pi = ([x for x in pi_pres if x != nodo], pi_fut)
-                            new_pj = (pj_pres + [nodo], pj_fut)
-                        else:
-                            new_pi = (pi_pres, [x for x in pi_fut if x != nodo])
-                            new_pj = (pj_pres, pj_fut + [nodo])
-
-                        # No dejar partes vacías
-                        if not new_pi[0] and not new_pi[1]:
-                            continue
-
-                        partes_test = (partes[:i] + [new_pi] +
-                                       partes[i+1:j] + [new_pj] +
-                                       partes[j+1:])
-                        nueva_perdida = self._loss_interna(partes_test)
-
-                        if nueva_perdida < perdida_actual - 1e-10:
-                            perdida_actual = nueva_perdida
-                            partes = partes_test
-                            # Actualizar refs locales para la iteración actual
-                            pi_pres, pi_fut = new_pi
-                            nodos_i = ([('p', v) for v in pi_pres] +
-                                       [('f', v) for v in pi_fut])
-                            improved = True
-                            break
-                    if improved:
-                        break
-                if improved:
-                    break
-
-            if not improved:
-                break
-
-        return partes
+        return self._refinar_kl(partes, max_iter)
 
     # ── Heurística 4: Espectral con pesos EMD ────────────────────────────────
     def _heuristica_espectral_emd(self):

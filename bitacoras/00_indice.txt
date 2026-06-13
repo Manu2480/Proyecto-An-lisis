@@ -40,3 +40,6 @@ Lista
 29 - Algoritmos de aproximacion para n=25 k-particiones (12/06/2026)
 30 - Benchmark aproximado KL_MC implementado y corridas (12/06/2026)
 31 - Restauracion de resultados borrados en limpieza (13/06/2026)
+32 - Benchmark rapido MCTS y tablas comparativas (12/06/2026)
+33 - Reparacion matriz rapido n=22 (13/06/2026)
+34 - Algoritmo aproximado KL+MC-EMD n=25 y cuello de botella (13/06/2026)

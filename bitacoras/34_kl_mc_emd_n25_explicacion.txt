@@ -1,0 +1,88 @@
+Bitacora 34 - Algoritmo aproximado para n=25 y como superamos el cuello de botella
+Fecha: 13/06/2026
+
+Resumen
+Documento la heuristica que finalmente dejo correr n=25 en el benchmark rapido, y por que
+fallaban las corridas anteriores. Sirve como explicacion para el informe (version tecnica
+y version en lenguaje simple).
+
+
+1. Que algoritmo aproximado usamos
+-----------------------------------
+
+Para n=25 (red grande):
+  Kernighan-Lin (KL) + MC-EMD
+
+Pasos concretos en el codigo (kpartition.py, funcion _heuristica_kpart_kl_mc_rapida):
+  1. Particion inicial aleatoria del mecanismo en k grupos.
+  2. Refinamiento Kernighan-Lin: mover nodos entre grupos mientras baje la perdida.
+  3. En cada evaluacion usar MC-EMD (muestreo Monte Carlo) en vez de EMD exacto.
+
+Para n<=22 (benchmark rapido):
+  MCTS + MC-EMD
+  Busqueda en arbol de decisiones con la misma estimacion Monte Carlo de la perdida.
+
+Nota: en las columnas del Excel siguen llamandose MCTS_k* por historial del benchmark
+rapido, pero en n>=25 por dentro corre KL+MC-EMD (forzar_heuristica="kl_mc").
+
+
+2. Version tecnica (cuello de botella y solucion)
+------------------------------------------------
+
+Problema:
+  En n>=25, el metodo exacto (find_mip en GeometricSIA) y MCTS tardaban demasiado o
+  agotaban el timeout. La evaluacion exacta de EMD escala como O(2^n_mec): con mecanismos
+  de 20-25 nodos cada prueba es enorme.
+
+Cuello de botella concreto en nuestras corridas:
+  - k=2 con MCTS: timeout >900 s en caso 1 de n=25.
+  - k=3 con kl_mc: seguia llamando find_mip antes del refinamiento KL y moria ahi.
+  - Batch largo n=15..25: casos tardios de n=22/n=25 con ok=False por memoria acumulada
+    (fallo rapido ~130 ms, no timeout).
+
+Solucion implementada:
+  - k=2: KL+MC-EMD sin find_mip (split aleatorio + refinamiento KL).
+  - k=3,4,5: misma via rapida cuando n_mec>17 (ya no pasa por find_mip).
+  - MC-EMD estima la perdida muestreando estados en vez de marginalizar 2^n_mec exacto.
+  - benchmark_rapido.py: n>=25 usa kl_mc para todos los k; merge parcial y gc entre casos.
+
+Prueba que valido el fix:
+  Smoke test caso 1 n=25: k2,k3,k4,k5 todos convergieron.
+  Archivo: rapido/n25/n25_rapido_2026-06-13_08h30.xlsx
+
+
+3. Version en lenguaje simple (para quien no vea el curso)
+-----------------------------------------------------------
+
+Que problema habia:
+  En redes muy grandes (n=25), el programa exacto intenta revisar demasiadas
+  combinaciones. Se queda sin tiempo o sin memoria antes de terminar un caso.
+
+Que algoritmo aproximado usamos:
+  No buscamos la solucion perfecta. Usamos una buena solucion aproximada en dos ideas:
+
+  a) Kernighan-Lin: empezar dividiendo el mecanismo en k grupos (al azar) e ir
+     mejorando moviendo nodos de un grupo a otro cuando la perdida mejore.
+
+  b) MC-EMD (Monte Carlo): para medir si una division es buena, no evaluamos todos
+     los casos posibles; evaluamos una muestra representativa. Es mas rapido y da
+     una aproximacion suficiente para comparar.
+
+Como superamos el cuello de botella:
+  El codigo viejo para k>=3 todavia pasaba por el metodo exacto lento (find_mip) antes
+  de la heuristica. Solo ese paso podia tardar muchos minutos por caso.
+
+  La solucion fue saltarse find_mip en n=25 y usar solo la heuristica rapida:
+  particion aleatoria + mejoras Kernighan-Lin + muestreo Monte Carlo.
+
+  Resultado: cada caso termina en minutos en lugar de agotar el limite de tiempo.
+
+Para que sirve:
+  No es la solucion optima exacta, pero si datos comparables entre k=2,3,4,5 para
+  graficos del informe (exacto vs aproximado).
+
+
+4. Resumen en una linea
+------------------------
+
+n=25: KL + MC-EMD sin find_mip | n<=22 rapido: MCTS + MC-EMD

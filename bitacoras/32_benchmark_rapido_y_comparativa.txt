@@ -1,0 +1,33 @@
+Bitacora 32 - Benchmark rapido MCTS y tablas comparativas
+Fecha: 12/06/2026
+
+Resumen
+Cree benchmark_rapido.py (MCTS+MC-EMD para k=2..5 sin find_mip) y gen_comparativa.py
+para cruzar resultados exactos vs rapidos y preparar graficos del informe.
+
+Motivacion
+Ya tenemos datos exactos en data/results/n{n}/. Para comparar estrategias en graficos
+necesitamos una corrida heuristica rapida en todas las matrices n10-n25.
+
+benchmark_rapido.py
+  - Solo MCTS+MC-EMD, k=2,3,4,5 (4 estrategias por caso, sin Geometric exacto)
+  - Parametros agresivos por tamano de red (30-80 iter, 350-500 muestras MC)
+  - Perdida reportada aproximada (perdida_mc_final=True)
+  - Salida: data/results/rapido/n{n}/
+
+gen_comparativa.py
+  - Lee exacto (n{n}/), rapido (rapido/n{n}/), aprox (aprox/n{n}/)
+  - Genera comparativa/n{n}_comparativa.xlsx
+  - comparativa_long.csv formato largo para matplotlib
+  - comparativa_resumen.xlsx con medias por n, k, modo
+
+Prueba n=10
+  49 casos en unos 4.5 min, todos convergieron.
+  Archivo: rapido/n10/n10_rapido_2026-06-12_23h00.xlsx
+
+Corrida n=15,20,22,25 (12-13/06)
+  Completada; ver bitacora 33 para reparacion de n=22.
+
+Comandos
+  uv run python ../benchmark_rapido.py --n 10 15 20 22 25
+  uv run python ../gen_comparativa.py --n 10 15 20 22 25

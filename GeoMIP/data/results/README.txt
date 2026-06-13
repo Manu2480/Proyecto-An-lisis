@@ -7,9 +7,9 @@ Estructura de carpetas:
     Resultados por tamano de red (Excel completo y checkpoints).
     benchmark.py y benchmark_aprox.py guardan aqui.
 
-  aprox/
-    Corridas del benchmark aproximado (KL + MC-EMD).
-    Subcarpetas n10/, n15/, etc.
+  aprox/                          benchmark KL_MC (Geo + KL aprox)
+  rapido/                         benchmark MCTS+MC-EMD record (k=2..5)
+  comparativa/                    tablas exacto vs rapido para graficos
 
   historico/
     Corridas antiguas (intentos previos, formatos viejos).
