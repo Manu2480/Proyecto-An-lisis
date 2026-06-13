@@ -4,8 +4,8 @@ Indice de bitacoras
 Aqui registro lo que voy haciendo en el proyecto K-QGMIP, en orden cronologico.
 
 Nota sobre rutas: en las bitacoras viejas aparece GeoMIP/results. Desde la bitacora 27
-todo quedo en GeoMIP/data/results. Si busco un archivo y no esta en la ruta antigua,
-reviso data/results o el nombre del fichero.
+todo quedo en GeoMIP/data/results. Los archivos de mayo 2026 se restauraron en la
+bitacora 31 desde git.
 
 Lista
 
@@ -37,3 +37,6 @@ Lista
 26 - Benchmark n=20 completo y limpieza (18/05/2026)
 27 - Limpieza estructural vs repo base (12/06/2026)
 28 - QNodes k=2 en red n=25 (12/06/2026)
+29 - Algoritmos de aproximacion para n=25 k-particiones (12/06/2026)
+30 - Benchmark aproximado KL_MC implementado y corridas (12/06/2026)
+31 - Restauracion de resultados borrados en limpieza (13/06/2026)

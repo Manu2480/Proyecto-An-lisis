@@ -1,0 +1,42 @@
+Bitacora 31 - Restauracion de resultados borrados
+Fecha: 13/06/2026
+
+Resumen
+El usuario reporto que faltaban carpetas de resultados anteriores (n10, n15, n20,
+historico, etc.). Las recupere desde git y las deje en GeoMIP/data/results/.
+
+Que paso
+En la bitacora 27 (limpieza estructural) se borro la carpeta GeoMIP/results/ del
+disco pensando que estaba vacia o era redundante. Ahi vivian:
+  n10/, n15/, n20/, n22/, historico/, finales/, logs/, _archive/
+  y los benchmark_completo_*.xlsx
+
+Los archivos seguian en el historial de git (commit d668300, antes del commit
+12f9bb1 que los elimino del repo).
+
+Que hice
+1. git checkout d668300 -- GeoMIP/results
+2. Copie todo a GeoMIP/data/results/ (ruta canónica actual)
+3. No pise aprox/ ni los logs nuevos de la corrida aproximada
+4. Borre la carpeta temporal GeoMIP/results/ restaurada
+5. Cree GeoMIP/data/results/README.txt con la estructura
+
+Estructura actual en data/results/
+  n10/, n15/, n20/, n22/, n25/     por tamano de matriz
+  aprox/                          benchmark KL_MC (nuevo)
+  historico/                      pruebas viejas
+  finales/                        referencia mayo 2026
+  logs/                           logs por tipo de corrida
+  _archive/                       archivos muy antiguos
+  benchmark_completo_*.xlsx       consolidados en raiz
+
+Archivos clave recuperados
+  n10/n10_completo_2026-05-17_16h56.xlsx
+  n15/n15_completo_2026-05-17_16h56.xlsx
+  n20/n20_completo_2026-05-18_04h38.xlsx
+  n22/n22_completo_2026-05-20_02h29.xlsx
+  benchmark_completo_2026-05-20_02h29.xlsx
+
+Leccion
+No borrar results/ sin verificar contenido. Las corridas nuevas van siempre a
+data/results/n{n}/; las aproximadas a data/results/aprox/n{n}/.

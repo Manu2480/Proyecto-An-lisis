@@ -1,0 +1,49 @@
+Bitacora 30 - Benchmark aproximado KL_MC implementado y corridas
+Fecha: 12/06/2026
+
+Resumen
+Implemente KL+MC-EMD (kl_mc), un script benchmark_aprox.py optimizado, y lance las
+corridas para n=10 a n=25. n=10 y n=15 terminaron en unos 20 min. n=20, 22 y 25
+quedaron corriendo en segundo plano.
+
+Que implemente
+1. kpartition.py
+   - forzar_heuristica="kl_mc": Kernighan-Lin con evaluacion interna MC-EMD
+   - n_samples_mc: -1 auto, 0 exacto, >0 fijo
+   - _loss_interna() usa MC-EMD en swaps; la perdida final reportada es exacta
+   - max_iter adaptativo (8 si n_mec>=18, 12 si >=14, 20 si no)
+
+2. tpm_io.py
+   - load_tpm_csv streaming float32 para n>=21
+   - load_tpm elige metodo segun tamano de red
+
+3. benchmark_aprox.py
+   - Solo Geo k=2 + KLmc para k=3,4,5 (sin QNodes ni greedy duplicado)
+   - 4 estrategias por caso en vez de 7 del benchmark exacto
+   - Salida en GeoMIP/data/results/aprox/
+
+Parametros MC por red
+  n<=15: auto (exacto si n_mec<=12, 800 si <=16)
+  n=20:  1500 muestras
+  n>=22: 2500 muestras
+
+Corridas completadas
+  n=10: 49 casos, todos convergieron
+  n=15: 50 casos, todos convergieron
+  Archivos:
+    data/results/aprox/n10/n10_aprox_2026-06-12_22h35.xlsx
+    data/results/aprox/n15/n15_aprox_2026-06-12_22h35.xlsx
+    data/results/aprox/benchmark_aprox_2026-06-12_22h35.xlsx
+
+En curso
+  uv run python ../benchmark_aprox.py --n 20 22 25 --timeout 14400
+  Logs en data/results/logs/n20_plus/ si aplica
+
+Comando
+  cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+  uv run python ../benchmark_aprox.py --n 10 15 20 22 25 --timeout 14400
+
+Nota
+El cuello de botella en n grande sigue siendo GeometricSIA k=2 (find_mip).
+KL_MC acelera solo la fase k=3,4,5. La ganancia principal viene de correr
+menos estrategias por caso (4 vs 7).

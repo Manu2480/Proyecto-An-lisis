@@ -24,15 +24,23 @@ from src.constants.base import ACTUAL, EFECTO
 import functools
 
 class KPartitionSIA(SIA):
-    def __init__(self, gestor: Manager, k: int, forzar_heuristica: str = None):
+    def __init__(
+        self,
+        gestor: Manager,
+        k: int,
+        forzar_heuristica: str = None,
+        n_samples_mc: int = -1,
+    ):
         """
         Args:
-            forzar_heuristica: None=mejor de ambas, 'greedy'=QNodes-style,
-                               'clustering'=Geometric-style
+            forzar_heuristica: None, 'greedy', 'kl', 'kl_mc', 'mcts', ...
+            n_samples_mc: muestras MC-EMD (-1=auto, 0=exacto, >0=fijo)
         """
         super().__init__(gestor)
         self.k = k
         self.forzar_heuristica = forzar_heuristica
+        self.n_samples_mc = n_samples_mc
+        self._rng_mc = None
         self.geometric_base = GeometricSIA(gestor)
         self._flat_data = []
         self.tabla_transiciones = {}
@@ -118,9 +126,10 @@ class KPartitionSIA(SIA):
             p = self._heuristica_greedy(mip)
             candidatos["Greedy"] = (p, self._evaluar_particion(p))
 
-        if self.forzar_heuristica in (None, "kl"):
+        if self.forzar_heuristica in (None, "kl", "kl_mc"):
             p = self._heuristica_kernighan_lin(mip)
-            candidatos["KL"] = (p, self._evaluar_particion(p))
+            label = "KL_MC" if self.forzar_heuristica == "kl_mc" else "KL"
+            candidatos[label] = (p, self._evaluar_particion(p))
 
         if self.forzar_heuristica in (None, "clustering"):
             p = self._heuristica_clustering()
@@ -131,7 +140,7 @@ class KPartitionSIA(SIA):
             candidatos["Spectral"] = (p, self._evaluar_particion(p))
 
         # Si se forzó una heurística específica, solo hay un candidato
-        if self.forzar_heuristica in ("greedy", "kl", "clustering", "spectral"):
+        if self.forzar_heuristica in ("greedy", "kl", "kl_mc", "clustering", "spectral"):
             estrategia_usada = list(candidatos.keys())[0]
             mejor_particion, mejor_perdida = list(candidatos.values())[0]
         else:
@@ -215,6 +224,39 @@ class KPartitionSIA(SIA):
             
         return [p for p in partes_dict.values() if p[0] or p[1]]
 
+    def _get_mc_rng(self):
+        if self._rng_mc is None:
+            self._rng_mc = np.random.default_rng(42)
+        return self._rng_mc
+
+    def _mc_samples_efectivos(self) -> int:
+        if self.n_samples_mc == 0:
+            return 0
+        if self.n_samples_mc > 0:
+            return self.n_samples_mc
+        if self.forzar_heuristica not in ("kl_mc", "kl", "greedy", None):
+            return 0
+        n_mec = len(self.sia_subsistema.dims_ncubos)
+        if n_mec <= 12:
+            return 0
+        if n_mec <= 16:
+            return 800
+        return 2000
+
+    def _kl_max_iter(self) -> int:
+        n_mec = len(self.sia_subsistema.dims_ncubos)
+        if n_mec >= 18:
+            return 8
+        if n_mec >= 14:
+            return 12
+        return 20
+
+    def _loss_interna(self, partes) -> float:
+        s = self._mc_samples_efectivos()
+        if s <= 0:
+            return self._evaluar_particion(partes)
+        return self._mc_emd(partes, s, self._get_mc_rng())
+
     def _heuristica_greedy(self, mip):
         parte1 = list(mip)
         parte2 = self.geometric_base.nodes_complement(list(mip))
@@ -240,7 +282,7 @@ class KPartitionSIA(SIA):
                     if not p1[0] and not p1[1]: continue
                     
                     partes_test = partes[:i] + [p1, p2] + partes[i+1:]
-                    loss = self._evaluar_particion(partes_test)
+                    loss = self._loss_interna(partes_test)
                     if loss < mejor_perdida:
                         mejor_perdida = loss
                         mejor_split = (p1, p2)
@@ -253,7 +295,7 @@ class KPartitionSIA(SIA):
                     if not p1[0] and not p1[1]: continue
                     
                     partes_test = partes[:i] + [p1, p2] + partes[i+1:]
-                    loss = self._evaluar_particion(partes_test)
+                    loss = self._loss_interna(partes_test)
                     if loss < mejor_perdida:
                         mejor_perdida = loss
                         mejor_split = (p1, p2)
@@ -284,11 +326,12 @@ class KPartitionSIA(SIA):
         """
         # Fase 1: partir de la bipartición MIP y extender a k con Greedy
         partes = self._heuristica_greedy(mip)
+        max_iter = self._kl_max_iter() if max_iter == 20 else max_iter
 
         # Fase 2: refinamiento por movimientos de nodo entre pares de partes
         for _ in range(max_iter):
             improved = False
-            perdida_actual = self._evaluar_particion(partes)
+            perdida_actual = self._loss_interna(partes)
 
             for i in range(len(partes)):
                 pi_pres, pi_fut = partes[i]
@@ -315,7 +358,7 @@ class KPartitionSIA(SIA):
                         partes_test = (partes[:i] + [new_pi] +
                                        partes[i+1:j] + [new_pj] +
                                        partes[j+1:])
-                        nueva_perdida = self._evaluar_particion(partes_test)
+                        nueva_perdida = self._loss_interna(partes_test)
 
                         if nueva_perdida < perdida_actual - 1e-10:
                             perdida_actual = nueva_perdida

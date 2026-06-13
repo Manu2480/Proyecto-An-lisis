@@ -43,6 +43,15 @@ uv sync
 
 ## Ejecución
 
+### Benchmark aproximado (KL + MC-EMD, mas rapido)
+
+```powershell
+cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+uv run python ../benchmark_aprox.py --n 10 15 20 22 25 --timeout 14400
+```
+
+Salida: `GeoMIP/data/results/aprox/` (Geo k=2 + KLmc k=3,4,5; sin QNodes ni greedy duplicado).
+
 ### Benchmark completo (DatosPruebas2026)
 
 ```powershell

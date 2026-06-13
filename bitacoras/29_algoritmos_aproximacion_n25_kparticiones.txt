@@ -1,0 +1,151 @@
+Bitacora 29 - Algoritmos de aproximacion para n=25 y k-particiones
+Fecha: 12/06/2026
+
+Resumen
+Analice que aproximacion conviene para correr n=25 con k=3,4,5. El cuello de botella
+no es la busqueda de k-particiones sino find_mip (k=2) y la evaluacion exacta de EMD.
+Mi recomendacion: mantener Greedy+KL con find_mip cacheado, e implementar KL aproximado
+con MC-EMD (ya casi existe en el codigo). MCTS+MC-EMD queda como respaldo si find_mip
+no termina a tiempo.
+
+
+1. Que problema tenemos en n=25
+--------------------------------
+
+Datos de referencia (n=20 completo, bitacora 26):
+- 50 casos, timeout 6 h por estrategia, unas 6 h en total.
+- Tiempo medio por caso: 7 min. La mayor parte se va en GeometricSIA k=2 (find_mip).
+- Greedy y KL para k=3,4,5 quedaron por debajo de 1 min por estrategia una vez
+  resuelto k=2, porque reutilizan la tabla de find_mip.
+
+En n=25 la TPM tiene 2^25 filas (unos 3.4 GB en float32). Eso es 32 veces mas grande
+que n=20. El caso 1 de DatosPruebas usa el sistema completo (25 nodos) y es el peor.
+
+Hay dos costos distintos:
+  A) find_mip en GeometricSIA: BFS sobre el mecanismo, cada paso marginaliza el hipercubo.
+  B) Evaluar una k-particion candidata: _evaluar_particion llama _k_partir y emd_efecto,
+     costo O(2^n_mec) por evaluacion exacta.
+
+Las heuristicas de k-particion (greedy, KL) hacen muchas evaluaciones en la fase de
+refinamiento. En subsistemas grandes eso tambien pesa, aunque menos que find_mip.
+
+
+2. Que ya tenemos implementado
+-------------------------------
+
+Heuristica          Calidad (n=10/15)   Velocidad    Estado
+Greedy              media               rapida       activa en benchmark
+Kernighan-Lin (KL)  mejor que greedy    media        activa en benchmark
+Clustering Ward     mala (9-10x peor)   rapida       descartada (bitacora 16)
+Spectral            mala (baseline)     rapida       descartada (bitacora 16)
+MCTS + MC-EMD       media-buena         rapida       implementada, no usada en benchmark
+MC-EMD solo         estimador EMD       muy rapida   dentro de MCTS
+
+El benchmark para n>=20 corre: Geo k=2, luego Greedy y KL para k=3,4,5.
+MCTS solo se activa con forzar_heuristica="mcts" o si forzar_heuristica es None
+y n_mec>15. El benchmark fuerza greedy/kl explicitamente, asi que MCTS no entra hoy.
+
+MCTS ya auto-activa MC-EMD cuando n_mec>17 (3000 muestras, menos iteraciones).
+Eso da un speedup teorico de cientos de veces en la evaluacion frente al exacto.
+
+
+3. Comparacion de opciones para n=25
+-------------------------------------
+
+Opcion A: Pipeline actual (Geo k=2 + Greedy/KL exactos)
+  Pros: probado en n=20, mejor calidad empirica (KL gana a greedy en n=10/15).
+  Contras: find_mip puede tardar horas en casos con mecanismo grande; evaluacion
+           exacta en KL se vuelve cara si n_mec del subsistema supera 17-18 nodos.
+  Esfuerzo: ninguno, solo subir timeout y arreglar carga de TPM en benchmark.
+
+Opcion B: KL aproximado con MC-EMD (RECOMENDADA para implementar)
+  Pros: reutiliza KL (mejor heuristica) y MC-EMD (ya escrito en kpartition.py);
+        baja el costo de cada swap en KL sin cambiar la estructura del algoritmo;
+        evaluacion final puede seguir siendo exacta para reportar perdida al Excel.
+  Contras: ruido en los swaps; hay que calibrar S (muestras, ej. 2000-5000).
+  Esfuerzo: bajo. Un flag usar_mc_emd en _evaluar_particion y en KL cuando n_mec>=18.
+
+Opcion C: MCTS + MC-EMD como modo principal para k>=3
+  Pros: ya implementado; no necesita find_mip para buscar la k-particion;
+        explora mejor que greedy en espacios grandes.
+  Contras: peor calidad que KL en casos pequenos; el benchmark igual necesita Geo k=2
+           para la columna k=2; sin find_mip greedy/KL no tienen la biparticion MIP
+           de partida.
+  Esfuerzo: ninguno para activar; solo cambiar benchmark o usar forzar_heuristica=None.
+
+Opcion D: find_mip aproximado (beam search o MC-EMD dentro del BFS geometrico)
+  Pros: ataca el cuello de botella real; beneficiaria k=2 y todo lo que depende de mip.
+  Contras: mucho esfuerzo de implementacion; riesgo de romper exactitud en k=2;
+           hay que validar contra n=10/15.
+  Esfuerzo: alto. Lo dejaria para una segunda fase si KL+MC-EMD no alcanza.
+
+Opcion E: Simulated Annealing o algoritmo genetico nuevo
+  Pros: exploracion global teorica.
+  Contras: muchas evaluaciones de EMD; sin MC-EMD seria inviable; MCTS ya cubre
+           un rol similar con menos codigo nuevo.
+  Esfuerzo: medio-alto sin ventaja clara sobre MCTS+MC-EMD ya existente.
+
+
+4. Mi recomendacion
+-------------------
+
+Para correr n=25 en el proyecto, en este orden:
+
+Paso 1 - Infraestructura (antes de elegir algoritmo)
+  - benchmark.py hoy usa genfromtxt en float64: en n=25 da MemoryError.
+    Hay que reutilizar load_tpm_csv de run_qnodes_k2.py (float32, linea a linea).
+  - Timeout: al menos 86400 s (24 h) por estrategia en casos pesados.
+  - Empezar con --desde 2 para saltar el caso 1 completo si hace falta validar el pipeline.
+
+Paso 2 - Algoritmo principal (sin codigo nuevo)
+  - Mantener Geo k=2 exacto + Greedy/KL con find_mip cacheado.
+  - Es el mismo esquema que funciono en n=20. Las columnas k=3,4,5 deberian ser viables
+    si k=2 termina.
+
+Paso 3 - Lo que implementaria yo (mejor relacion esfuerzo/beneficio)
+  - KL aproximado con MC-EMD para evaluaciones internas cuando n_mec >= 18.
+  - Al final de KL, una sola _evaluar_particion exacta para la perdida reportada.
+  - Parametros iniciales: S=3000 muestras, max_iter=10 en KL (bajar de 20).
+
+Paso 4 - Respaldo
+  - Si find_mip hace timeout en Geo k=2: registrar TIMEOUT en k=2 y lanzar
+    KPartitionSIA con forzar_heuristica="mcts" para k=3,4,5.
+  - MCTS+MC-EMD ya esta en kpartition.py y no depende de la tabla de find_mip.
+
+
+5. Plan de corrida sugerido para n=25
+--------------------------------------
+
+Fase piloto (1-3 casos, subsistemas medianos):
+  uv run python ../benchmark.py --n 25 --timeout 21600
+  Casos 2-4 tienen mecanismos mas chicos que el caso 1.
+
+Fase completa:
+  --timeout 86400, checkpoints cada 5 casos (ya existen).
+  Estimacion conservadora: si n=20 tardo 6 h para 50 casos, n=25 podria tardar
+  varios dias en la maquina actual. Los casos con pocos nodos en el subsistema
+  convergeran rapido; unos pocos casos dominan el tiempo total.
+
+Metricas a mirar en el Excel:
+  Geo_k2_tiempo_ms (cuello de botella)
+  QN_k3/KL_k3 perdida y tiempo vs n=20
+  Cuántos casos hacen TIMEOUT
+
+
+6. Conclusion
+-------------
+
+No hace falta un algoritmo nuevo desde cero. Lo mejor para este proyecto es:
+
+  1. KL con evaluacion aproximada via MC-EMD (implementacion corta, alto impacto).
+  2. Pipeline actual Geo+Greedy+KL con find_mip cacheado para la corrida oficial.
+  3. MCTS+MC-EMD como plan B cuando find_mip no alcance.
+
+Descarto clustering, spectral y algoritmos geneticos nuevos. find_mip aproximado
+seria el siguiente paso solo si despues de KL+MC-EMD los casos grandes siguen
+sin terminar en tiempo razonable.
+
+Pendiente
+  - Implementar load_tpm_csv en benchmark.py para n>=23.
+  - Implementar flag MC-EMD en KL.
+  - Bitacora de corrida cuando lancemos n=25 k-particiones.
