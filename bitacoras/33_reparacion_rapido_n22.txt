@@ -37,6 +37,7 @@ Cambios en codigo (misma sesion)
 
 Pendiente
   Corrida completa n=25 con KL+MC (50 casos); ver bitacora 34.
+  COMPLETADO 13/06: n25_rapido_2026-06-13_09h37.xlsx, 50/50 ok k=2..5.
 
 Comandos utiles
   uv run python ../benchmark_rapido.py --n 22 --desde 26
