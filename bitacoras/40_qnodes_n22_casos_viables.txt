@@ -1,0 +1,116 @@
+Bitacora 40 - QNodes k=2 n=22: casos viables completados
+Fecha: 14/06/2026
+
+Resumen
+Se completo la corrida parcial de QNodes k=2 para n=22 con los casos viables
+dentro del plazo de entrega (48 h). Resultado: 42/50 casos, todos convergieron
+con perdida 0 e identicos a Geo_k2 del benchmark exacto de mayo. Ocho casos
+pesados quedan omitidos de forma deliberada.
+
+
+1. Contexto y decision
+----------------------
+  - Casos #1-#15 ya estaban en checkpoint (14/06 manana).
+  - Caso #16 llevo 12+ h con CPU al 100% y se detuvo manualmente.
+  - Casos #17-#18, #22-#25 y #50 clasificados como inviables en 48 h
+    (horas por caso, mismos patrones de cuello de botella que #16).
+  - Se ejecutaron solo casos viables: #19-#21, #26-#49 (27 nuevos).
+
+
+2. Corridas realizadas (14/06, Ubuntu/WSL)
+------------------------------------------
+
+Corrida principal (scripts/run_qnodes_n22_viables.sh):
+  Inicio:  2026-06-14T12:47:14-05:00
+  Fin:     2026-06-14T14:17:33-05:00
+  Duracion: ~1 h 30 min
+  Comando:
+    uv run python -u ../run_qnodes_k2.py --n 22 --merge \
+      --casos 19 20 21 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49
+  Checkpoints intermedios:
+    qnodes_k2_checkpoint_2026-06-14_12h48.xlsx  (tras #20)
+    qnodes_k2_checkpoint_2026-06-14_13h17.xlsx  (tras #30)
+    qnodes_k2_checkpoint_2026-06-14_13h38.xlsx  (tras #35)
+    qnodes_k2_checkpoint_2026-06-14_13h50.xlsx  (tras #40)
+    qnodes_k2_checkpoint_2026-06-14_14h13.xlsx  (tras #45)
+  Casos mas lentos en esta tanda: #29 y #30 (~20-28 min c/u); el resto segundos
+  a pocos minutos.
+
+Re-corrida casos #46-#49 (scripts/run_qnodes_n22_46_49.sh):
+  Inicio:  2026-06-14T14:19:03-05:00
+  Fin:     2026-06-14T14:23:08-05:00
+  Duracion: ~4 min
+  Motivo: bug en merge final (ver seccion 3).
+
+
+3. Bug corregido: merge_with_previous
+-------------------------------------
+Archivo: GeoMIP/src/run_qnodes_k2.py
+
+  Problema:
+    Al finalizar con --merge, merge_with_previous usaba DataFrame.update() sobre
+    el indice #Prueba. update() solo sobrescribe filas existentes; no agrega
+    #Prueba nuevos. Los casos #46-#49 se ejecutaron OK en consola pero el Excel
+    final (14h17) quedo con 38 filas en lugar de 42.
+
+  Correccion:
+    Reemplazado por concat + drop_duplicates(keep="last") + sort por #Prueba.
+
+  Flag --casos (misma sesion):
+    Permite ejecutar solo ciertos #Prueba. Con --merge, siempre carga el ultimo
+    checkpoint/qnodes al inicio.
+
+
+4. Resultado final (valido para informe)
+----------------------------------------
+
+Archivo canonico QNodes n=22:
+  GeoMIP/data/results/n22/qnodes_k2_n22_2026-06-14_14h23.xlsx
+  42 filas, 42/42 convergieron, perdida QN_k2 = 0 en todos.
+
+Casos incluidos:
+  #1-#15   (checkpoint previo, 10h26)
+  #19-#21  (mecanismo ligero, BCDEF + ABDEG/ACEGI/BDFHJ)
+  #26-#28  (idem)
+  #29-#49  (purview/medio, ABDEGHJKMNPQSTV / ACEGIKMOQSU / BDFHJLNPRTV)
+
+Casos omitidos (8):
+  #16, #17, #18, #22, #23, #24, #25, #50
+
+Validacion vs Geo_k2 (benchmark exacto mayo):
+  42/42 iguales en particion y perdida; QN>Geo = 0, QN<Geo = 0.
+
+Parche en completo:
+  n22_completo_2026-05-20_02h29_qn_k2.xlsx       (42 columnas QN actualizadas, 14h17)
+  n22_completo_2026-05-20_02h29_qn_k2_qn_k2.xlsx (re-parche al re-correr #46-49; usar el
+                                                   ultimo o consolidar manualmente si hace falta)
+
+Archivos intermedios (no canonicos, conservar como respaldo):
+  qnodes_k2_n22_2026-06-14_14h17.xlsx  (38 filas, merge roto)
+  checkpoints 12h48 .. 14h13
+
+
+5. Redaccion sugerida para informe
+----------------------------------
+  "QNodes k=2 en n=22: 42 de 50 casos de DatosPruebas2026. Los 8 restantes
+   corresponden a instancias con tiempo de convergencia de horas por caso
+   (frontera computacional documentada en bitacoras 21 y 39). En los 42 casos
+   ejecutados, QNodes coincide exactamente con la referencia Geo_k2."
+
+
+6. Scripts nuevos / actualizados
+--------------------------------
+  scripts/run_qnodes_n22_viables.sh   corrida de 27 casos viables + merge
+  scripts/run_qnodes_n22_46_49.sh       re-corrida tras fix de merge
+  GeoMIP/src/run_qnodes_k2.py         --casos, merge concat corregido
+
+Nota: run_qnodes_n22_viables.sh muestra "(1 nums)" en el echo por usar string
+en lugar de array bash; el comando python recibe los 27 numeros correctamente.
+
+
+7. Pendiente (post QNodes n=22)
+-------------------------------
+  - No lanzar QNodes n=25 ni casos pesados n=22 restantes (fuera de plazo).
+  - Graficos del informe desde comparativa/ y rapido/.
+  - Opcional: archivar checkpoints n22 intermedios tras validar informe.
+  - Opcional: corregir patch_completo para no duplicar sufijo _qn_k2 al re-ejecutar.
