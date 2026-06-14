@@ -1,0 +1,121 @@
+Bitacora 38 - Auditoria particiones rapido y bug _refinar_kl
+Fecha: 14/06/2026
+
+Resumen
+Un companero reporto "mas particiones de las que deberia" en n25_rapido. Audite
+toda la carpeta rapido/, identifique dos tipos de anomalia, corregi el bug en
+kpartition.py y limpie results/.
+
+
+1. Metodo de auditoria
+--------------------
+Script: scripts/audit_rapido_particiones.py
+Cuenta bloques |...| en la linea superior del formato QNodes (un bloque = un grupo).
+
+Clasificacion:
+  - ok: exactamente k grupos
+  - mas de k: BUG _refinar_kl (partes duplicadas en la lista)
+  - menos de k: partes vacias omitidas en salida MCTS (ver seccion 3)
+
+
+2. Resultados por archivo canonico (finales rapido)
+---------------------------------------------------
+
+n10_rapido_2026-06-12_23h00.xlsx (49 filas, MCTS+MC-EMD)
+  k=2: 30/49 ok | 0 mas | 19 menos (38.8%)
+  k=3: 42/49 ok | 0 mas | 7 menos
+  k=4: 37/49 ok | 0 mas | 12 menos
+  k=5: 23/49 ok | 0 mas | 26 menos
+  Sin grupos de mas. Anomalia: MCTS omite partes vacias al formatear.
+
+n15_rapido_2026-06-13_00h58.xlsx (50 filas, MCTS+MC-EMD)
+  k=2: 45/50 ok | 0 mas | 5 menos
+  k=3: 46/50 ok | 0 mas | 4 menos
+  k=4: 36/50 ok | 0 mas | 14 menos
+  k=5: 32/50 ok | 0 mas | 18 menos
+  Sin grupos de mas.
+
+n20_rapido_2026-06-13_00h58.xlsx (50 filas)
+  k=2..5: 50/50 ok en todos. SIN ERRORES.
+
+n22_rapido_2026-06-13_08h02.xlsx (50 filas)
+  k=2..5: 50/50 ok en todos. SIN ERRORES.
+
+n25_rapido_2026-06-13_09h37.xlsx (50 filas, KL+MC-EMD) *** AFECTADO
+  k=2: 36/50 ok | 14 mas (28%) | casos: 6,7,12,13,14,19,20,21,26,27,34,47,48,49
+  k=3: 36/50 ok | 14 mas (28%)
+  k=4: 31/50 ok | 19 mas (38%)
+  k=5: 26/50 ok | 24 mas (48%)
+  El companero tenia razon para n=25: hay mas grupos visibles que k.
+
+
+3. Segunda anomalia (n10/n15, no es el reporte del companero)
+-------------------------------------------------------------
+MCTS en labels_to_partes() filtraba partes vacias:
+  return [(p,f) for p,f in partes if p or f]
+Si una parte quedaba sin nodos, el Excel mostraba menos de k bloques |...|.
+Las perdidas se calculaban sobre menos partes de las pedidas.
+
+Fix aplicado: devolver siempre k partes (incluidas vacias -> | Empty | en formato).
+Archivo: kpartition.py, funcion labels_to_partes dentro de _heuristica_mcts.
+
+
+4. Bug principal: _refinar_kl (n25 y cualquier ruta KL)
+-------------------------------------------------------
+Archivo: kpartition.py, metodo _refinar_kl, lineas ~488-490 (antes del fix).
+
+Codigo defectuoso al mover nodo de parte i a parte j con i > j:
+  partes_test = partes[:i] + [new_pi] + partes[i+1:j] + [new_pj] + partes[j+1:]
+Eso DUPLICA entradas de la lista partes (ej. 2 partes -> 4, 6, 8...).
+
+Afecta:
+  - _heuristica_kpart_kl_mc_rapida (benchmark rapido n>=25)
+  - _heuristica_kernighan_lin (benchmark exacto con KL)
+  - Cualquier refinamiento KL
+
+Fix aplicado:
+  partes_test = list(partes)
+  partes_test[i] = new_pi
+  partes_test[j] = new_pj
+
+Tests nuevos: tests/test_refinar_kl.py (5/5 passed en WSL)
+
+
+5. Impacto en datos existentes
+------------------------------
+VALIDOS para informe (particiones con k grupos correctos):
+  - rapido/n20, rapido/n22: 100% ok
+  - rapido/n10, rapido/n15: perdidas MCTS usables; texto particion puede
+    mostrar menos de k grupos (hasta 53% en k=5 n10) — cosmético pre-fix MCTS
+
+INVALIDOS / RECALCULAR antes del informe:
+  - rapido/n25/n25_rapido_2026-06-13_09h37.xlsx
+  - comparativa que incluya columnas MCTS de n25 desde ese archivo
+
+Accion pendiente:
+  uv run python ../benchmark_rapido.py --n 25
+  (y regenerar gen_comparativa.py --n 25)
+
+
+6. Limpieza carpeta results (14/06/2026)
+----------------------------------------
+Script: scripts/limpiar_results.py
+
+Conservado en sitio:
+  rapido/n{10,15,20,22,25}/n*_rapido_<fecha>.xlsx (ultimo valido por red)
+  rapido/benchmark_rapido_2026-06-13_09h37.xlsx
+  n10/n15/n20: qnodes_k2 final + n*_completo + parches qn_k2
+  n22: n22_completo_2026-05-20_02h29.xlsx
+  comparativa/comparativa_long.csv
+
+Archivado en:
+  rapido/_archive/2026-06-14/  (checkpoints, benchmark_rapido viejos, n25 parciales)
+  _archive/limpieza_2026-06-14/ (checkpoints qnodes, logs n25, duplicados n15)
+
+
+7. Scripts utiles dejados en scripts/
+-------------------------------------
+  audit_rapido_particiones.py  - auditoria grupos vs k
+  run_audit_rapido.sh
+  limpiar_results.py
+  test_refinar_kl + run_test_refinar_kl.sh

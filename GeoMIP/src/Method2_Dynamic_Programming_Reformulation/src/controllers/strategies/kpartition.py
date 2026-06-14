@@ -485,9 +485,9 @@ class KPartitionSIA(SIA):
                         if not new_pi[0] and not new_pi[1]:
                             continue
 
-                        partes_test = (partes[:i] + [new_pi] +
-                                       partes[i+1:j] + [new_pj] +
-                                       partes[j+1:])
+                        partes_test = list(partes)
+                        partes_test[i] = new_pi
+                        partes_test[j] = new_pj
                         nueva_perdida = self._loss_interna(partes_test)
 
                         if nueva_perdida < perdida_actual - 1e-10:
@@ -1014,7 +1014,7 @@ class KPartitionSIA(SIA):
                     partes[lbl][0].append(nodos_pres[i])
                 else:
                     partes[lbl][1].append(nodos_fut[i - n_pres])
-            return [(p, f) for p, f in partes if p or f]
+            return partes
 
         def evaluate_exact(labels: np.ndarray) -> float:
             return self._evaluar_particion(labels_to_partes(labels))

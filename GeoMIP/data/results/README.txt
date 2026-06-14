@@ -9,6 +9,9 @@ Estructura de carpetas:
 
   aprox/                          benchmark KL_MC (Geo + KL aprox)
   rapido/                         benchmark MCTS+MC-EMD record (k=2..5)
+    n10..n25/                     un Excel final por red (n*_rapido_*.xlsx)
+    benchmark_rapido_*.xlsx       consolidado multi-hoja
+    _archive/                     checkpoints y corridas parciales archivadas
   comparativa/                    tablas exacto vs rapido para graficos
 
   historico/
@@ -24,6 +27,7 @@ Estructura de carpetas:
 
   _archive/
     Resultados muy viejos y checkpoints descartados.
+    limpieza_2026-06-14/          checkpoints qnodes, logs n25 (jun 2026)
 
   benchmark_completo_*.xlsx
     Excel consolidado con hojas por n (en la raiz).
