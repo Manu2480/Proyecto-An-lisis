@@ -10,6 +10,7 @@ Uso:
   cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
   uv run python ../benchmark_rapido.py --n 10 15 20 22 25
   uv run python ../benchmark_rapido.py --n 25 --desde 2
+  uv run python ../benchmark_rapido.py --n 25 --no-validate   # desactivar chequeo
 """
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ from benchmark import (  # noqa: E402
     _install_large_n_logging,
     _uninstall_large_n_logging,
 )
+from rapido_validate import report_validation, validate_rapido_df  # noqa: E402
 from src.controllers.manager import Manager  # noqa: E402
 from src.controllers.strategies.kpartition import KPartitionSIA  # noqa: E402
 from src.models.base.sia import limpiar_cache_subsistemas  # noqa: E402
@@ -163,12 +165,21 @@ def _carpeta_n(n: int) -> Path:
     return p
 
 
-def _checkpoint(df: pd.DataFrame, n: int):
+def _checkpoint(df: pd.DataFrame, n: int, *, validate: bool = True) -> None:
     ts = datetime.now().strftime("%Y-%m-%d_%Hh%M")
+    path = _carpeta_n(n) / f"checkpoint_{ts}.xlsx"
     try:
-        df.to_excel(_carpeta_n(n) / f"checkpoint_{ts}.xlsx", index=False)
-    except Exception:
-        pass
+        df.to_excel(path, index=False)
+        print(f"    checkpoint -> {path.name}", flush=True)
+    except Exception as exc:
+        print(f"    checkpoint fallo al guardar: {exc}", flush=True)
+        return
+
+    if not validate:
+        return
+
+    if not report_validation(df, label=f"checkpoint n={n}"):
+        raise SystemExit(1)
 
 
 def save_results_rapido(resultados: dict[int, pd.DataFrame]) -> Path:
@@ -192,6 +203,7 @@ def run_benchmark_rapido(
     desde: int = 1,
     hasta: int | None = None,
     merge: bool = True,
+    validate: bool = True,
 ) -> dict[int, pd.DataFrame]:
     os.environ.setdefault("KQGMIP_QUIET", "1")
     resultados: dict[int, pd.DataFrame] = {}
@@ -274,12 +286,16 @@ def run_benchmark_rapido(
             rows.append(row)
 
             if len(rows) % 5 == 0:
-                _checkpoint(pd.DataFrame(rows), n)
+                _checkpoint(pd.DataFrame(rows), n, validate=validate)
 
         df = pd.DataFrame(rows)
         if merge and desde > 1:
             df = merge_with_previous(n, df)
-        _checkpoint(df, n)
+        _checkpoint(df, n, validate=validate)
+        if validate:
+            ok, _ = validate_rapido_df(df)
+            if not ok:
+                raise SystemExit(1)
         resultados[n] = df
         print(f"  n={n} completado: {len(df)} filas")
 
@@ -294,6 +310,11 @@ def main():
     parser.add_argument("--hasta", type=int, default=None, help="Ultimo caso (1-based)")
     parser.add_argument("--no-run-log", action="store_true")
     parser.add_argument("--no-merge", action="store_true", help="No fusionar con rapido previo al usar --desde")
+    parser.add_argument(
+        "--no-validate",
+        action="store_true",
+        help="No validar particiones en checkpoints (cada 5 casos)",
+    )
     args = parser.parse_args()
 
     out_f = err_f = prev_out = prev_err = None
@@ -308,6 +329,7 @@ def main():
         resultados = run_benchmark_rapido(
             args.n, args.timeout, desde=args.desde, hasta=args.hasta,
             merge=not args.no_merge,
+            validate=not args.no_validate,
         )
         if resultados:
             save_results_rapido(resultados)

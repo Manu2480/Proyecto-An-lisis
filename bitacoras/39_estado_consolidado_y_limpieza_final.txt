@@ -1,0 +1,103 @@
+Bitacora 39 - Estado consolidado del proyecto y limpieza final
+Fecha: 14/06/2026
+
+Resumen
+Cierre de la fase de re-corridas rapido post-fix (bugs _refinar_kl y MCTS).
+Inventario canonico de resultados, comparativa actualizada y limpieza de
+checkpoints/logs/duplicados. QNodes k=2 n=22 sigue en ejecucion en Ubuntu.
+
+
+1. Estado de resultados (finales validos para informe)
+------------------------------------------------------
+
+EXACTO (benchmark.py, k=2..5 + heuristica_k):
+  n10  n10_completo_2026-05-17_16h56.xlsx          50 casos
+  n15  n15_completo_2026-05-17_16h56.xlsx          50 casos
+  n20  n20_completo_2026-05-18_04h38.xlsx          50 casos
+  n22  n22_completo_2026-05-20_02h29.xlsx          50 casos
+
+QNODES k=2 (run_qnodes_k2.py):
+  n10  qnodes_k2_n10_2026-06-13_10h24.xlsx         50/50 OK
+  n15  qnodes_k2_n15_2026-06-13_10h57.xlsx         50/50 OK
+  n20  qnodes_k2_n20_2026-06-13_20h19.xlsx         50/50 OK
+  n22  EN CURSO (Ubuntu, PID ~675)
+       checkpoint: qnodes_k2_checkpoint_2026-06-13_23h37.xlsx (10/50)
+       comando: uv run python -u ../run_qnodes_k2.py --n 22
+
+RAPIDO post-fix (KL+MC-EMD n>=25, MCTS+MC-EMD n<25), auditoria APROBADO:
+  n10  n10_rapido_2026-06-13_21h33.xlsx            49/49
+  n15  n15_rapido_2026-06-13_21h39.xlsx            50/50
+  n20  n20_rapido_2026-06-13_22h13.xlsx            50/50
+  n22  n22_rapido_2026-06-14_00h32.xlsx            50/50
+  n25  n25_rapido_2026-06-13_23h14.xlsx            50/50
+  consolidado: benchmark_rapido_2026-06-14_00h32.xlsx
+
+COMPARATIVA (gen_comparativa.py, 14/06):
+  comparativa/n10..n25_comparativa.xlsx
+  comparativa/comparativa_long.csv
+  comparativa/comparativa_resumen.xlsx
+
+APROX (KL_MC, referencia secundaria):
+  aprox/n10/n10_aprox_2026-06-12_22h35.xlsx
+  aprox/n15/n15_aprox_2026-06-12_22h35.xlsx
+  aprox/benchmark_aprox_2026-06-12_22h35.xlsx
+  (n20/n22 aprox incompletos — solo checkpoints archivados)
+
+
+2. Corridas completadas esta sesion (13-14/06)
+----------------------------------------------
+  - Re-rapido n10, n15, n20 con codigo corregido + validacion automatica
+  - Cola WSL n25 -> n22 (~2h17): ambos APROBADO 50/50
+  - Comparativa regenerada con rapido n25 corregido
+  - QNodes n20 completado (50/50, reanudado desde caso 21)
+
+
+3. Bugs corregidos (ver bitacora 38)
+------------------------------------
+  - _refinar_kl: duplicaba partes al mover nodos (i > j)
+  - labels_to_partes MCTS: omitia partes vacias (< k grupos en Excel)
+  - rapido_validate.py: validacion en checkpoints cada 5 casos
+
+
+4. Limpieza aplicada (14/06, scripts/limpiar_results.py)
+--------------------------------------------------------
+Conservado en sitio (ver seccion 1).
+
+Archivado:
+  rapido/_archive/2026-06-14/
+    - checkpoints y Excel rapido pre-fix (n10..n25 viejos)
+    - n25_rapido_2026-06-13_09h37.xlsx (INVALIDO, bug KL)
+  _archive/limpieza_2026-06-14/
+    - checkpoints qnodes n10/n15/n20/n22 (mayo-jun)
+    - logs qnodes n25
+  _archive/limpieza_2026-06-14/aprox/
+    - checkpoints benchmark_aprox (n10..n22)
+  _archive/limpieza_2026-06-14/n22/
+    - qnodes_k2_checkpoint viejos (conserva solo el ultimo en curso)
+  _archive/limpieza_2026-06-14/root/
+    - benchmark_completo_*.xlsx duplicados en raiz results/
+  _archive/limpieza_2026-06-14/logs/
+    - logs stdout viejos de intentos fallidos n20
+
+NO archivado (corrida activa):
+  n22/qnodes_k2_checkpoint_2026-06-13_23h37.xlsx (ultimo checkpoint)
+
+Eliminado:
+  Untitled (archivo vacio accidental en raiz del repo)
+
+
+5. Pendiente
+------------
+  - Terminar QNodes n=22 (40 casos restantes, horas/dias segun casos pesados)
+  - Al finalizar: qnodes_k2_n22_<fecha>.xlsx + parche qn_k2 en n22_completo
+  - Graficos del informe desde comparativa/
+
+
+6. Scripts de referencia
+------------------------
+  scripts/limpiar_results.py       limpieza results/
+  scripts/run_rapido_y_auditar.sh  corrida + auditoria una red
+  scripts/run_rapido_n25_then_n22.sh  cola secuencial
+  scripts/run_post_rapido.sh       limpieza + comparativa
+  scripts/peek_qnodes_n22.py       estado checkpoint QNodes n22
+  scripts/audit_rapido_una.py      auditoria particiones vs k

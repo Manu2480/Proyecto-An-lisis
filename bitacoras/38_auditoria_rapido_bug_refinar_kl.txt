@@ -93,8 +93,21 @@ INVALIDOS / RECALCULAR antes del informe:
   - comparativa que incluya columnas MCTS de n25 desde ese archivo
 
 Accion pendiente:
-  uv run python ../benchmark_rapido.py --n 25
-  (y regenerar gen_comparativa.py --n 25)
+  ~~uv run python ../benchmark_rapido.py --n 25~~
+  ~~(y regenerar gen_comparativa.py --n 25)~~
+
+8. Re-corridas rapido post-fix (14/06/2026, cola WSL ~2h17)
+------------------------------------------------------------
+Script: scripts/run_rapido_n25_then_n22.sh
+
+| Red | Archivo final | Auditoria |
+|-----|---------------|-----------|
+| n25 | n25_rapido_2026-06-13_23h14.xlsx | APROBADO 50/50 |
+| n22 | n22_rapido_2026-06-14_00h32.xlsx | APROBADO 50/50 |
+
+Invalido archivado: n25_rapido_2026-06-13_09h37.xlsx -> rapido/_archive/2026-06-14/n25/
+
+Comparativa regenerada (gen_comparativa.py): n10..n25 + comparativa_long.csv + comparativa_resumen.xlsx
 
 
 6. Limpieza carpeta results (14/06/2026)
@@ -102,11 +115,11 @@ Accion pendiente:
 Script: scripts/limpiar_results.py
 
 Conservado en sitio:
-  rapido/n{10,15,20,22,25}/n*_rapido_<fecha>.xlsx (ultimo valido por red)
-  rapido/benchmark_rapido_2026-06-13_09h37.xlsx
+  rapido/n{10,15,20,22,25}/n*_rapido_<fecha>.xlsx (post-fix, auditoria OK)
+  rapido/benchmark_rapido_2026-06-14_00h32.xlsx
   n10/n15/n20: qnodes_k2 final + n*_completo + parches qn_k2
-  n22: n22_completo_2026-05-20_02h29.xlsx
-  comparativa/comparativa_long.csv
+  n22: n22_completo + ultimo qnodes_k2_checkpoint (corrida activa)
+  comparativa/ completa (n10..n25 + long + resumen)
 
 Archivado en:
   rapido/_archive/2026-06-14/  (checkpoints, benchmark_rapido viejos, n25 parciales)
