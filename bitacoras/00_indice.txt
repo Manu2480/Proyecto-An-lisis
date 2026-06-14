@@ -48,3 +48,4 @@ Lista
 37 - Optimizacion memoizacion QNodes (memoria_omega) + tests (13/06/2026)
 38 - Auditoria particiones rapido, bug _refinar_kl, limpieza results (14/06/2026)
 39 - Estado consolidado del proyecto y limpieza final (14/06/2026)
+40 - QNodes k=2 n=22 casos viables completados, 42/50 (14/06/2026)

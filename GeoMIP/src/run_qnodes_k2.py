@@ -86,9 +86,12 @@ def merge_with_previous(n: int, new_df: pd.DataFrame) -> pd.DataFrame:
     old = pd.read_excel(prev_path)
     if "#Prueba" not in old.columns:
         return new_df
-    merged = old.set_index("#Prueba")
-    merged.update(new_df.set_index("#Prueba"))
-    merged = merged.reset_index().sort_values("#Prueba")
+    merged = (
+        pd.concat([old, new_df], ignore_index=True)
+        .drop_duplicates(subset="#Prueba", keep="last")
+        .sort_values("#Prueba")
+        .reset_index(drop=True)
+    )
     print(f"  merge: {len(new_df)} filas nuevas + {prev_path.name} -> {len(merged)} total")
     return merged
 
@@ -120,6 +123,7 @@ def run_qnodes_k2(
     desde: int = 1,
     merge: bool = False,
     patch: bool = True,
+    casos: list[int] | None = None,
 ) -> pd.DataFrame:
     os.environ.setdefault("KQGMIP_QUIET", "1")
 
@@ -140,10 +144,12 @@ def run_qnodes_k2(
             f"Generar con: python GeoMIP/data/generate_large_tpms.py --n {n}"
         )
 
+    casos_set = set(casos) if casos else None
+    casos_label = f"  solo={sorted(casos_set)}" if casos_set else ""
     print(
         f"\n{'='*60}\n"
         f"QNodes k=2 — n={n}  TPM={tpm_path.name}  casos={len(pares)}  "
-        f"timeout={timeout}s  desde=#{desde}\n"
+        f"timeout={timeout}s  desde=#{desde}{casos_label}\n"
         f"{'='*60}",
         flush=True,
     )
@@ -152,14 +158,17 @@ def run_qnodes_k2(
     print(f"TPM: shape={tpm.shape}  dtype={tpm.dtype}", flush=True)
 
     rows: list[dict] = []
-    if merge and desde > 1:
+    if merge:
         prev = _latest_qnodes(n)
         if prev is not None:
             old = pd.read_excel(prev)
             rows = old.to_dict("records")
+            print(f"  cargado checkpoint previo: {prev.name} ({len(rows)} filas)", flush=True)
 
     for idx, (purview, mec_str) in enumerate(pares, 1):
         if idx < desde:
+            continue
+        if casos_set is not None and idx not in casos_set:
             continue
 
         alcance = letters_to_binary(purview, n_val)
@@ -231,13 +240,17 @@ def main():
                         help="Reanudar desde el número de prueba (1-based)")
     parser.add_argument("--merge", action="store_true",
                         help="Fusionar con el último qnodes_k2_*.xlsx del mismo n")
+    parser.add_argument("--casos", nargs="+", type=int, default=None,
+                        help="Solo ejecutar estos #Prueba (ej: --casos 19 20 21)")
     parser.add_argument("--no-patch", action="store_true",
                         help="No generar parche del benchmark completo")
     args = parser.parse_args()
 
     for n in args.n:
         timeout = args.timeout or TIMEOUT_POR_N.get(n, 86400)
-        df = run_qnodes_k2(n, timeout, desde=args.desde, merge=args.merge)
+        df = run_qnodes_k2(
+            n, timeout, desde=args.desde, merge=args.merge, casos=args.casos
+        )
         ts = datetime.now().strftime("%Y-%m-%d_%Hh%M")
         out = _carpeta_n(n) / f"qnodes_k2_n{n}_{ts}.xlsx"
         df.to_excel(out, index=False)
