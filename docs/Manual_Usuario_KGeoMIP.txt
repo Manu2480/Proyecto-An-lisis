@@ -3,8 +3,8 @@
      Sistema de Analisis de Irreducibilidad Sistemica Mediante K-Particiones
 ================================================================================
 
-Version: 1.0
-Fecha:   2026-05-18
+Version: 2.0
+Fecha:   2026-06-13
 Proyecto: K-QGMIP
 Institucion: Universidad de Caldas — Facultad de Ingenieria
 Curso: Analisis y Diseno de Algoritmos 2026-1
@@ -171,19 +171,24 @@ CAPACIDADES:
     segundos o minutos.
   - Analizar sistemas de 20 nodos con tiempos de computo de horas
     (resultados viables con heuristicas especiales).
+  - Analizar sistemas de 25 nodos mediante el algoritmo de aproximacion
+    KL+MC-EMD, que omite el paso exacto y emplea particion aleatoria
+    con refinamiento Kernighan-Lin y estimacion Monte Carlo de la EMD.
   - Encontrar la mejor particion para k = 2 de manera exacta (usando
     GeometricSIA) o aproximada (QNodes).
   - Encontrar buenas particiones para k = 3, 4, 5 usando heuristicas
-    inteligentes (Greedy, Kernighan-Lin).
+    inteligentes (Greedy, Kernighan-Lin, MCTS+MC-EMD, KL+MC-EMD).
   - Procesar multiples casos automaticamente desde un archivo Excel.
   - Generar reportes detallados en formato Excel con resultados,
     tiempos y metricas de rendimiento.
 
 LIMITACIONES:
-  - No puede analizar sistemas de mas de 20-22 nodos en hardware
+  - No puede analizar sistemas de mas de 25 nodos en hardware
     convencional (el tiempo de computo crece exponencialmente).
   - Las heuristicas para k >= 3 no garantizan encontrar la particion
     absolutamente mejor, sino una muy buena (optimo local).
+  - Para n=25, los resultados son inherentemente aproximados (KL+MC-EMD);
+    no existe referencia exacta para validacion cruzada.
   - Para k = 2, el algoritmo GeometricSIA es exacto, pero QNodes es
     heuristico (aproximado).
   - No incluye interfaz grafica de usuario (GUI); opera por linea de
@@ -223,13 +228,17 @@ REQUISITOS RECOMENDADOS:
 
 TIEMPOS ESTIMADOS DE EJECUCION (por caso de prueba):
 
-  Tamano del sistema | Tiempo estimado | RAM recomendada
-  -------------------+-----------------+-----------------
-  n = 3 (8 estados) |  < 1 segundo     |  8 GB
-  n = 10 (1024 est.) | ~2-4 segundos   |  8 GB
-  n = 15 (32768 est.)| ~5-17 segundos  |  8 GB
-  n = 20 (1M estados)| ~7 minutos      | 16-32 GB
-  n = 22 (4M estados)| >3.5 horas      | 32+ GB
+  Tamano del sistema | Tiempo estimado  | RAM recomendada
+  -------------------+------------------+-----------------
+  n = 3 (8 estados)  |  < 1 segundo     |  8 GB
+  n = 10 (1024 est.) |  ~2-4 segundos   |  8 GB
+  n = 15 (32768 est.)|  ~5-17 segundos  |  8 GB
+  n = 20 (1M estados)|  ~7 minutos      | 16-32 GB
+  n = 22 (4M estados)|  >3.5 horas      | 32+ GB
+  n = 25 (33M est.)  |  ~67 min total*  | 32+ GB
+
+  * n=25 requiere el benchmark rapido con KL+MC-EMD (aproximado).
+    El tiempo mostrado es para los 50 casos completos, no por caso.
 
 2.3. Software
 --------------------------------------------------------------------------------
@@ -360,9 +369,9 @@ Deberia ver una salida similar a:
     tests/test_geometric_n3.py .............           [ 50%]
     tests/test_kpart_coherence.py .......              [ 68%]
     tests/test_solutions.py .............              [100%]
-    ====== 34 passed in XX.XXs ======
+    ====== 48 passed in XX.XXs ======
 
-Si ve "34 passed", la instalacion ha sido exitosa.
+Si ve "48 passed", la instalacion ha sido exitosa.
 
 Tambien puede ejecutar una prueba de humo rapida:
 
@@ -575,12 +584,22 @@ de casos y genera un reporte completo en Excel.
 
       uv run python ../../benchmark.py --n 20 --timeout 21600
 
+  Para benchmark aproximado KL+MC-EMD (n=10 a n=25, mas rapido):
+
+      uv run python ../../benchmark_aprox.py --n 10 15 20 22 25
+
+  Para benchmark rapido MCTS/KL+MC-EMD (n=10 a n=25, el mas rapido):
+
+      uv run python ../../benchmark_rapido.py --n 10 15 20 22 25
+
   Explicacion de parametros:
     --n 10 15     : analiza sistemas de 10 y 15 nodos
     --timeout 300 : tiempo maximo por estrategia (300 segundos)
 
   Los resultados se guardan en:
-    GeoMIP/results/benchmark_YYYY-MM-DD_HHhMM.xlsx
+    - Exacto:  GeoMIP/data/results/n{n}/benchmark_YYYY-MM-DD_HHhMM.xlsx
+    - Aprox:   GeoMIP/data/results/aprox/n{n}/n{n}_aprox_*.xlsx
+    - Rapido:  GeoMIP/data/results/rapido/n{n}/n{n}_rapido_*.xlsx
 
 5.3. Interpretacion de resultados
 --------------------------------------------------------------------------------
@@ -651,11 +670,14 @@ o realizar cambios:
     cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
     uv run pytest ../../../tests/ -v
 
-Esto ejecuta 34 pruebas que verifican:
+Esto ejecuta 48 pruebas que verifican:
   - Calculo correcto de EMD (7 pruebas)
   - Reproduccion de resultados de referencia N3 (10 pruebas)
   - Coherencia de k-particiones (6 pruebas)
   - Campos minimos en resultados (11 pruebas)
+  - Heuristica KL+MC-EMD (7 pruebas)
+  - Particion aleatoria (4 pruebas)
+  - MC-EMD (3 pruebas)
 
 
 ================================================================================
@@ -711,6 +733,13 @@ El software incluye las siguientes estrategias de analisis:
     - Incluye varias heuristicas internas (ver seccion 6.3)
     - Usa GeometricSIA como base para k=2
 
+  KL+MC-EMD (k=2..5, n>=25):
+    - Algoritmo de aproximacion puro: omite el paso de particion exacta
+    - Fase 1: Particion aleatoria del sistema
+    - Fase 2: Refinamiento con Kernighan-Lin usando estimacion MC-EMD
+    - UNICA estrategia viable para n=25
+    - Resultados inherentemente aproximados (sin referencia exacta)
+
 6.3. Heuristicas de KPartitionSIA
 --------------------------------------------------------------------------------
 
@@ -743,9 +772,19 @@ k-particiones:
 
   MCTS + MC-EMD:
     - Estrategia: busqueda por arbol Monte Carlo + estimacion EMD
-    - Ventaja: UNICA VIABLE para n>=20
+    - Ventaja: UNICA VIABLE para n>=20 (n<=22)
     - Desventaja: resultados aproximados (error ~2%)
-    - Uso: automatico para n>=20
+    - Uso: automatico para 20 <= n <= 22
+
+  KL + MC-EMD:
+    - Estrategia: particion aleatoria + refinamiento Kernighan-Lin
+      con estimacion Monte Carlo de la EMD
+    - Ventaja: UNICA VIABLE para n=25; completa los 50 casos en
+      ~67 minutos total
+    - Desventaja: resultados aproximados, sin referencia exacta para
+      validacion cruzada
+    - Uso: automatico para n>=25; tambien disponible via
+      forzar_heuristica="kl_mc"
 
 6.4. Parametro de timeout
 --------------------------------------------------------------------------------
@@ -756,11 +795,13 @@ antes de ser cancelada. Es importante configurarlo adecuadamente:
   n <= 10:  timeout = 120s (suficiente para todas las estrategias)
   n <= 15:  timeout = 300s (tiempo recomendado)
   n = 20:   timeout = 21600s (6 horas por estrategia)
-  n > 20:   timeout = 86400s (24 horas, maximo recomendado)
+  n = 22:   timeout = 43200s (12 horas, recomendado)
+  n = 25:   timeout = 600s (10 min por estrategia con KL+MC-EMD)
 
 Cada caso de prueba ejecuta varias estrategias:
   - Para n<=15: 8 estrategias (QNodes k=2, Geo k=2, Greedy/KL x k=3,4,5)
-  - Para n>=20: 7 estrategias (sin QNodes)
+  - Para 20<=n<=22: 7 estrategias (sin QNodes)
+  - Para n=25: 1 estrategia (KL+MC-EMD, la unica viable)
 
 Por lo tanto, el tiempo total por caso es aproximadamente:
   Tiempo_total = timeout * numero_estrategias
@@ -794,8 +835,20 @@ CONSEJOS PARA MEJORAR EL RENDIMIENTO:
      detalladas, el profiler PyInstrument anade overhead. El benchmark
      lo desactiva por defecto.
 
-  6. Memoria: Para n>=20, asegurese de tener suficiente RAM (16-32 GB)
-     y cierre otras aplicaciones durante la ejecucion.
+   6. Memoria: Para n>=20, asegurese de tener suficiente RAM (16-32 GB)
+      y cierre otras aplicaciones durante la ejecucion.
+
+   7. Para n>=21, la TPM se carga en formato float32 desde archivos
+      .npy binarios mediante carga diferida (streaming). Esto reduce
+      el uso de RAM de ~34 GB a ~6.8 GB para n=25.
+
+   8. Para n=25, use exclusivamente benchmark_rapido.py o
+      benchmark_aprox.py con la heuristica KL+MC-EMD. No intente
+      benchmark.py con n=25 (requiere recursos desproporcionados).
+
+   9. MC-EMD (Monte Carlo EMD): activo automaticamente para n>=21.
+      Estima la EMD mediante muestreo de columnas en lugar de
+      calcularla exactamente, reduciendo el costo de O(2^n) a O(m).
 
 6.6. Cache de resultados
 --------------------------------------------------------------------------------
@@ -942,6 +995,30 @@ P: ¿Que hacer si el benchmark tarda demasiado?
 R: Use --timeout para limitar cada estrategia. O ejecute solo los
    tamanos de red que necesita (ej: --n 10 en lugar de --n 10 15 20).
 
+P: ¿Puedo analizar un sistema de 25 nodos?
+R: Si, usando el benchmark rapido (benchmark_rapido.py) o el benchmark
+   aproximado (benchmark_aprox.py). El algoritmo KL+MC-EMD completa los
+   50 casos en ~67 minutos con 32 GB de RAM.
+
+P: ¿Por que no hay resultados exactos para n=25?
+R: Para n=25, la TPM tiene 33 millones de filas (~3.4 GB). El algoritmo
+   exacto (GeometricSIA) requeriria O(2^n) operaciones por evaluacion,
+   lo que es computacionalmente inviable. KL+MC-EMD omite el paso exacto
+   y usa particion aleatoria + refinamiento.
+
+P: ¿Cual es la diferencia entre benchmark.py, benchmark_rapido.py y
+   benchmark_aprox.py?
+R: benchmark.py ejecuta estrategias exactas y heuristicas estandar
+   (recomendado para n<=22). benchmark_rapido.py usa MCTS+MC-EMD para
+   n<=22 y KL+MC-EMD para n>=25 (el mas versatil). benchmark_aprox.py
+   usa exclusivamente KL+MC-EMD para todos los tamanos.
+
+P: ¿Que significa "KL+MC-EMD"?
+R: Es un algoritmo de dos fases: (1) Particion aleatoria del sistema,
+   (2) Refinamiento iterativo mediante Kernighan-Lin que usa estimacion
+   Monte Carlo de la EMD en lugar del calculo exacto. Es la unica
+   estrategia viable para sistemas de 25 nodos.
+
 
 ================================================================================
 8. EJEMPLOS Y TUTORIALES
@@ -966,7 +1043,7 @@ PASO 2: Ejecutar la suite de pruebas
 
       uv run pytest ../../../tests/ -v --tb=short
 
-  Deberia ver 34 pruebas pasadas. Si alguna falla, revise la
+  Deberia ver 48 pruebas pasadas. Si alguna falla, revise la
   instalacion.
 
 PASO 3: Ejecutar un caso de prueba con k=2
@@ -1057,8 +1134,40 @@ PASO 4: Interpretar resultados
   - Las columnas KL_k3 tienen menor perdida que QN_k3
   - La regla heuristica integrada recomienda k=3 para todos los casos
 
+8.4. Ejemplo n=25: Benchmark aproximado con KL+MC-EMD
+--------------------------------------------------------------------------------
 
-================================================================================
+ADVERTENCIA: Los resultados son aproximados. No existe referencia exacta
+para validacion cruzada.
+
+PASO 1: Asegurese de tener 32 GB de RAM y TPMs en formato .npy binario
+  en GeoMIP/data/samples/ (formato float32, carga streaming).
+
+PASO 2: Ejecutar benchmark aproximado:
+
+    cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+    uv run python ../../benchmark_aprox.py --n 25
+
+  Tiempo estimado total (50 casos): ~67 minutos.
+
+PASO 3: Resultados
+  Los resultados se guardan en:
+    GeoMIP/data/results/aprox/n25/n25_aprox_YYYY-MM-DD_HHhMM.xlsx
+
+  Columnas relevantes:
+    - k: numero de partes
+    - perdida_emd: valor de phi estimado por MC-EMD
+    - tiempo_ms: tiempo por caso
+    - convergio: "1" si completo, "0" si timeout
+
+PASO 4: Interpretacion
+  Para n=25, la heuristica recomienda automaticamente el mejor k.
+  Los valores de perdida son comparables entre si dentro del mismo
+  experimento, pero NO deben compararse directamente con resultados
+  exactos de n<=20 debido a la estimacion Monte Carlo de la EMD.
+
+
+==============================================================================
 9. REFERENCIA RAPIDA
 ================================================================================
 
@@ -1068,8 +1177,17 @@ PASO 4: Interpretar resultados
   Ejecutar desde Excel:
     uv run exec.py
 
-  Benchmark:
+  Benchmark exacto (n<=22):
     uv run python ../../benchmark.py --n <tamanos> --timeout <segundos>
+
+  Benchmark aproximado KL+MC-EMD (n<=25):
+    uv run python ../../benchmark_aprox.py --n <tamanos>
+
+  Benchmark rapido MCTS/KL+MC-EMD (n<=25):
+    uv run python ../../benchmark_rapido.py --n <tamanos>
+
+  Generar grafica comparativa:
+    uv run python ../../gen_comparativa.py
 
   Ejecutar pruebas:
     uv run pytest ../../../tests/ -v
@@ -1095,7 +1213,10 @@ PASO 4: Interpretar resultados
   --timeout      | 1-86400 segundos   | 600         | Timeout por estrategia
   -k, --k        | 2,3,4,5            | 3,4,5       | Valores de k
   --no-run-log   | flag               | desactivado | Desactiva log automatico
-  forzar_heurist.| greedy/KL/...      | None (mejor)| Heuristica especifica
+  forzar_heurist.| greedy/KL/kl_mc/   | None (mejor)| Heuristica especifica
+                 | mcts/mcts_mc       |             |
+  --heuristicas  | kl_mc,mcts_mc,     | kl_mc       | Heuristicas para
+                 | mcts               |             | benchmark_rapido.py
 
 9.3. Formato de archivos
 --------------------------------------------------------------------------------
@@ -1173,12 +1294,27 @@ ARCHIVOS DE SALIDA (Excel):
     Conjunto de pruebas estandarizado para medir y comparar el
     rendimiento de diferentes algoritmos.
 
+  MC-EMD (Monte Carlo EMD):
+    Estimacion aproximada de la EMD mediante muestreo aleatorio de
+    columnas. Util para sistemas grandes (n>=21) donde el calculo
+    exacto es inviable. Reduce el costo de O(2^n) a O(m) con m muestras.
+
+  KL+MC-EMD (Kernighan-Lin con Monte Carlo EMD):
+    Heuristica de dos fases para n>=25: (1) particion aleatoria inicial,
+    (2) refinamiento iterativo con Kernighan-Lin usando estimacion
+    MC-EMD. Omite el paso exacto de particion.
+
+  Particion Aleatoria:
+    Estrategia que asigna nodos a partes al azar como punto de partida.
+    Usada en KL+MC-EMD para evitar el costo del paso exacto (GeometricSIA)
+    en sistemas de 25 nodos.
+
   NCube:
     Estructura de datos interna que representa una distribucion de
     probabilidad sobre el espacio de estados binarios del sistema.
 
 
-================================================================================
+===============================================================================
 NOTAS FINALES
 ================================================================================
 
