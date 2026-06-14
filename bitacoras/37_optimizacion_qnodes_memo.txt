@@ -1,0 +1,132 @@
+Bitacora 37 - Por que y como se optimizo QNodes (memoizacion EMD)
+Fecha: 13/06/2026
+
+================================================================================
+1. POR QUE SE OPTIMIZO
+================================================================================
+
+Contexto
+- El enunciado exige QNodes (KQNodes) como referencia EMD para k=2.
+- benchmark.py deshabilita QNodes para n>15 por tiempo; usamos run_qnodes_k2.py aparte.
+- Corridas en curso: n=10 y n=15 completos (49-50/50 OK); n=20 en progreso (~8 h/caso en los peores).
+- Objetivo urgente: poder terminar n=20, n=22 y llegar a n=25 (timeout 24 h/caso).
+
+Problema detectado
+- En q_nodes.py existia el atributo memoria_omega (y memoria_particiones) documentado
+  como memoizacion, pero funcion_submodular() NO lo usaba.
+- En cada iteracion del algoritmo Q se llamaba bipartir() de nuevo para el mismo
+  conjunto de nodos (mismo subconjunto de purview x mecanismo x tiempos).
+- bipartir() es O(2^m) en el tamano del mecanismo activo; repetirlo domina el costo.
+- En n=20 cada caso puede evaluar cientos de subconjuntos repetidos entre fases/ciclos.
+- Benchmark smoke n=20 caso #2 (post-optimizacion): ~242 s vs horas en casos grandes.
+
+Que NO cambia la optimizacion
+- El algoritmo Q (fases, ciclos, criterio de minimo) es el mismo.
+- Solo se evita recalcular EMD+bipartir para un frozenset de nodos ya visto.
+- Resultado verificado: misma perdida que BruteForce en N3A (0.25); tests 2/2 OK.
+
+Beneficio esperado por tamano
+- n=10/15: mejora moderada (ya terminados; no hace falta repetir).
+- n=20: ahorro significativo en casos con mecanismo grande.
+- n=22/n=25: critico para no agotar timeout de 6-24 h por caso.
+
+================================================================================
+2. COMO SE HIZO (implementacion)
+================================================================================
+
+Archivo: GeoMIP/src/Method2_Dynamic_Programming_Reformulation/
+         src/controllers/strategies/q_nodes.py
+
+Antes (sin cache efectiva)
+- funcion_submodular() activaba nodos en copia temporal y llamaba bipartir()
+  por separado para delta individual y para union delta+omega.
+- Si el mismo subconjunto aparecia en otra iteracion, se recalculaba todo.
+
+Despues (memoizacion por conjunto de nodos)
+
+A) Tipo de memoria_omega
+   dict[frozenset[(tiempo, indice)], (emd: float, marginales: ndarray)]
+
+B) Helpers nuevos
+   - _nodos_de_delta(deltas)  -> frozenset de nodos del delta
+   - _nodos_de_omega(omegas)  -> frozenset de nodos del omega (tuplas o listas)
+   - _emd_para_conjunto(nodos) -> consulta cache; si miss, bipartir + EMD + guardar
+
+C) funcion_submodular() refactorizado
+   emd_delta, marg_delta = _emd_para_conjunto(nodos_delta)
+   emd_union, _         = _emd_para_conjunto(nodos_delta | nodos_omega)
+   return emd_union, emd_delta, marg_delta
+
+D) Limpieza al inicio de cada caso
+   aplicar_estrategia() hace memoria_omega.clear() y memoria_particiones.clear()
+   (cada prueba del benchmark es independiente).
+
+Tests: tests/test_qnodes_memo.py
+- QNodes N3A == BruteForce (tolerancia 1e-6)
+- len(memoria_omega) > 0 tras una corrida
+- Ejecutar en WSL: scripts/run_qnodes_tests_wsl.sh
+
+================================================================================
+3. REANUDAR n=20 SIN EMPEZAR DE CERO
+================================================================================
+
+Estado al 13/06/2026 (~19:17)
+- Proceso activo: run_qnodes_k2.py --n 20 (Windows, PID en terminal).
+- Casos 1-21: OK segun log.
+- Ultimo checkpoint en disco: qnodes_k2_checkpoint_2026-06-13_19h17.xlsx
+  -> 20 filas (#Prueba 1..20). El caso 21 termino DESPUES del checkpoint.
+- Caso 22 en curso al momento de escribir esta bitacora.
+
+Respuesta corta: NO hay que relanzar todo.
+- Los casos 1-20 del checkpoint son validos (mismo algoritmo, solo sin cache).
+- La optimizacion no altera perdida ni particion; solo acelera.
+- Se puede pausar y continuar con QNodes optimizado desde el caso 21 o 22.
+
+Procedimiento recomendado
+
+  1) Detener el proceso actual (Ctrl+C en la terminal, o cerrar el job).
+
+  2) Reanudar con merge desde el caso 21 (recalcula solo el #21 y sigue con codigo nuevo):
+
+     cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+     uv run python -u ../run_qnodes_k2.py --n 20 --desde 21 --merge
+
+     --merge carga el ultimo checkpoint (20 filas) y fusiona filas nuevas.
+     --desde 21 vuelve a correr el #21 (para guardarlo en Excel) y luego 22..50
+     con la version optimizada.
+
+  Alternativa si prefieres no repetir el #21:
+  - Esperar al checkpoint del caso #25 (cada 5 casos) y luego:
+    uv run python -u ../run_qnodes_k2.py --n 20 --desde 26 --merge
+  - NO usar --desde 22 --merge ahora: faltaria el #21 en el Excel.
+
+  3) Al terminar los 50 casos se genera qnodes_k2_n20_<fecha>.xlsx final.
+
+Notas
+- Casos 1-20: calculados sin memoizacion; resultados equivalentes a los optimizados.
+- Casos 21-50: con memoizacion (mas rapido).
+- Mezclar tiempos_ms en la misma tabla es correcto (columna informativa).
+- Para n=22 en Ubuntu: misma logica con --desde N --merge segun ultimo checkpoint.
+
+================================================================================
+4. COMANDOS DE REFERENCIA
+================================================================================
+
+# Tests optimizacion (WSL)
+export UV_PROJECT_ENVIRONMENT="$HOME/.venvs/kqgmip"
+bash scripts/run_qnodes_tests_wsl.sh
+
+# Reanudar n=20
+uv run python -u ../run_qnodes_k2.py --n 20 --desde 21 --merge
+
+# n=25 (cuando toque)
+uv run python -u ../run_qnodes_k2.py --n 25 --timeout 86400
+# opcional: --desde 2 si el caso 1 completo es inviable en 24 h
+
+================================================================================
+5. PENDIENTE
+================================================================================
+- Completar n=20 (casos 21-50 con codigo optimizado).
+- n=22 y n=25 con run_qnodes_k2.py.
+- Regenerar comparativa con columnas QN_k2 para n>=20.
+- Reparar .venv Windows (numpy corrupto); usar WSL para corridas largas.

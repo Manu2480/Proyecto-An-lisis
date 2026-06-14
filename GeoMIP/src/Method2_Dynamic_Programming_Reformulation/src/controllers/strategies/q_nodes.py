@@ -17,7 +17,6 @@ from src.constants.models import (
 from src.constants.base import (
     TYPE_TAG,
     NET_LABEL,
-    INFTY_NEG,
     INFTY_POS,
     LAST_IDX,
     EFECTO,
@@ -107,8 +106,7 @@ class QNodes(SIA):
         self.tiempos: tuple[np.ndarray, np.ndarray]
         self.etiquetas = [tuple(s.lower() for s in ABECEDARY), ABECEDARY]
         self.vertices: set[tuple]
-        # self.memoria_delta = dict()
-        self.memoria_omega = dict()
+        self.memoria_omega: dict[frozenset, tuple[float, np.ndarray]] = {}
         self.memoria_particiones = dict()
 
         self.indices_alcance: np.ndarray
@@ -125,6 +123,9 @@ class QNodes(SIA):
         tpm=None,
     ):
         self.sia_preparar_subsistema(condicion, alcance, mecanismo, tpm if tpm is not None else self.sia_cargar_tpm())
+
+        self.memoria_omega.clear()
+        self.memoria_particiones.clear()
 
         futuro = tuple(
             (EFECTO, efecto) for efecto in self.sia_subsistema.indices_ncubos
@@ -279,6 +280,49 @@ class QNodes(SIA):
             self.memoria_particiones, key=lambda k: self.memoria_particiones[k][0]
         )
 
+    def _nodos_de_delta(
+        self, deltas: Union[tuple, list[tuple]]
+    ) -> frozenset[tuple[int, int]]:
+        if isinstance(deltas, tuple):
+            return frozenset((deltas,))
+        return frozenset(deltas)
+
+    def _nodos_de_omega(
+        self, omegas: list[Union[tuple, list[tuple]]]
+    ) -> frozenset[tuple[int, int]]:
+        nodos: set[tuple[int, int]] = set()
+        for omega in omegas:
+            if isinstance(omega, list):
+                nodos.update(omega)
+            else:
+                nodos.add(omega)
+        return frozenset(nodos)
+
+    def _emd_para_conjunto(
+        self, nodos: frozenset[tuple[int, int]]
+    ) -> tuple[float, np.ndarray]:
+        """
+        EMD y marginales para bipartir el subsistema activando exactamente `nodos`.
+        Resultado memoizado en memoria_omega (clave = frozenset de (tiempo, índice)).
+        """
+        cached = self.memoria_omega.get(nodos)
+        if cached is not None:
+            emd, marg = cached
+            return emd, marg
+
+        temporal: list[list[int]] = [[], []]
+        for t, idx in nodos:
+            temporal[t].append(idx)
+
+        particion = self.sia_subsistema.bipartir(
+            np.array(temporal[EFECTO], dtype=np.int8),
+            np.array(temporal[ACTUAL], dtype=np.int8),
+        )
+        marginales = particion.distribucion_marginal()
+        emd = emd_efecto(marginales, self.sia_dists_marginales)
+        self.memoria_omega[nodos] = (emd, marginales)
+        return emd, marginales
+
     def funcion_submodular(
         self, deltas: Union[tuple, list[tuple]], omegas: list[Union[tuple, list[tuple]]]
     ):
@@ -317,52 +361,11 @@ class QNodes(SIA):
             )
             Esto lo hice así para hacer almacenamiento externo de la emd individual y su distribución marginal en las particiones candidatas.
         """
-        emd_delta = INFTY_NEG
-        temporal = [[], []]
+        nodos_delta = self._nodos_de_delta(deltas)
+        emd_delta, vector_delta_marginal = self._emd_para_conjunto(nodos_delta)
 
-        if isinstance(deltas, tuple):
-            d_tiempo, d_indice = deltas
-            temporal[d_tiempo].append(d_indice)
-
-        else:
-            for delta in deltas:
-                d_tiempo, d_indice = delta
-                temporal[d_tiempo].append(d_indice)
-
-        copia_delta = self.sia_subsistema
-
-        dims_alcance_delta = temporal[EFECTO]
-        dims_mecanismo_delta = temporal[ACTUAL]
-
-        particion_delta = copia_delta.bipartir(
-            np.array(dims_alcance_delta, dtype=np.int8),
-            np.array(dims_mecanismo_delta, dtype=np.int8),
-        )
-        vector_delta_marginal = particion_delta.distribucion_marginal()
-        emd_delta = emd_efecto(vector_delta_marginal, self.sia_dists_marginales)
-
-        # Unión #
-
-        for omega in omegas:
-            if isinstance(omega, list):
-                for omg in omega:
-                    o_tiempo, o_indice = omg
-                    temporal[o_tiempo].append(o_indice)
-            else:
-                o_tiempo, o_indice = omega
-                temporal[o_tiempo].append(o_indice)
-
-        copia_union = self.sia_subsistema
-
-        dims_alcance_union = temporal[EFECTO]
-        dims_mecanismo_union = temporal[ACTUAL]
-
-        particion_union = copia_union.bipartir(
-            np.array(dims_alcance_union, dtype=np.int8),
-            np.array(dims_mecanismo_union, dtype=np.int8),
-        )
-        vector_union_marginal = particion_union.distribucion_marginal()
-        emd_union = emd_efecto(vector_union_marginal, self.sia_dists_marginales)
+        nodos_union = nodos_delta | self._nodos_de_omega(omegas)
+        emd_union, _ = self._emd_para_conjunto(nodos_union)
 
         return emd_union, emd_delta, vector_delta_marginal
 
