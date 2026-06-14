@@ -4,8 +4,8 @@
            (GeoMIP: Geometric Minimum Information Partition Framework)
 ================================================================================
 
-Version: 2.0 (Corregido y Complementado)
-Fecha:   2026-05-18
+Version: 2.1 (Actualizacion 13/06/2026)
+Fecha:   2026-06-13
 Autor:   Equipo de Desarrollo K-QGMIP
 Institucion: Universidad de Caldas — Facultad de Ingenieria
 
@@ -66,10 +66,14 @@ TABLA DE CONTENIDOS
         4.6.1. Fundamentos
         4.6.2. Demostracion de no equivalencia con EMD
         4.6.3. Valor academico como cota superior
-    4.7. Estrategia MCTS + MC-EMD (n>=20)
-        4.7.1. Fundamentos
-        4.7.2. Pseudocodigo
-        4.7.3. Analisis de complejidad
+     4.7. Estrategia MCTS + MC-EMD (n<=22)
+         4.7.1. Fundamentos
+         4.7.2. Pseudocodigo
+         4.7.3. Analisis de complejidad
+     4.8. Estrategia KL + MC-EMD (n=25)
+         4.8.1. Fundamentos y motivacion
+         4.8.2. Pseudocodigo
+         4.8.3. Analisis de complejidad
 
 5.  MODELADO DE LA SOLUCION: ARQUITECTURA REFLEJADA EN BITACORAS
     5.1. Evolucion arquitectonica
@@ -79,13 +83,14 @@ TABLA DE CONTENIDOS
     5.5. Mecanismo de timeouts adaptativos
 
 6.  RESULTADOS Y CONTRIBUCIONES
-    6.1. Resultados cuantitativos: benchmark n=10
-    6.2. Resultados cuantitativos: benchmark n=15
-    6.3. Resultados cuantitativos: benchmark n=20
-    6.4. Comparacion KL vs. Greedy
-    6.5. Comparacion GeometricSIA vs. QNodes
-    6.6. Recomendacion de estrategia por tamano de red
-    6.7. Contribuciones e innovaciones clave
+     6.1. Resultados cuantitativos: benchmark n=10
+     6.2. Resultados cuantitativos: benchmark n=15
+     6.3. Resultados cuantitativos: benchmark n=20
+     6.4. Resultados cuantitativos: benchmark rapido n=25
+     6.5. Comparacion KL vs. Greedy
+     6.6. Comparacion GeometricSIA vs. QNodes
+     6.7. Recomendacion de estrategia por tamano de red
+     6.8. Contribuciones e innovaciones clave
 
 7.  EVALUACION CRITICA
     7.1. Limitaciones tecnicas y operativas
@@ -104,6 +109,7 @@ APENDICE A: Demostracion de la EMD analitica
 APENDICE B: Tabla de complejidades completa
 APENDICE C: Referencias bibliograficas
 APENDICE D: Glosario de terminos
+APENDICE E: Algoritmo KL+MC-EMD para n>=25
 
 
 ================================================================================
@@ -174,8 +180,13 @@ GeoMIP aborda este desafio mediante:
      extender el analisis a k-particiones (k>=3) con calidad de solucion
      cercana a la optima.
 
-  c) Un estimador Monte Carlo de EMD (MC-EMD) que hace viable el analisis
-     de sistemas con n>=20 nodos, donde el computo exacto es intratable.
+   c) Un estimador Monte Carlo de EMD (MC-EMD) que hace viable el analisis
+      de sistemas con n>=20 nodos, donde el computo exacto es intratable.
+
+   d) Un algoritmo de aproximacion heuristica en dos pasos (Particion Inicial
+      Aleatoria + Refinamiento Kernighan-Lin con MC-EMD) que extiende el
+      analisis a redes de n=25 nodos, donde el metodo exacto excede los
+      limites de tiempo y memoria por la explosion combinatoria.
 
 1.4. Alcance del documento
 --------------------------------------------------------------------------------
@@ -185,7 +196,9 @@ Este manual tecnico cubre:
   - Los fundamentos teoricos del problema de la MIP y su relacion con IIT.
   - La arquitectura completa del software GeoMIP.
   - El diseno algoritmico detallado de cada estrategia implementada.
-  - Los resultados experimentales obtenidos en los benchmarks formales.
+  - Los resultados experimentales obtenidos en los benchmarks formales,
+    incluyendo el benchmark rapido para redes de n=25.
+  - El algoritmo de aproximacion heuristica KL+MC-EMD para redes grandes.
   - Las limitaciones identificadas y las recomendaciones para trabajo futuro.
   - La evolucion del proyecto registrada en las bitacoras de desarrollo.
 
@@ -581,6 +594,20 @@ mediante:
 
   c) Memoizacion de costos de transicion en tabla_transiciones, evitando
      recalcular trayectorias comunes.
+
+**Costo del metodo exacto como cuello de botella:**
+
+Para redes grandes (n>=20), el metodo exacto find_mip constituye el cuello
+de botella principal del sistema. Su costo O(2^n_mec * n_mec) se vuelve
+prohibitivo para mecanismos grandes: con n_mec=20, la marginalizacion de
+NCubes requiere operaciones sobre arrays de 2^20 = 1,048,576 entradas.
+
+En configuraciones con k>=3 para n=25, el sistema ejecutaba find_mip antes
+de la heuristica de k-particion, aun cuando dicha heuristica era la via de
+ejecucion principal. La correccion implementada omite completamente el
+paso exacto cuando n>=25, empleando directamente una particion aleatoria
+inicial seguida de refinamiento KL con estimacion Monte Carlo de EMD
+(véase seccion 4.8).
 
 
 ================================================================================
@@ -1311,7 +1338,7 @@ El spectral se mantiene como baseline negativo documentado que:
      produce perdidas inaceptables; KL es mas lento pero produce perdidas
      optimas.
 
-4.7. Estrategia MCTS + MC-EMD (n>=20)
+4.7. Estrategia MCTS + MC-EMD (n<=22)
 --------------------------------------------------------------------------------
 
 4.7.1. Fundamentos
@@ -1388,6 +1415,143 @@ de EMD es prohibitivo, se implementa una estrategia de dos capas:
     vectorizacion numpy ~1000x por operacion).
 
 
+4.8. Estrategia KL + MC-EMD (n=25)
+--------------------------------------------------------------------------------
+
+4.8.1. Fundamentos y motivacion
+
+Para redes de n=25, el enfoque algoritmico exacto original excede los limites
+de tiempo y memoria debido a la explosion combinatoria. La TPM de 25 nodos
+contiene 2^25 = 33,554,432 filas (~3.4 GB en float32), y el metodo exacto
+find_mip (GeometricSIA) requiere un recorrido BFS sobre el hipercubo de
+estados con marginalizacion de NCubes, cuyo costo escala como O(2^n_mec) por
+evaluacion. Con mecanismos de 20-25 nodos, cada evaluacion demanda tiempo
+prohibitivo.
+
+Cuello de botella identificado: Para configuraciones con k>=3, el sistema
+ejecutaba el metodo exacto lento (find_mip) antes de activar la heuristica,
+incluso cuando la heuristica era la via de ejecucion principal. Esto causaba
+retrasos masivos (varios minutos) solo en la fase de inicializacion por cada
+caso de prueba. La solucion fue omitir completamente el paso exacto para
+n=25, ejecutando directamente una heuristica rapida estructurada en dos fases:
+
+Fase 1 — Particion Inicial Aleatoria:
+   Division inicial del mecanismo en k grupos al azar. Los nodos presentes
+   y futuros del subsistema se mezclan mediante un shuffle controlado
+   (numpy.random.Generator.shuffle) y se distribuyen equitativamente en
+   k partes, asegurando que cada parte tenga al menos un nodo.
+
+Fase 2 — Refinamiento Kernighan-Lin con MC-EMD:
+   Optimizacion progresiva mediante el intercambio de nodos entre grupos.
+   En cada iteracion, se evalua la reduccion de perdida al mover un nodo
+   de su parte actual a otra parte. El refinamiento continua hasta que
+   ningun movimiento mejora la perdida (equilibrio de Nash local) o se
+   alcanza el maximo de iteraciones (8-20 segun el tamano del mecanismo).
+
+Muestreo Monte Carlo (MC-EMD):
+   Para evitar el costo O(2^n_mec) de la evaluacion exacta de EMD en cada
+   movimiento, se emplea un estimador Monte Carlo completamente vectorizado
+   que evalua la EMD sobre S estados muestreados uniformemente del hipercubo.
+   El error del estimador es O(1/sqrt(S)) — insesgado y controlable. Para
+   n=25 se usan S=2500 muestras por evaluacion, ofreciendo un speedup de
+   ~2^n_mec / S ~ 350x respecto al calculo exacto para n_mec=20.
+
+Implementacion en el codigo:
+
+La heuristica se implementa en la funcion _heuristica_kpart_kl_mc_rapida(k)
+de kpartition.py (src/controllers/strategies/kpartition.py). El metodo recibe
+el numero de partes deseado, realiza el split aleatorio y aplica
+_refinar_kl() con evaluacion interna basada en _loss_interna(), que utiliza
+MC-EMD cuando n_mec supera el umbral configurado. La perdida final reportada
+puede ser exacta o aproximada segun el parametro perdida_mc_final.
+
+El flujo de decision en _resolver_k_partition() bifurca la estrategia segun
+el tamano de red:
+
+  - Para n>=25 y forzar_heuristica="kl_mc", se invoca directamente
+    _solution_kl_mc_rapida(), omitiendo por completo find_mip y la tabla de
+    costos de GeometricSIA.
+
+  - Para n<=22 en el benchmark rapido se emplea MCTS+MC-EMD (seccion 4.7),
+    que tambien omite find_mip pero utiliza busqueda en arbol en lugar de
+    refinamiento local.
+
+El benchmark rapido (benchmark_rapido.py) aplica esta logica: para n>=25
+configura KPartitionSIA con forzar_heuristica="kl_mc", n_samples_mc=2500, y
+perdida_mc_final=True; para n<=22 emplea forzar_heuristica="mcts" con
+parametros agresivos por tamano de red.
+
+Parametros por defecto segun tamano de mecanismo (n_mec):
+
+  n_mec <= 12:  evaluacion exacta (MC-EMD desactivado)
+  n_mec <= 16:  S=800 muestras, max_iter=12
+  n_mec >= 18:  S=2000-2500 muestras, max_iter=8
+
+4.8.2. Pseudocodigo
+
+    ALGORITHM KL_MC_Rapida(k, n_samples=2500):
+        nodos_presentes <- dims_ncubos
+        nodos_futuros <- indices_ncubos
+        todos_nodos <- [('p',v) for v en presentes]
+                      + [('f',v) for v en futuros]
+
+        SI |todos_nodos| < k:
+            RETORNAR particion_invalida
+
+        // Fase 1: Particion inicial aleatoria
+        rng.shuffle(todos_nodos)
+        base <- floor(|todos_nodos| / k)
+        extra <- |todos_nodos| MOD k
+        tamanos <- [base + 1 si i < extra else base
+                    PARA i=0 HASTA k-1]
+
+        partes <- particionar(todos_nodos segun tamanos)
+
+        // Fase 2: Refinamiento Kernighan-Lin con MC-EMD
+        PARA iter <- 1 HASTA max_iter:
+            mejora <- False
+            perdida_actual <- MC_EMD(partes, n_samples)
+
+            PARA cada par (P_i, P_j), i != j:
+                PARA cada nodo u EN P_i:
+                    partes_prueba <- mover(u, P_i -> P_j)
+                    nueva_perdida <- MC_EMD(partes_prueba,
+                                             n_samples)
+                    SI nueva_perdida < perdida_actual - epsilon:
+                        partes <- partes_prueba
+                        mejora <- True
+                        BREAK
+
+            SI NOT mejora:
+                BREAK
+
+        perdida_final <- SI perdida_mc_final:
+                            MC_EMD(partes, n_samples)
+                         SINO:
+                            _evaluar_particion(partes)
+        RETORNAR Solution(particion=partes,
+                          perdida=perdida_final)
+
+4.8.3. Analisis de complejidad
+
+    Tiempo:       O(max_iter * k * n * S)
+    Espacio:      O(n + S)
+
+    donde:
+      max_iter  = iteraciones de refinamiento (8-20)
+      k         = numero de partes (2-5)
+      n         = nodos del subsistema
+      S         = muestras MC-EMD (800-2500)
+
+    La complejidad es polinomial en todos los parametros, eliminando el
+    factor exponencial 2^n_mec de las estrategias exactas. El speedup
+    teorico frente a GeometricSIA es O(2^n_mec / (k * S * max_iter)).
+
+    Speedup empirico (n=25, k=2):
+      - GeometricSIA exacto: inviable (timeout >24 h)
+      - KL + MC-EMD:         ~47 s por caso
+
+
 ================================================================================
 5. MODELADO DE LA SOLUCION: ARQUITECTURA REFLEJADA EN BITACORAS
 ================================================================================
@@ -1396,8 +1560,8 @@ de EMD es prohibitivo, se implementa una estrategia de dos capas:
 --------------------------------------------------------------------------------
 
 La arquitectura final del sistema es el resultado de una evolucion
-registrada en 26 bitacoras de desarrollo (16-18 mayo 2026), cuyos hitos
-principales son:
+registrada en 36 bitacoras de desarrollo (16-18 mayo y 12-13 junio 2026),
+cuyos hitos principales son:
 
   Fase 0 (Diagnostico, Bitacora 01):
     - Verificacion de que geometric.py reproduce la Tabla 4.2 del
@@ -1423,7 +1587,7 @@ principales son:
     - Correccion de subconjuntos segun DatosPruebas2026_1.md.
     - Integracion de BruteForce para validacion cruzada (n<=6).
 
-  Fase 4 (Heuristicas y Optimizaciones, Bitacoras 14-24):
+  Fase 4 (Heuristicas y Optimizaciones, Bitacoras 14-27):
     - Analisis formal de complejidad asintotica (Bitacora 14).
     - Implementacion de heuristica Kernighan-Lin (Bitacora 15).
     - Implementacion de baseline espectral (Bitacora 16).
@@ -1432,6 +1596,18 @@ principales son:
     - Implementacion MCTS + MC-EMD (Bitacora 23).
     - Cache de find_mip (Bitacora 24).
     - Benchmark n=20 completo exitoso (Bitacora 26).
+    - Reorganizacion de logs y resultados (Bitacoras 25, 27).
+
+  Fase 5 (Escalabilidad a n=25, Bitacoras 28-36, 12-13 junio 2026):
+    - Prueba de QNodes k=2 en n=25 con carga streaming float32 (Bitacora 28).
+    - Diseno del algoritmo de aproximacion KL+MC-EMD para n=25 (Bitacora 29).
+    - Implementacion y ejecucion de benchmark aproximado KL+MC (Bitacora 30).
+    - Restauracion de resultados desde git tras limpieza (Bitacora 31).
+    - Creacion de benchmark rapido MCTS+MC-EMD para n<=22 (Bitacora 32).
+    - Reparacion de corrida n=22 con merge parcial (Bitacora 33).
+    - Documentacion del algoritmo KL+MC-EMD y cuello de botella (Bitacora 34).
+    - Ejecucion completa n=25 con KL+MC-EMD: 50 casos, ~67 min (Bitacora 35).
+    - Validacion de cumplimiento del enunciado K-QGMIP (Bitacora 36).
 
 5.2. Sistema de cache de subsistemas
 --------------------------------------------------------------------------------
@@ -1599,10 +1775,39 @@ Tabla 5: Tiempos por estrategia (n=20)
 
   Tiempo total por caso (todas las estrategias): media ~7.3 min.
 
-6.4. Comparacion KL vs. Greedy
+6.4. Resultados cuantitativos: benchmark rapido n=25
 --------------------------------------------------------------------------------
 
-Tabla 6: Proporcion de casos donde KL supera a Greedy
+Fuente: n25_rapido_2026-06-13_09h37.xlsx
+Casos:  50
+Red:    N25A (33,554,432 filas, ~3.4 GB)
+Algoritmo: KL + MC-EMD (aproximado, forzar_heuristica="kl_mc")
+Parametros: S=2500 muestras MC-EMD, perdida_mc_final=True, max_iter=8
+Estado: 50/50 ok en k=2,3,4,5 (200 mediciones)
+Tiempo total de corrida: ~67 min (incluye una sola carga de TPM)
+
+Tabla 6: Tiempos y perdidas medias por k (n=25, aproximado)
+
+  k  | Tiempo medio | Perdida media | Minimo perdida | Maximo perdida
+  ---+--------------+---------------+----------------+----------------
+  2  |   ~47 s      |     2.22      |     0.62       |     5.81
+  3  |   ~19 s      |     2.81      |     1.42       |     6.33
+  4  |   ~3.6 s     |     3.18      |     1.76       |     6.86
+  5  |   ~3.9 s     |     3.48      |     2.17       |     7.01
+
+Notas de interpretacion:
+  - Las perdidas son aproximadas (MC-EMD), no exactas como en benchmark.py.
+  - k=2 tarda mas porque el mecanismo completo (25 nodos) pesa en KL+MC.
+  - k=4 y k=5 son mas rapidos en promedio (menos iteraciones KL efectivas
+    o mecanismos mas chicos en muchos casos de la matriz).
+  - A mayor k, la perdida media sube: trade-off esperado donde particiones
+    mas finas incrementan la independencia condicional forzada.
+  - No existe benchmark exacto de referencia para n=25 (inviable).
+
+6.5. Comparacion KL vs. Greedy
+--------------------------------------------------------------------------------
+
+Tabla 7: Proporcion de casos donde KL supera a Greedy
 
            n=10 (49 casos)           n=15 (50 casos)
   k  | KL mejor | Empate | Greedy  | KL mejor | Empate | Greedy
@@ -1621,7 +1826,7 @@ Mejora porcentual promedio de KL sobre Greedy:
   n=15, k=4: 31.2% mejor perdida (KL 1.2x mas lento)
   n=15, k=5: 42.5% mejor perdida (KL 1.5x mas lento)
 
-6.5. Comparacion GeometricSIA vs. QNodes
+6.6. Comparacion GeometricSIA vs. QNodes
 --------------------------------------------------------------------------------
 
 Para k=2, GeometricSIA produce perdida practicamente identica a QNodes
@@ -1632,25 +1837,31 @@ con una fraccion del tiempo de computo:
 
 Conclusion: Para k=2, siempre preferir GeometricSIA sobre QNodes.
 
-6.6. Recomendacion de estrategia por tamano de red
+6.7. Recomendacion de estrategia por tamano de red
 --------------------------------------------------------------------------------
 
-Tabla 7: Estrategia recomendada segun tamano de red
+Tabla 8: Estrategia recomendada segun tamano de red
 
-  Tamano   | Estrategia recomendada       | Justificacion
-  ---------+------------------------------+------------------------------
-  n <= 10  | KPartitionSIA-KL k=3         | 82% casos optimos con k=3;
-            |                              | KL reduce perdida 79%
-  n 11-15  | GeometricSIA k=2 primero,    | 62% casos: k=2 suficiente;
-            | luego KL k=3 si necesario   | KL solo 1.1x mas lento
-  n 16-20  | MCTS + MC-EMD                | Evaluacion exacta inviable;
-            |                              | estimacion con error O(1/sqrt(S))
-  n > 20   | Inviable con impl. actual    | Ver seccion 7.3
+  Tamano   | Estrategia recomendada            | Justificacion
+  ---------+-----------------------------------+------------------------------
+  n <= 10  | KPartitionSIA-KL k=3              | 82% casos optimos con k=3;
+            |                                   | KL reduce perdida 79%
+  n 11-15  | GeometricSIA k=2 primero,         | 62% casos: k=2 suficiente;
+            | luego KL k=3 si necesario        | KL solo 1.1x mas lento
+  n 16-20  | MCTS + MC-EMD                     | Evaluacion exacta inviable;
+            |                                   | estimacion con error O(1/sqrt(S))
+  n 22     | MCTS + MC-EMD (benchmark rapido)  | 50 casos completados;
+            |                                   | ver seccion 4.7
+  n 25     | KL + MC-EMD (aproximado)           | Unico viable; particion
+            |                                   | aleatoria + refinamiento
+            |                                   | KL con MC-EMD; ver seccion 4.8
 
 Para k=2 especificamente: GeometricSIA siempre sobre QNodes.
 Para k>=3: KL siempre sobre Greedy cuando sea computacionalmente viable.
+Para n=25: la evaluacion es inherentemente aproximada; no existe referencia
+exacta para validacion cruzada.
 
-6.7. Contribuciones e innovaciones clave
+6.8. Contribuciones e innovaciones clave
 --------------------------------------------------------------------------------
 
   1. Algoritmo GeometricSIA: Programacion dinamica geometrica sobre
@@ -1667,14 +1878,23 @@ Para k>=3: KL siempre sobre Greedy cuando sea computacionalmente viable.
      estimacion Monte Carlo de EMD que extiende la viabilidad
      computacional de n<=15 a n=20, con error cuantificable O(1/sqrt(S)).
 
-  4. Demostracion academica: Prueba empirica de que el clustering
+  4. KL + MC-EMD para n=25: Algoritmo de aproximacion heuristica en
+     dos pasos (particion aleatoria + refinamiento KL con MC-EMD) que
+     permite analizar redes de 25 nodos donde el metodo exacto es
+     inviable, completando 50 casos en ~67 minutos.
+
+  5. Demostracion academica: Prueba empirica de que el clustering
      espectral (normalized cut) es inadecuado para minimizar EMD en
      sistemas IIT, estableciendo una cota superior negativa.
 
-  5. Sistema de cache multinivel: Memoizacion de subsistemas y
+  6. Sistema de cache multinivel: Memoizacion de subsistemas y
      resultados de find_mip que elimina redundancia computacional
      entre estrategias, reduciendo hasta 8x el costo de preparacion
      por caso.
+
+  7. Carga streaming de TPMs (tpm_io.py): Funcion load_tpm_csv que
+     lee TPMs linea a linea en float32, evitando MemoryError de
+     genfromtxt en n>=25 (archivos de ~3.4 GB).
 
 
 ================================================================================
@@ -1713,22 +1933,30 @@ Para k>=3: KL siempre sobre Greedy cuando sea computacionalmente viable.
 7.2. Frontera computacional
 --------------------------------------------------------------------------------
 
-Tabla 8: Frontera computacional observada experimentalmente
+Tabla 9: Frontera computacional observada experimentalmente
 
-  n   | TPM filas    | Tiempo/caso obs. | Estrategia viable
-  ----+--------------+------------------+------------------------
-  10  |       1,024  |      ~10 s       | Todas (QN, Geo, KL, G)
-  15  |      32,768  |      ~35 s       | Todas (QN, Geo, KL, G)
-  20  |   1,048,576  |  ~7.3 min media  | Geo + MCTS + MC-EMD
-  22  |   4,194,304  |  >3.5 h (to)     | Solo MC-EMD (aproximado)
-  25  |  33,554,432  |  >1 dia (est.)   | Inviable
+  n   | TPM filas    | Tiempo/caso obs.  | Estrategia viable
+  ----+--------------+-------------------+------------------------------
+   10  |       1,024  |       ~10 s       | Todas (QN, Geo, KL, G)
+   15  |      32,768  |       ~35 s       | Todas (QN, Geo, KL, G)
+   20  |   1,048,576  |   ~7.3 min media  | Geo + MCTS + MC-EMD
+   22  |   4,194,304  |   >3.5 h (to)     | Solo MC-EMD (aproximado)
+   25  |  33,554,432  |   ~67 min total   | KL + MC-EMD (aproximado)
+       |              |   (50 casos)      |
 
   (to) = timeout; (est.) = estimado teorico
+
+Nota: Para n=25, el tiempo de ~67 min corresponde a la corrida completa del
+benchmark rapido con 50 casos, no por caso individual. Los tiempos exactos
+por k se detallan en la Tabla 6 (seccion 6.4). El algoritmo exacto
+(GeometricSIA) sigue siendo inviable para n=25; solo la aproximacion
+KL+MC-EMD permite obtener resultados en tiempo finito.
 
 Frontera practica confirmada:
   - n <= 15: completamente viable (segundos a minutos).
   - n = 20:  viable con optimizaciones (horas).
-  - n >= 22: inviable con implementacion actual de CPU single-core.
+  - n = 22:  viable solo con aproximacion MCTS+MC-EMD.
+  - n = 25:  viable solo con aproximacion KL+MC-EMD (resultados aproximados).
 
 7.3. Analisis de escalabilidad
 --------------------------------------------------------------------------------
@@ -1752,13 +1980,18 @@ El crecimiento observado es coherente con el modelo teorico:
 7.4. Recomendaciones de uso y despliegue
 --------------------------------------------------------------------------------
 
-  a) Seleccion de algoritmo:
-     - Para n <= 10: usar KPartitionSIA con heuristica KL y k=3.
-     - Para 11 <= n <= 15: usar GeometricSIA k=2; si se requiere
-       k>2, usar KL con timeout adecuado.
-     - Para n = 20: usar benchmark con timeout >= 21600s, priorizando
-       GeometricSIA y MCTS+MC-EMD para k>2.
-     - Para n > 20: no recomendado sin optimizaciones arquitecturales.
+   a) Seleccion de algoritmo:
+      - Para n <= 10: usar KPartitionSIA con heuristica KL y k=3.
+      - Para 11 <= n <= 15: usar GeometricSIA k=2; si se requiere
+        k>2, usar KL con timeout adecuado.
+      - Para n = 20: usar benchmark con timeout >= 21600s, priorizando
+        GeometricSIA y MCTS+MC-EMD para k>2.
+      - Para n = 22: usar benchmark rapido (MCTS+MC-EMD) con
+        timeout >= 480s por caso.
+      - Para n = 25: usar benchmark rapido con KL+MC-EMD (forzar
+        heuristica="kl_mc", muestras=2500, perdida_mc_final=True).
+        Los resultados son inherentemente aproximados; no existe
+        referencia exacta para validacion cruzada.
 
   b) Configuracion de hardware:
      - RAM minima: 16 GB para n<=15, 32 GB para n=20.
@@ -1801,7 +2034,9 @@ identificadas pero no implementadas:
   marginalizacion vectorizada  |                  | reescritura core
 
 Se estima que la combinacion de todas las optimizaciones permitiria
-alcanzar n=22 de forma viable. n=25 requeriria un enfoque distribuido
+alcanzar n=22 de forma viable con el algoritmo exacto. n=25 ya es viable
+con la aproximacion KL+MC-EMD (resultados aproximados pero consistentes),
+aunque el algoritmo exacto (GeometricSIA) requeriria un enfoque distribuido
 (cluster o GPU) debido al tamano de la TPM (33M filas).
 
 
@@ -1813,8 +2048,14 @@ alcanzar n=22 de forma viable. n=25 requeriria un enfoque distribuido
 --------------------------------------------------------------------------------
 
 GeoMIP/
-  src/
-    Method2_Dynamic_Programming_Reformulation/
+   src/
+     tpm_io.py                          # Carga streaming float32 de TPMs
+     run_qnodes_k2.py                   # QNodes k=2 para n=25 (legacy)
+     geomip_paths.py                    # Rutas absolutas del proyecto
+     benchmark_rapido.py                # Benchmark rapido MCTS/KL+MC-EMD
+     benchmark_aprox.py                 # Benchmark aproximado KL+MC-EMD
+     gen_comparativa.py                 # Generacion de tablas comparativas
+     Method2_Dynamic_Programming_Reformulation/
       exec.py                          # Punto de entrada
       run_kpart.py                     # Ejecucion batch k-particion
       debug_kpart.py                   # Depuracion KPartitionSIA
@@ -1857,20 +2098,25 @@ GeoMIP/
     samples/                           # TPMs (N3-N22)
     validate_tpms.py                   # Validador
 
-  results/
-    finales/                           # Resultados consolidados
-    n10/, n15/, n20/                   # Resultados por red
+  data/results/
+    n10/, n15/, n20/, n22/, n25/       # Resultados por red (benchmark exacto)
+    aprox/                             # Resultados benchmark aproximado KL+MC
+    rapido/                            # Resultados benchmark rapido MCTS/KL+MC
+    comparativa/                       # Tablas comparativas (exacto vs rapido)
+    finales/                           # Resultados consolidados historicos
     logs/
       n10_n15/                         # Logs de benchmarks n<=15
       n20_plus/                        # Logs de benchmarks n>=20
     historico/                         # Versiones anteriores
     _archive/                          # Pruebas muy antiguas
+    README.txt                         # Documentacion de la estructura
 
 tests/
   conftest.py                          # Config pytest
   test_emd.py                          # Tests EMD
   test_geometric_n3.py                 # Tests N3
   test_kpart_coherence.py              # Tests k-particion
+  test_kpartition_eval.py              # Tests evaluacion k-particion (+14)
   test_solutions.py                    # Tests Solution
 
 docs/
@@ -1878,7 +2124,7 @@ docs/
   gen_tables.py                        # Generador tablas LaTeX
   tables/                              # Tablas LaTeX generadas
 
-bitacoras/                             # 26 bitacoras de desarrollo
+bitacoras/                             # 36 bitacoras de desarrollo
 
 8.2. Dependencias y plataformas
 --------------------------------------------------------------------------------
@@ -1893,6 +2139,12 @@ Requerimientos minimos:
   - colorama (terminal coloreada)
   - pyttsx3 (anuncios por voz)
 
+Para redes grandes (n>=21), la funcion load_tpm_csv (tpm_io.py) reemplaza
+a numpy.genfromtxt, leyendo el archivo CSV linea a linea en float32 con
+un buffer de 8 MB. Esto evita MemoryError al cargar TPMs de 25 nodos
+(~33.5M filas, ~3.4 GB). La funcion load_tpm selecciona automaticamente
+el metodo segun el tamano de la red (stream_threshold=21).
+
 Plataformas soportadas:
   - Windows 10/11 (validado)
   - Linux (compatibilidad verificada)
@@ -1901,7 +2153,7 @@ Plataformas soportadas:
 8.3. Suite de pruebas
 --------------------------------------------------------------------------------
 
-La suite de tests (pytest) consta de 34 pruebas organizadas en 4 modulos:
+La suite de tests (pytest) consta de 48 pruebas organizadas en 5 modulos:
 
   test_emd.py (7 tests):
     - Verificacion de emd_efecto analitica (casos triviales y bordes).
@@ -1988,7 +2240,7 @@ APENDICE B: Tabla de complejidades completa
 ================================================================================
 
 Algoritmo                | Tiempo                  | Espacio        | Clase
--------------------------+-------------------------+----------------+--------------
+-------------------------+-------------------------+----------------+------------------
 QNodes k=2               | Theta(N^3 * 2^n)        | O(N^2 * 2^n)   | Exponencial
 GeometricSIA k=2         | Theta(n * 2^n)          | O(n * 2^n)     | Exponencial*
 BruteForce k=2           | O(S(n,2) * 2^n)         | O(2^n)         | Factorial
@@ -1997,17 +2249,24 @@ KPart-KL k>=3            | O(k * n^2 * 2^n*itKL)   | O(2^n)         | Exponencia
 KPart-Clustering k>=3    | O(n * 2^n + n^3)        | O(n^2)         | Exponencial*
 KPart-Spectral k>=3      | O(n * 2^n + n^3)        | O(n^2)         | Exponencial*
 MCTS + MC-EMD k>=2       | O(I * n * k * S)        | O(n * k)       | Polinomial en S
+KL + MC-EMD k>=2 (n>=25) | O(itKL * k * n * S)     | O(n + S)       | Polinomial en S
 
   * El factor 2^n es inherente al hipercubo de estados; no existe algoritmo
     polinomial exacto para MIP (problema NP-hard en general).
 
 Donde:
-  n    = nodos del subsistema (purview + mecanismo)
-  N    = vertices totales (presentes + futuros)
-  k    = numero de particiones
-  I    = iteraciones MCTS
-  S    = muestras MC-EMD
-  itKL = iteraciones de refinamiento KL
+  n      = nodos del subsistema (purview + mecanismo)
+  N      = vertices totales (presentes + futuros)
+  k      = numero de particiones
+  I      = iteraciones MCTS
+  S      = muestras MC-EMD
+  itKL   = iteraciones de refinamiento KL
+  max_iter = iteraciones de refinamiento en KL+MC-EMD
+
+Nota: KL+MC-EMD y MCTS+MC-EMD son las unicas estrategias con complejidad
+polinomial en todos sus parametros, al eliminar el factor 2^n_mec mediante
+muestreo Monte Carlo. Esto las hace aptas para n>=22 donde las estrategias
+exactas son inviables.
 
 
 ================================================================================
@@ -2103,7 +2362,22 @@ APENDICE D: Glosario de terminos
     mediante intercambio bilateral con otro nodo) para reducir la
     perdida EMD de la particion actual.
 
+  Particion Inicial Aleatoria:
+    Estrategia de inicializacion que asigna nodos a k partes mediante
+    un shuffle controlado, utilizada como punto de partida para el
+    refinamiento KL en redes grandes (n=25).
+
+  Benchmark rapido:
+    Ejecucion del sistema con parametros agresivos (MCTS+MC-EMD o
+    KL+MC-EMD) que omite el paso exacto find_mip para obtener
+    resultados aproximados en tiempo reducido.
+
+  Carga streaming (float32):
+    Tecnica de lectura de TPMs linea a linea en precision float32,
+    implementada en tpm_io.py, que evita MemoryError al cargar
+    archivos de gran tamano (n>=25, ~3.4 GB).
+
 
 ================================================================================
-FIN DEL MANUAL TECNICO — GeoMIP v2.0
+FIN DEL MANUAL TECNICO — GeoMIP v2.1
 ================================================================================
