@@ -1,0 +1,130 @@
+Bitacora 41 - Graficas del informe: plantilla vs datos del proyecto
+Fecha: 14/06/2026
+
+Resumen
+Se conservan las 9 graficas originales (plantilla del enunciado) y se genera un
+segundo set en outputs/plots/proyecto/ con datos reales del proyecto hasta n=20.
+
+
+1. Graficas existentes (NO eliminadas)
+--------------------------------------
+Carpeta: outputs/plots/
+Script:  scripts/generar_graficas.py
+Fuente:  docs/DatosPruebas2026_1_filled.xlsx
+         (Excel rellenado del curso; QNodes + Geometric, hojas 10A/15B/20A)
+
+Archivos (9 PNG, generados 14/06 ~19:50):
+  10A-Elementos_grafico_1.png  tiempo vs tamano (Geometric, k=2..5)
+  10A-Elementos_grafico_2.png  boxplot perdida QNodes vs Geometric
+  10A-Elementos_grafico_3.png  delta perdida vs QNodes
+  15B-Elementos_grafico_1..3.png  (idem)
+  20A-Elementos_grafico_1..3.png  (idem)
+
+Uso: ilustran el formato pedido en DatosPruebas2026 (puntos a, b, c del enunciado).
+No reflejan necesariamente las corridas de mayo/junio del repo.
+
+
+2. Graficas nuevas (datos del proyecto, n=10,15,20)
+---------------------------------------------------
+Carpeta: outputs/plots/proyecto/
+Script:  scripts/generar_graficas_proyecto.py
+Runner:  scripts/run_graficas_proyecto.sh
+
+Fuente principal:
+  GeoMIP/data/results/comparativa/comparativa_long.csv
+  (generado por GeoMIP/src/gen_comparativa.py el 14/06)
+
+Modos en comparativa_long.csv usados en las graficas:
+  Exacto       -> Geo_k2, QN_k3, QN_k4, QN_k5 (benchmark exacto mayo)
+  Exacto_KL    -> KL_k3, KL_k4, KL_k5
+  Rapido_MCTS  -> MCTS_k2..k5 (benchmark rapido post-fix junio)
+  Aprox_KLmc   -> solo n=10,15 en aprox/ (incluido en g4 si hay datos)
+
+Fuente QNodes k=2 (baseline del enunciado, corrida junio):
+  n10  qnodes_k2_n10_2026-06-13_10h24.xlsx  (49 casos)
+  n15  qnodes_k2_n15_2026-06-13_10h57.xlsx  (50/50)
+  n20  qnodes_k2_n20_2026-06-13_20h19.xlsx  (50/50)
+
+Archivos benchmark exacto de referencia (origen de columnas Geo/QN/KL):
+  n10  n10_completo_2026-05-17_16h56.xlsx
+  n15  n15_completo_2026-05-17_16h56.xlsx
+  n20  n20_completo_2026-05-18_04h38.xlsx
+
+Archivos benchmark rapido de referencia:
+  n10  rapido/n10/n10_rapido_2026-06-13_21h33.xlsx
+  n15  rapido/n15/n15_rapido_2026-06-13_21h39.xlsx
+  n20  rapido/n20/n20_rapido_2026-06-13_22h13.xlsx
+
+
+3. Inventario graficas proyecto (14 PNG)
+----------------------------------------
+
+Por red (n=10, 15, 20):
+  n{n}_g1_tiempo_exacto_k.png
+    Tiempo medio vs |Purview|; benchmark exacto (Geo k=2, QN k=3..5).
+    Corresponde al punto (a) del enunciado con datos reales.
+
+  n{n}_g2_perdida_k2_estrategias.png
+    Boxplot perdida k=2: QNodes vs Geometric exacto vs MCTS rapido.
+    Corresponde al punto (b), ampliado con heuristica rapida del proyecto.
+
+  n{n}_g3_delta_qnodes_k2.png
+    Delta perdida (Geo o MCTS) - QNodes k=2, promediado por tamano subsistema.
+    Corresponde al punto (c) del enunciado.
+
+  n{n}_g4_perdida_modo_k.png
+    Perdida media por k y modo (exacto, KL, MCTS, aprox si aplica).
+    Resume el trabajo del proyecto: exacto vs rapido vs aprox.
+
+Globales:
+  global_g5_escalado_tiempo_geo_k2.png
+    Tiempo medio y maximo Geo k=2 al crecer n (10 -> 15 -> 20).
+
+  global_g6_qnodes_vs_geo_k2.png
+    Casos iguales / QNodes mejor / Geo mejor entre QNodes canonicos y Geo exacto.
+
+
+4. Diferencias clave plantilla vs proyecto
+------------------------------------------
+  | Aspecto          | outputs/plots/        | outputs/plots/proyecto/   |
+  |------------------|----------------------|---------------------------|
+  | Fuente           | Excel filled curso   | comparativa_long + QNodes |
+  | Estrategias      | QNodes + Geometric   | QNodes + Geo + MCTS + KL  |
+  | Rapido/aprox     | No                   | Si (MCTS, KLmc en g4)     |
+  | n cubiertos      | 10, 15, 20           | 10, 15, 20                |
+  | QNodes k=2       | Del Excel filled     | Corridas junio 2026       |
+
+Nota n=10 QNodes: 49 casos en dataset (no 50); las graficas usan los casos
+presentes en comparativa_long y qnodes_k2_n10.
+
+
+5. Como regenerar
+-----------------
+  bash scripts/run_graficas_proyecto.sh
+
+  (Instala matplotlib/seaborn en ~/.venvs/kqgmip si faltan.)
+
+Para actualizar comparativa antes de graficas:
+  cd GeoMIP/src/Method2_Dynamic_Programming_Reformulation
+  uv run python ../gen_comparativa.py --n 10 15 20
+
+
+6. Pendiente graficas
+---------------------
+  - n=22, n=25: cuando haya QNodes/rapido consolidados en comparativa.
+  - Grafico tiempo MCTS vs Geo en n=20 (escala log) si hace falta en informe.
+
+
+7. Correcciones post-revision (14/06 tarde)
+--------------------------------------------
+Tras auditoria (scripts/audit_graficas_proyecto.py):
+
+  g2/g3: etiquetas eje X cambiadas de "n=5" a "|P|=5" (tamano Purview, no red).
+  g2: nota al pie si Geo exacto k=2 tiene menos de 50 casos (n=15: 19/50).
+  g4: dos paneles — izquierda modos exactos/aprox, derecha MCTS (escalas separadas).
+  g5: error bars solo hacia arriba (asimetricas); ylim>=0; anotacion max en segundos;
+      nota n=15 parcial.
+  g6: etiqueta "N casos" sobre barras; nota n=15 con 19 casos Geo en comparativa.
+  g1: anotacion "1 caso" en puntos con un solo #Prueba para ese |Purview|.
+
+Regenerar: bash scripts/run_graficas_proyecto.sh
