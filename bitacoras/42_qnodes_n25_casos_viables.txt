@@ -1,0 +1,56 @@
+Bitacora 42 - QNodes k=2 n=25: casos viables completados
+Fecha: 15/06/2026
+
+Resumen
+Se completo la corrida parcial de QNodes k=2 para n=25 con los 33 casos viables
+planificados. Todos convergieron (33/33 OK). Diecisiete casos pesados quedan
+omitidos de forma deliberada (misma logica que n=22, mas bloque sistema completo
+#1-#4, #8-#11 y #15).
+
+
+1. Contexto y decision
+----------------------
+  - n=25 con TPM N25A.csv (~3.4 GB, 2^25 filas): inviable correr 50/50 en plazo.
+  - Casos omitidos: 1 2 3 4 8 9 10 11 15 16 17 18 22 23 24 25 50 (17 casos).
+  - Casos ejecutados: 5 6 7 12 13 14 19 20 21 26-49 (33 casos).
+  - Script: scripts/run_qnodes_n25_viables.sh
+
+
+2. Corrida (14-15/06, Ubuntu/WSL, background task 478346)
+-----------------------------------------------------------
+  Inicio:  2026-06-14T14:49:17-05:00 (aprox., carga TPM)
+  Fin:     2026-06-15T03:49:16-05:00
+  Duracion total: ~13 h (46 698 031 ms)
+  Comando:
+    uv run python -u ../run_qnodes_k2.py --n 25 --merge \
+      --casos 5 6 7 12 13 14 19 20 21 26 27 28 29 30 31 32 33 34 35 \
+              36 37 38 39 40 41 42 43 44 45 46 47 48 49
+  Checkpoints:
+    qnodes_k2_checkpoint_2026-06-14_14h55.xlsx  (tras #5)
+    qnodes_k2_checkpoint_2026-06-14_15h05.xlsx  (tras #20)
+    qnodes_k2_checkpoint_2026-06-14_19h14.xlsx  (tras #30)
+    qnodes_k2_checkpoint_2026-06-14_21h39.xlsx  (tras #35)
+    qnodes_k2_checkpoint_2026-06-14_23h59.xlsx  (tras #40)
+    qnodes_k2_checkpoint_2026-06-15_03h18.xlsx  (tras #45)
+  Casos lentos: bloque #36-#49 (BDFHJLNPRTVX como purview) ~1-4 h c/u.
+
+
+3. Archivo canonico
+-------------------
+  GeoMIP/data/results/n25/qnodes_k2_n25_2026-06-15_03h49.xlsx
+  Filas: 33
+  #Prueba: 5-7, 12-14, 19-21, 26-49 (sin huecos dentro del subconjunto)
+  Merge final: 33 filas nuevas (sin checkpoint previo en esta tanda)
+
+
+4. Auditoria rapida
+-------------------
+  - 33/33 casos presentes, coincide con lista CASOS_VIABLES del script.
+  - exit_code 0, mensaje "33/33 convergieron".
+  - Checkpoints conservados en n25/ (no archivados aun).
+
+
+5. Siguiente paso opcional
+--------------------------
+  - Regenerar comparativa/graficas si se incorpora QNodes n=25 parcial.
+  - Archivar checkpoints n25 en _archive/ cuando se cierre el informe.

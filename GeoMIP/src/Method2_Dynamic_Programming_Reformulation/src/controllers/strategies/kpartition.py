@@ -1,10 +1,16 @@
 """
-Estrategia KPartitionSIA: k-particiones (k >= 2) sobre subsistemas IIT/EMD.
+Estrategia KPartitionSIA: k-particiones (k=2,3,4,5) sobre subsistemas.
 
-Extiende la infraestructura SIA reutilizando GeometricSIA (find_mip, tabla de
-transiciones, N-Cubos) y el formato de partición de QNodes. Para k=2 sin heurística
-forzada delega en GeometricSIA (MIP bipartición exacta). Para k>=3 aplica búsqueda
-heurística de k-MIP (Greedy, Kernighan-Lin, MCTS, etc.).
+Es el aporte principal del proyecto. Reutiliza GeoMIP para k=2 exacto y aplica
+heuristicas (Greedy, KL, MCTS, clustering, espectral) para k mayor o redes grandes.
+
+Cuando se usa:
+  - benchmark.py para k=3,4,5 (Greedy y KL)
+  - benchmark_rapido.py (MCTS o KL con Monte Carlo)
+  - Cuando el enunciado pide find_k_partition
+
+Guia para principiantes:
+  documentacion-sustentacion-kqgmip/GUIA_STRATEGIES_PRINCIPIANTES.txt
 """
 import time
 import math
@@ -33,21 +39,10 @@ import functools
 
 class KPartitionSIA(SIA):
     """
-    Estrategia SIA para k-particiones del mecanismo de información.
+    Busca como partir el sistema en k grupos con la menor perdida posible.
 
-    Hereda de SIA y compone GeometricSIA para reutilizar find_mip, la tabla de
-    costos de transiciones y la marginalización sobre N-Cubos. Genera candidatos
-    de k-partición con heurísticas (Greedy, KL, MCTS, clustering, espectral) y
-    los evalúa con _evaluar_particion (EMD sobre marginales) o MC-EMD en redes
-    grandes.
-
-    Precondiciones:
-        - gestor.estado_inicial debe coincidir con el tamaño de la TPM.
-        - k >= 2 y k <= número de nodos (presentes + futuros) del subsistema.
-
-    Nota:
-        La k-MIP exacta es intratable para k>=3; este módulo implementa
-        búsqueda heurística documentada en find_k_partition / aplicar_estrategia.
+    Recibe un gestor, el valor k y opcionalmente que heuristica forzar.
+    Usa un GeometricSIA interno para reutilizar find_mip y la tabla de costos.
     """
 
     def __init__(
@@ -62,18 +57,15 @@ class KPartitionSIA(SIA):
         perdida_mc_final: bool = False,
     ):
         """
-        Inicializa la estrategia de k-partición.
+        Crea la estrategia con sus parametros.
 
-        Args:
-            gestor: Gestor con estado_inicial y rutas a TPMs en .samples/.
-            k: Número de partes deseadas (2, 3, 4 o 5 en el benchmark).
-            forzar_heuristica: None (mejor disponible), 'greedy', 'kl', 'kl_mc',
-                'mcts', 'clustering' o 'spectral'.
-            n_samples_mc: Muestras MC-EMD (-1=auto, 0=exacto, >0=fijo).
-            mcts_n_iter: Iteraciones MCTS; 0 usa default interno.
-            mcts_n_samples: Muestras MC en rollouts MCTS; 0 usa default.
-            mcts_rollout_depth: Profundidad de rollout MCTS; 0 usa default.
-            perdida_mc_final: Si True y hay MC-EMD, la pérdida reportada es aproximada.
+        Recibe:
+          gestor - Manager con la red
+          k - cuantas partes queremos (2 a 5 en el benchmark)
+          forzar_heuristica - None, greedy, kl, kl_mc, mcts, clustering, spectral
+          n_samples_mc - cuantas muestras Monte Carlo (-1 automatico)
+          mcts_n_iter, mcts_n_samples, mcts_rollout_depth - opciones MCTS
+          perdida_mc_final - si True reporta perdida aproximada con MC
         """
         super().__init__(gestor)
         self.k = k
@@ -96,24 +88,10 @@ class KPartitionSIA(SIA):
         tpm: np.ndarray,
     ) -> Solution:
         """
-        Busca heurísticamente una k-partición (k-MIP aproximada) del subsistema.
+        Entrada publica del enunciado: busca una k-particion del subsistema.
 
-        Método principal de búsqueda: prepara el subsistema, genera candidatos
-        (vía find_mip + extensión Greedy/KL, MCTS, o vía rápida KL+MC) y devuelve
-        la mejor según pérdida EMD (exacta o MC-EMD).
-
-        Args:
-            condicion: Cadena binaria del contexto/condición.
-            alcance: Cadena binaria o literal de letras del purview.
-            mecanismo: Cadena binaria o literal de letras del mecanismo.
-            tpm: Matriz TPM (2^n x n) del sistema completo.
-
-        Returns:
-            Solution con particion, perdida, k, tiempos y metadatos.
-            Si k > nodos del subsistema, perdida=None y particion='Inviable ...'.
-
-        Precondiciones:
-            tpm.shape[0] == 2 ** len(gestor.estado_inicial).
+        Recibe: condicion, alcance, mecanismo, tpm
+        Devuelve: Solution con particion, perdida, k y tiempo
         """
         return self._resolver_k_partition(condicion, alcance, mecanismo, tpm)
 
@@ -125,13 +103,10 @@ class KPartitionSIA(SIA):
         tpm: np.ndarray
     ):
         """
-        Punto de entrada SIA; equivalente a find_k_partition.
+        Igual que find_k_partition. El benchmark llama a este metodo.
 
-        Args:
-            condicion, alcance, mecanismo, tpm: Ver find_k_partition.
-
-        Returns:
-            Solution con el resultado de la búsqueda k-MIP heurística.
+        Recibe: condicion, alcance, mecanismo, tpm
+        Devuelve: Solution
         """
         return self._resolver_k_partition(condicion, alcance, mecanismo, tpm)
 
@@ -142,6 +117,19 @@ class KPartitionSIA(SIA):
         mecanismo: str,
         tpm: np.ndarray,
     ):
+        """
+        Cerebro principal: decide que camino seguir segun k y la heuristica.
+
+        Pasos:
+          1. Prepara el subsistema
+          2. Si k es mayor que nodos, devuelve Inviable
+          3. Si se pide MCTS o la red es grande, usa _heuristica_mcts
+          4. Si k=2 sin forzar, delega en GeometricSIA (exacto)
+          5. Si modo rapido KL+MC, usa _solution_kl_mc_rapida
+          6. Si no, corre Greedy, KL, Clustering, Spectral y elige la mejor
+
+        Devuelve: Solution
+        """
         self.sia_preparar_subsistema(condicion, alcance, mecanismo, tpm)
         
         # Validation: check if k-partition is viable
@@ -262,17 +250,10 @@ class KPartitionSIA(SIA):
 
     def _construir_tabla_costos(self) -> list:
         """
-        Construye la tabla de costos de transiciones y obtiene la bipartición MIP.
+        Arma la tabla de costos con GeoMIP y obtiene la biparticion semilla.
 
-        Reutiliza GeometricSIA.find_mip(), que rellena self.tabla_transiciones
-        con los costos C(s0, vecino) usados por clustering/espectral y como
-        semilla bipartición para extender a k partes (Greedy/KL).
-
-        Returns:
-            Lista de nodos (presentes, futuros) de la bipartición MIP óptima.
-
-        Precondiciones:
-            sia_preparar_subsistema ya ejecutado sobre self.
+        Reutiliza geometric_base.find_mip().
+        Devuelve: lista de nodos de la mejor biparticion (punto de partida para k partes)
         """
         self.geometric_base.sia_subsistema = self.sia_subsistema
         self.geometric_base.sia_dists_marginales = self.sia_dists_marginales
@@ -298,6 +279,12 @@ class KPartitionSIA(SIA):
         return mip
 
     def _heuristica_clustering(self):
+        """
+        Agrupa nodos con clustering jerarquico (Ward) sobre perfiles de costos.
+
+        Usa la tabla de transiciones de GeoMIP.
+        Devuelve: lista de k partes (presentes, futuros)
+        """
         n_futuros = len(self.sia_subsistema.indices_ncubos)
         n_presentes = len(self.sia_subsistema.dims_ncubos)
         n_total = n_futuros + n_presentes
@@ -359,11 +346,17 @@ class KPartitionSIA(SIA):
         return [p for p in partes_dict.values() if p[0] or p[1]]
 
     def _get_mc_rng(self):
+        """Devuelve el generador de numeros aleatorios para Monte Carlo (semilla fija 42)."""
         if self._rng_mc is None:
             self._rng_mc = np.random.default_rng(42)
         return self._rng_mc
 
     def _mc_samples_efectivos(self) -> int:
+        """
+        Decide cuantas muestras Monte Carlo usar segun el tamano de la red.
+
+        Devuelve: 0 si EMD exacto, o un numero de muestras (800 o 2000 en redes grandes)
+        """
         if self.n_samples_mc == 0:
             return 0
         if self.n_samples_mc > 0:
@@ -378,6 +371,7 @@ class KPartitionSIA(SIA):
         return 2000
 
     def _kl_max_iter(self) -> int:
+        """Cuantas pasadas de refinamiento KL hacer segun el tamano del mecanismo."""
         n_mec = len(self.sia_subsistema.dims_ncubos)
         if n_mec >= 18:
             return 8
@@ -386,6 +380,12 @@ class KPartitionSIA(SIA):
         return 20
 
     def _loss_interna(self, partes) -> float:
+        """
+        Evalua una particion candidata: EMD exacto o aproximado con Monte Carlo.
+
+        Recibe: lista de partes
+        Devuelve: numero de perdida
+        """
         s = self._mc_samples_efectivos()
         if s <= 0:
             return self._evaluar_particion(partes)
@@ -393,20 +393,13 @@ class KPartitionSIA(SIA):
 
     def _heuristica_greedy(self, mip):
         """
-        Extiende la bipartición MIP a k partes por extracción greedy unilateral.
+        Parte de la biparticion de GeoMIP y va creando mas partes hasta tener k.
 
-        Usa la bipartición devuelta por find_mip como punto de partida. En cada
-        paso evalúa candidatos con _loss_interna (EMD exacto o MC-EMD) y elige el
-        split que más reduce la pérdida hasta alcanzar k partes.
+        En cada paso saca un nodo de una parte y crea una parte nueva, eligiendo
+        el movimiento que mas reduce la perdida.
 
-        Args:
-            mip: Lista de nodos de la bipartición óptima (salida de find_mip).
-
-        Returns:
-            Lista de k tuplas (presentes, futuros), una por parte.
-
-        Precondiciones:
-            len(partes iniciales) <= k; mip no vacío para subsistemas viables.
+        Recibe: mip (biparticion inicial de find_mip)
+        Devuelve: lista de k partes (presentes, futuros)
         """
         parte1 = list(mip)
         parte2 = self.geometric_base.nodes_complement(list(mip))
@@ -460,7 +453,12 @@ class KPartitionSIA(SIA):
         return partes
 
     def _refinar_kl(self, partes: list, max_iter: int) -> list:
-        """Refinamiento KL: mueve nodos entre partes hasta que no mejore."""
+        """
+        Mejora la particion moviendo nodos entre partes (algoritmo Kernighan-Lin).
+
+        Recibe: partes actuales y maximo de iteraciones
+        Devuelve: partes refinadas
+        """
         for _ in range(max_iter):
             improved = False
             perdida_actual = self._loss_interna(partes)
@@ -509,12 +507,19 @@ class KPartitionSIA(SIA):
         return partes
 
     def _perdida_final_partes(self, partes: list) -> float:
+        """Calcula la perdida final: exacta o Monte Carlo segun configuracion."""
         samples = self._mc_samples_efectivos()
         if self.perdida_mc_final and samples > 0:
             return self._mc_emd(partes, samples, self._get_mc_rng())
         return self._evaluar_particion(partes)
 
     def _solution_kl_mc_rapida(self, label: str) -> Solution:
+        """
+        Arma el objeto Solution para el modo rapido KL+MC en redes grandes.
+
+        Recibe: etiqueta de estrategia (KL o KL_MC)
+        Devuelve: Solution con particion y perdida
+        """
         partes = self._heuristica_kpart_kl_mc_rapida(self.k)
         return Solution(
             estrategia=f"{GEOMETRIC_LABEL}_k{self.k}_{label}",
@@ -528,7 +533,12 @@ class KPartitionSIA(SIA):
         )
 
     def _heuristica_kpart_kl_mc_rapida(self, k: int) -> list:
-        """k-particion rapida sin find_mip: split aleatorio en k grupos + KL+MC."""
+        """
+        k-particion rapida sin find_mip: reparte nodos al azar en k grupos y refina con KL.
+
+        Recibe: k (numero de partes)
+        Devuelve: lista de k partes
+        """
         rng = self._get_mc_rng()
         nodos_pres = list(self.sia_subsistema.dims_ncubos)
         nodos_fut = list(self.sia_subsistema.indices_ncubos)
@@ -553,22 +563,16 @@ class KPartitionSIA(SIA):
         return self._refinar_kl(partes, self._kl_max_iter())
 
     def _heuristica_k2_kl_mc_rapida(self) -> list:
+        """Atajo: llama _heuristica_kpart_kl_mc_rapida con k=2."""
         return self._heuristica_kpart_kl_mc_rapida(2)
 
     # ── Heurística 3: Kernighan-Lin ──────────────────────────────────────────
     def _heuristica_kernighan_lin(self, mip, max_iter: int = 20):
         """
-        Kernighan-Lin inspirado para k-particiones.
+        Refina una k-particion: primero Greedy hasta k partes, luego Kernighan-Lin.
 
-        Fase 1 (extensión): usa el Greedy actual para llegar a k partes.
-        Fase 2 (refinamiento KL): aplica pasadas de movimientos de un nodo
-            entre partes existentes hasta que ningún movimiento mejore la EMD.
-
-        La diferencia clave respecto al Greedy es que KL MUEVE nodos entre
-        partes ya existentes (no solo extrae unilateralmente), escapando
-        mínimos locales donde un intercambio bilateral sería beneficioso.
-
-        Complejidad: O(max_iter · k² · n · 2^n)
+        Recibe: mip (biparticion inicial) y max_iter (opcional)
+        Devuelve: lista de k partes mejoradas
         """
         # Fase 1: partir de la bipartición MIP y extender a k con Greedy
         partes = self._heuristica_greedy(mip)
@@ -578,21 +582,10 @@ class KPartitionSIA(SIA):
     # ── Heurística 4: Espectral con pesos EMD ────────────────────────────────
     def _heuristica_espectral_emd(self):
         """
-        Particionamiento espectral con afinidad basada en la cost_matrix EMD.
+        Agrupa nodos con corte espectral usando la matriz de costos EMD.
 
-        CORRECCIÓN respecto a la versión Ward:
-        - Ward usaba distancia euclidiana entre perfiles escalares → ignora EMD.
-        - Esta versión construye la afinidad directamente desde C[i,j]:
-            * C[i,j] = costo de separar el nodo presente i del nodo futuro j
-              (extraído de tabla_transiciones[(s0, vecino_i)][j]).
-            * Un C[i,j] alto → i y j deben ir juntos (separarlos es costoso).
-          La afinidad entre pares de nodos es:
-            * W[pres_i, fut_j]   = C[i,j]                (costo directo)
-            * W[pres_i, pres_i'] = cosine(C[i,:], C[i',:]) (mismos futuros)
-            * W[fut_j,  fut_j']  = cosine(C[:,j], C[:,j']) (mismos presentes)
-        - Luego aplica corte espectral normalizado y k-means.
-
-        Complejidad: O(n·2^n) para find_mip + O(n³) para eigendecomposición
+        Construye afinidad desde la tabla de transiciones y aplica k-means.
+        Devuelve: lista de k partes
         """
         n_futuros   = len(self.sia_subsistema.indices_ncubos)
         n_presentes = len(self.sia_subsistema.dims_ncubos)
@@ -664,7 +657,12 @@ class KPartitionSIA(SIA):
         return self._labels_to_partes(labels, n_presentes, k_clusters)
 
     def _kmeans_simple(self, X: np.ndarray, k: int, max_iter: int = 100) -> list:
-        """K-means sin sklearn. Inicialización k-means++."""
+        """
+        K-means simple sin sklearn. Agrupa filas del espacio espectral.
+
+        Recibe: matriz X, numero de grupos k
+        Devuelve: lista de etiquetas por fila
+        """
         n = len(X)
         if k >= n:
             return list(range(n))
@@ -699,7 +697,12 @@ class KPartitionSIA(SIA):
 
     def _labels_to_partes(self, labels: list, n_presentes: int,
                            k_clusters: int) -> list:
-        """Convierte etiquetas de clustering a lista de (presentes, futuros)."""
+        """
+        Convierte etiquetas 1..k por nodo en lista de partes.
+
+        Recibe: labels, cuantos nodos son presentes, k
+        Devuelve: lista de (presentes, futuros)
+        """
         partes_dict: dict[int, tuple[list, list]] = {}
         for i, lbl in enumerate(labels):
             lbl = int(lbl)
@@ -716,26 +719,22 @@ class KPartitionSIA(SIA):
         return [p for p in partes_dict.values() if p[0] or p[1]]
 
     def _decode_part(self, nodes: list[tuple[int, int]]):
+        """
+        Separa nodos en listas de presentes y futuros.
+
+        Recibe: nodos (tiempo, indice)
+        Devuelve: tupla (presentes, futuros)
+        """
         presentes = [n[1] for n in nodes if n[0] == 0]
         futuros = [n[1] for n in nodes if n[0] == 1]
         return (presentes, futuros)
 
     def _k_partir(self, partes) -> System:
         """
-        Aplica la k-partición marginalizando N-Cubos según el mecanismo de cada parte.
+        Aplica la k-particion al subsistema marginalizando cada NCube.
 
-        Para cada nodo futuro asignado a una parte, marginaliza el NCube asociado
-        sobre las dimensiones del mecanismo que no pertenecen a esa parte (producto
-        tensorial interno vía cube.marginalizar).
-
-        Args:
-            partes: Lista de (presentes, futuros) con índices globales de nodos.
-
-        Returns:
-            System con ncubos ya marginalizados según la k-partición.
-
-        Precondiciones:
-            sia_subsistema preparado; cada futuro aparece en exactamente una parte.
+        Recibe: lista de partes (presentes, futuros)
+        Devuelve: System ya particionado
         """
         new_sys = System.__new__(System)
         new_sys.estado_inicial = self.sia_subsistema.estado_inicial
@@ -759,22 +758,10 @@ class KPartitionSIA(SIA):
 
     def _reconstruir_tensor(self, distribucion_1d):
         """
-        Reconstruye la distribución conjunta como producto tensorial de k términos.
+        Reconstruye la distribucion conjunta como producto de las marginales 1D.
 
-        Cada marginal 1D P(Xi=OFF) se convierte en [p, 1-p] y se combina con
-        el producto de Kronecker (equivalente al producto tensorial de las
-        distribuciones binarias de cada nodo bajo independencia condicional).
-
-        Args:
-            distribucion_1d: Array 1D de probabilidades marginales P(Xi=OFF).
-
-        Returns:
-            Array ndarray con la distribución conjunta reconstruida, o vacío
-            si distribucion_1d está vacía.
-
-        Nota:
-            _evaluar_particion usa emd_efecto sobre marginales (equivalente en
-            hipercubo causal); este método expone el producto tensorial explícito.
+        Recibe: array con P(Xi=OFF) por nodo
+        Devuelve: array con la distribucion conjunta
         """
         node_dists = [np.array([p, 1 - p]) for p in distribucion_1d]
         if not node_dists: return np.array([])
@@ -782,25 +769,10 @@ class KPartitionSIA(SIA):
 
     def _evaluar_particion(self, partes):
         """
-        Evalúa la pérdida EMD de una k-partición candidata.
+        Calcula la perdida EMD exacta de una k-particion candidata.
 
-        Flujo:
-          1. _k_partir: marginaliza N-Cubos según la asignación de partes.
-          2. distribucion_marginal: obtiene P(Xi=OFF) por nodo del mecanismo.
-          3. emd_efecto: EMD causal entre particionado y distribución original.
-
-        Las heurísticas Greedy/KL/MCTS usan este método (o MC-EMD) como función
-        de costo. Clustering/espectral usan además tabla_transiciones para
-        generar candidatos, pero la pérdida final se valida aquí.
-
-        Args:
-            partes: Lista de (presentes, futuros) que define la k-partición.
-
-        Returns:
-            Pérdida EMD >= 0, o float('inf') si partes está vacía.
-
-        Precondiciones:
-            sia_subsistema y sia_dists_marginales ya calculados.
+        Recibe: lista de partes
+        Devuelve: numero de perdida (menor es mejor)
         """
         if not partes:
             return float('inf')
@@ -821,13 +793,10 @@ class KPartitionSIA(SIA):
 
     def _fmt_kparticion(self, partes) -> str:
         """
-        Formatea la k-partición en el estilo QNodes (filas superiores/inferiores).
+        Formatea la k-particion como texto legible (estilo QNodes para el Excel).
 
-        Args:
-            partes: Lista de (presentes, futuros).
-
-        Returns:
-            Cadena multi-línea compatible con fmt_parte_q / salida Excel.
+        Recibe: lista de partes
+        Devuelve: cadena con filas superiores e inferiores
         """
         tops = []
         bottoms = []
@@ -845,25 +814,11 @@ class KPartitionSIA(SIA):
 
     def _mc_emd(self, partes: list, n_samples: int, rng: np.random.Generator) -> float:
         """
-        Capa 1 — Estimador MC-EMD completamente vectorizado.
+        Estima la perdida con Monte Carlo en lugar de promediar todos los estados.
 
-        Insight clave: la marginalización exacta hace np.mean sobre 2^n_mec
-        entradas para obtener UN solo valor. Este método estima ese valor
-        muestreando S estados aleatorios para las dimensiones a marginalizar,
-        con un lookup vectorizado directo en el array original del NCube.
-
-        Speedup vs exacto: 2^n_mec / S
-          → n_mec=20, S=3000: 1,048,576 / 3,000 ≈ 350×
-
-        Complejidad: O(n_fut × S × n_mec)  (todo NumPy, sin bucles Python).
-        Error del estimador: O(1/√S) — insesgado.
-
-        Args:
-            partes:    lista de (presentes, futuros) — la partición candidata
-            n_samples: S — estados a muestrear por NCube
-            rng:       generador de números aleatorios (reproducible)
-        Returns:
-            Estimación del EMD (float ≥ 0)
+        En redes grandes es mucho mas rapido que el calculo exacto.
+        Recibe: partes, numero de muestras, generador aleatorio
+        Devuelve: perdida estimada
         """
         if not partes:
             return float('inf')
@@ -946,32 +901,13 @@ class KPartitionSIA(SIA):
         seed: int        = 42,
     ) -> list:
         """
-        Capa 2 — Monte Carlo Tree Search para k-particiones.
+        Busca una buena k-particion con Monte Carlo Tree Search (MCTS).
 
-        Estructura del árbol MCTS:
-          Nodo   = k-partición (codificada como array de etiquetas enteras)
-          Acción = mover un nodo de su parte actual a otra parte
-          Valor  = −EMD (MCTS maximiza; nosotros minimizamos EMD)
+        Prueba muchas asignaciones de nodos a k partes usando UCB para explorar.
+        Puede usar MC-EMD para evaluar rapido en redes grandes.
 
-        Por cada iteración:
-          1. Selección:   elige la acción con mayor UCB desde el estado actual
-          2. Expansión:   aplica la acción seleccionada → nuevo estado
-          3. Rollout:     simulación aleatoria con mejora oportunista (depth pasos)
-          4. Backprop:    actualiza visits y values en el árbol
-
-        Capa MC-EMD (opcional): si n_samples_emd > 0, los rollouts usan
-        _mc_emd() en vez de _evaluar_particion(), haciendo cada evaluación
-        ~(2^n_mec / S) veces más rápida con error controlado O(1/√S).
-
-        Args:
-            k:             número de partes deseadas
-            n_iter:        iteraciones MCTS (≥100 para resultados estables)
-            c_ucb:         constante de exploración UCB1 (√2 ≈ 1.414)
-            n_samples_emd: muestras MC-EMD; 0 = evaluación exacta
-            rollout_depth: pasos aleatorios por rollout
-            seed:          semilla para reproducibilidad
-        Returns:
-            Lista de (presentes, futuros) — la mejor k-partición encontrada
+        Recibe: k, iteraciones, constante UCB, muestras MC, profundidad rollout, semilla
+        Devuelve: mejor lista de (presentes, futuros)
         """
         rng = np.random.default_rng(seed)
 

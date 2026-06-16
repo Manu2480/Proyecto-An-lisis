@@ -161,3 +161,11 @@ Definidas en `GeoMIP/src/geomip_paths.py`:
 | KPartitionSIA | ≤ 12–18 | Depende de heurística y subsistema |
 
 Para n > 15 usar subsistemas parciales (alcance/mecanismo) según DatosPruebas2026.
+
+## Video tutorial y comandos de consola
+
+Guía paso a paso (8–15 min, instalación + demo k=2..5 + gráficas):
+
+`documentacion-sustentacion-kqgmip/VIDEO_GUIA_COMANDOS.txt`
+
+Scripts en `scripts/`: solo generación y auditoría de gráficas (`scripts/README.txt`). Los benchmarks se ejecutan desde `GeoMIP/src/` con `uv run python ../benchmark*.py`.

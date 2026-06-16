@@ -1,3 +1,17 @@
+"""
+Estrategia GeometricSIA (KGeoMIP): biparticion EXACTA con el metodo geometrico.
+
+Construye una tabla de costos entre estados del mecanismo y elige la biparticion
+con menor perdida EMD. Es la referencia exacta para k=2 en el benchmark.
+
+Cuando se usa:
+  - benchmark exacto columna Geo_k2
+  - KPartitionSIA cuando k=2 sin otra heuristica forzada
+  - Como base para armar la tabla de costos en k=3,4,5
+
+Guia para principiantes:
+  documentacion-sustentacion-kqgmip/GUIA_STRATEGIES_PRINCIPIANTES.txt
+"""
 import copy
 import heapq
 import os
@@ -35,12 +49,23 @@ _FIND_MIP_CACHE: dict[tuple, dict] = {}
 
 
 def limpiar_cache_find_mip() -> None:
-    """Vaciar caché de find_mip (llamar entre casos del benchmark para liberar RAM)."""
+    """
+    Vacia la memoria guardada de find_mip.
+
+    Se llama entre casos del benchmark para no llenar la RAM.
+    """
     _FIND_MIP_CACHE.clear()
 
 
 class GeometricSIA(SIA):
+    """
+    Encuentra la mejor biparticion (k=2) con el metodo geometrico del curso.
+
+    Recibe un gestor con la red. Guarda tablas de costos y particiones evaluadas.
+    """
+
     def __init__(self, gestor: Manager):
+        """Prepara etiquetas, tablas vacias y el registro de tiempos."""
         super().__init__(gestor)
         profiler_manager.start_session(
             f"{NET_LABEL}{len(gestor.estado_inicial)}{gestor.pagina}"
@@ -60,17 +85,21 @@ class GeometricSIA(SIA):
         mecanismo: str,
         tpm: np.ndarray #! COMENTAR PARA UN SOLO ESTADO INICIAL
     ):
-        """ vamos a hacer que vaya desde el estado inicial hasta el final, bit a bit diferente, llenando la tabla primero para distancias hamming 1 hasta n, con n la cantidad de bits que cambian del estado inicial al final. para esto podemos usar una tabla de transiciones, donde cada fila es un estado y cada columna es un bit. la tabla de transiciones se llena con los estados que se pueden alcanzar desde el estado inicial, y luego se va llenando la tabla de distancias hamming. para esto vamos a usar una lista de listas, donde cada lista es una fila de la tabla de transiciones. la primera fila es el estado inicial, y las siguientes filas son los estados alcanzables desde el estado inicial. la última fila es el estado final.
-        paso a paso
-        1. cargar la matriz, pasar a ncubos
-        2. condicionar
-        3. obtener los bits que cambian entre el estado inicial y el final
-        4. obener vecinos del estado final que van hacia el estado inicial y calcular el costo de la transicion.
-        5. para cada vecino, obtener los vecinos que van hacia el estado inicial y calcular el costo de la transicion.
-        6. repetir hasta llegar al estado inicial.
+        """
+        Punto de entrada: analiza un subsistema y devuelve la mejor biparticion.
 
+        Recibe:
+          condicion  - nodos fijos en background
+          alcance    - nodos futuros activos
+          mecanismo  - nodos presentes activos
+          tpm        - matriz de probabilidad de transicion
 
-        nota: intentar llenar la tabla desde el estado final hacia atras, pues al contrario habra dependencia de los valores de la tabla de los estados que van en camino hacia el estado final
+        Hace:
+          1. Prepara el subsistema
+          2. Llena la tabla de costos (find_mip)
+          3. Formatea la particion ganadora
+
+        Devuelve: Solution con perdida, particion, tiempo y k=2
         """
         self.sia_preparar_subsistema(condicion, alcance, mecanismo, tpm) #! COMENTAR PARA UN SOLO ESTADO INICIAL
         # self.sia_preparar_subsistema(condicion, alcance, mecanismo) #! DESCOMENTAR PARA UN SOLO ESTADO INICIAL
@@ -110,12 +139,26 @@ class GeometricSIA(SIA):
         )
     
     def nodes_complement(self, nodes: list[tuple[int, int]]):
+        """
+        Devuelve los nodos que NO estan en la lista dada.
+
+        Recibe: lista de nodos (tiempo, indice)
+        Devuelve: lista con el complemento respecto a todos los vertices
+        """
         return list(set(self.vertices) - set(nodes))
     
     def find_mip(self):
         """
-        Implementa el algoritmo para encontrar la bipartición óptima
-        utilizando el enfoque geométrico-topológico.
+        Corazon del metodo geometrico: busca la biparticion con menor perdida.
+
+        Pasos:
+          1. Si ya calculamos este caso, reutiliza la memoria guardada
+          2. Llena tabla_transiciones nivel por nivel
+          3. Arma candidatos con identificar_particiones_optimas
+          4. Evalua cada candidato con bipartir y emd_efecto
+          5. Guarda el de menor perdida
+
+        Devuelve: lista de nodos de la mejor biparticion
         """
         ck = getattr(self, "_prep_cache_key", None)
         if ck and ck in _FIND_MIP_CACHE:
@@ -161,6 +204,12 @@ class GeometricSIA(SIA):
         return best
     
     def calcular_costos_nivel(self,estado_final: np.ndarray, nivel):
+        """
+        Explora estados vecinos a distancia hamming dada y calcula costos.
+
+        Recibe: estado final objetivo y numero de nivel (cuantos bits cambian)
+        Llena: self.caminos y llama calcular_costo para cada vecino nuevo
+        """
         n = len(estado_final)      
         visitados:set[tuple] = set()
         self.caminos[nivel] = []
@@ -178,15 +227,13 @@ class GeometricSIA(SIA):
 
     def calcular_costo(self, estado_inicial:tuple, estado_final:tuple, ncubos:list[int]):
         """
-            Funcion encargada de calcular el costo de transicion de transicion del estado inicial al estado final
-            para las variables futuras definidas en ncubos
-            aplica la funcion de costo tx(i,j)= y(|X[i]-X[j]|+ sum(tx(k,j)))
-            donde:
-                - y es el factor de decrecimiento 1/2^(dh(i,j))
-                - dh(i,j) es la distancia hamming entre i y j
-                - X[i] es el valor de probabilida de transicion de un estado para cada variable futura
-                - sum(tx(i,k)) son todos costos de transicion de los vecinos de j que estan en un 
-                  camino optimo desde i
+        Calcula el costo de ir de un estado a otro en las variables futuras.
+
+        Recibe:
+          estado_inicial, estado_final - tuplas de 0 y 1
+          ncubos - indices de variables futuras a considerar
+
+        Usa distancia hamming y factor 1/2^distancia. Guarda en tabla_transiciones.
         """
         key = tuple(estado_inicial), tuple(estado_final)
         if key not in self.tabla_transiciones:
@@ -228,8 +275,10 @@ class GeometricSIA(SIA):
 
     def identificar_particiones_optimas(self):
         """
-        Identifica las particiones óptimas basadas en los costos de transición
-        y las distancias Hamming entre los estados.
+        Lee la tabla de costos y arma candidatos a biparticion.
+
+        Cada candidato es una pareja (presentes, futuros) con indices de nodos.
+        Devuelve: lista de candidatos para evaluar con EMD
         """
         # idx_nivel_cero = 0
         # idx_nivel_cero_2 = 1
@@ -300,6 +349,7 @@ class GeometricSIA(SIA):
         return candidatos
 
     def hamming(self,a: List[int], b: List[int]) -> int:
+        """Cuenta cuantos bits son distintos entre dos estados. Devuelve un entero."""
         return sum(x != y for x, y in zip(a, b))
 
 
