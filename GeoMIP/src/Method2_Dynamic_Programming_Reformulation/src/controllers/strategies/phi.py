@@ -1,3 +1,15 @@
+"""
+Estrategia Phi: usa la libreria externa PyPhi para encontrar biparticiones.
+
+No es el motor principal del benchmark del proyecto, pero sirve como referencia
+academica (teoria de informacion integrada). Compara resultados con nuestros
+metodos propios si hace falta.
+
+Cuando se usa: pruebas opcionales, no en DatosPruebas2026 por defecto.
+
+Guia para principiantes:
+  documentacion-sustentacion-kqgmip/GUIA_STRATEGIES_PRINCIPIANTES.txt
+"""
 import time
 import numpy as np
 from src.funcs.base import ABECEDARY, lil_endian
@@ -46,9 +58,14 @@ from src.constants.models import (
 
 
 class Phi(SIA):
-    """Class Phi is used as base for other strategies, bruteforce with pyphi."""
+    """
+    Busca la mejor biparticion con PyPhi (effect_mip o cause_mip).
+
+    Recibe un gestor con la red y el estado inicial.
+    """
 
     def __init__(self, config: Manager) -> None:
+        """Guarda el gestor y prepara el registro de tiempos."""
         super().__init__(config)
         profiler_manager.start_session(
             f"{NET_LABEL}{len(config.estado_inicial)}{config.pagina}"
@@ -57,6 +74,21 @@ class Phi(SIA):
 
     @profile(context={TYPE_TAG: PYPHI_ANALYSIS_TAG})
     def aplicar_estrategia(self, condiciones: str, alcance: str, mecanismo: str):
+        """
+        Punto de entrada: analiza un subsistema y devuelve la mejor biparticion.
+
+        Recibe:
+          condiciones - cadena de 0 y 1: que nodos quedan fijos en background
+          alcance     - cadena de 0 y 1: nodos futuros que interesan
+          mecanismo   - cadena de 0 y 1: nodos presentes que interesan
+
+        Hace:
+          1. Arma el subsistema con PyPhi
+          2. Pide a PyPhi la particion minima (effect_mip o cause_mip)
+          3. Formatea el resultado
+
+        Devuelve: objeto Solution con perdida, particion y tiempo
+        """
         self.sia_tiempo_inicio = time.time()
         alcance_idx, mecanismo_idx, subsistema = self.preparar_subsistema(
             condiciones, alcance, mecanismo
@@ -103,6 +135,12 @@ class Phi(SIA):
         )
 
     def preparar_subsistema(self, condiciones: str, futuros: str, presentes: str):
+        """
+        Carga la red en PyPhi y filtra nodos segun las cadenas binarias.
+
+        Recibe: condiciones, futuros (alcance), presentes (mecanismo)
+        Devuelve: indices de alcance, indices de mecanismo, subsistema PyPhi
+        """
         estado_inicial = tuple(int(s) for s in self.sia_gestor.estado_inicial)
         longitud = len(estado_inicial)
 

@@ -1,3 +1,17 @@
+"""
+Estrategia BruteForce: prueba TODAS las biparticiones posibles.
+
+Es correcta pero muy lenta. Sirve para validar que QNodes o Geo dan lo mismo
+en redes pequenas, o para generar tablas Excel de analisis completo.
+
+Cuando se usa:
+  - Tests con redes de pocos nodos
+  - Metodo analizar_completamente_una_red (escribe Excels en review/)
+  - NO en el benchmark normal con n=10 o mas
+
+Guia para principiantes:
+  documentacion-sustentacion-kqgmip/GUIA_STRATEGIES_PRINCIPIANTES.txt
+"""
 from colorama import Fore
 from numpy.typing import NDArray
 from typing import Callable
@@ -43,20 +57,13 @@ from src.constants.models import (
 
 class BruteForce(SIA):
     """
-    Generador de soluciones mediante fuerza bruta sobre una red específica.
+    Recorre cada biparticion posible y se queda con la de menor perdida.
 
-    Para hacer uso del debug en diferentes zonas del proceso:
-
-    >>>    self.logger.info("General status update")
-    >>>    self.logger.debug("Detailed debugging info")
-    >>>    self.logger.debuging("debuging message")
-    >>>    self.logger.error("Error occurred")
-
-    Así mismo este se almacenará en el archivo con el nombre que hayamos asociado en el `setup_logger(...)`.
-    Este archivo de profilling de extensión HTML lo arrastras hasta tu navegador y se visualizará la depuración del aplicativo a lo largo del tiempo en dos vistas, temporal y cumulativa sobre el coste temporal en subrutinas.
+    Recibe un gestor con la red. Usa la metrica EMD configurada en la app.
     """
 
     def __init__(self, gestor: Manager):
+        """Guarda el gestor y elige la metrica de distancia (EMD por defecto)."""
         super().__init__(gestor)
         profiler_manager.start_session(
             f"{NET_LABEL}{len(gestor.estado_inicial)}{gestor.pagina}"
@@ -71,17 +78,14 @@ class BruteForce(SIA):
     )  # Descomentame y revisa el directorio `review/profiling/`! #
     def aplicar_estrategia(self, condiciones: str, alcance: str, mecanismo: str):
         """
-        Análisis por fuerza brutal sobre una red específica para un sistema candidato llevado a un subsistema determinado por el alcance y mecanismo indicado por el usuario.
+        Busca la mejor biparticion probando todas las combinaciones.
 
-        Args:
-        ----
-            conditions (str): Condiciones de fondo, dónde se va a condicionar el sistema original como candidato, sean las dimensiones en 0 las que se condicionen.
-            alcance (str): Elementos futuros que serán marginalizados si el bit está en cero (0) para la posición de la variable asociada.
-            mecanismo (str): Elementos presentes que serán marginalizados si su bit asociado en cero (0) para la posición de la variable.
+        Recibe:
+          condiciones - nodos fijos en background (cadena 0/1)
+          alcance     - nodos futuros activos (cadena 0/1)
+          mecanismo   - nodos presentes activos (cadena 0/1)
 
-        Returns:
-        -------
-            None: El análisis como se aprecia puede ser medido mediante el decorador de profiling, así como si se desea para algún otro método.
+        Devuelve: Solution con la biparticion de menor perdida EMD
         """
         self.sia_preparar_subsistema(
             condiciones, alcance, mecanismo, self.sia_cargar_tpm()
@@ -142,8 +146,10 @@ class BruteForce(SIA):
     @profile(context={TYPE_TAG: BRUTEFORCE_FULL_ANALYSIS_TAG})
     def analizar_completamente_una_red(self) -> None:
         """
-        Se prepara el directorio de salida donde almacenaremos el análisis completo de una red específica.
-        Este análisis consiste de para una red de N elementos en dos tiempos `t_0` y `t_1` para un único estado inicial, se crean todos los `{2^N}-1` factibles sistemas candidatos, posteriormente a cada uno sus `2^{m+n}` posibles biparticiones, excluyendo escenarios con alcances vacíos y finalmente cada bipartición de las `2^{m+n-1}-1` factibles.
+        Explora todos los candidatos y subsistemas de una red y escribe Excels.
+
+        No devuelve Solution; guarda archivos en review/resolver/.
+        Solo para redes pequenas o analisis detallado.
         """
         self.sia_gestor.output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -162,13 +168,7 @@ Estado incial: {initial_state}.
 """)
 
     def __analizar_candidatos(self, sistema: System) -> None:
-        """
-        Genera todos los sistemas candidatos factibles para dar análisis, de forma que se almacenen luego como un documento excel para mejor visualización.
-
-        Args:
-        ----
-            sistema (System): Sisteam completo que será condicionado según la combinación de dimensiones para condicionar/eliminar, formando el sistema candidato.
-        """
+        """Genera todos los sistemas candidatos y procesa cada uno."""
         cantidad = len(self.sia_gestor.estado_inicial)
         dim_candidatas = generar_candidatos(cantidad)
 
@@ -178,13 +178,7 @@ Estado incial: {initial_state}.
     def __procesar_candidato(
         self, completo: System, condiciones: NDArray[np.int8]
     ) -> None:
-        """Aplicamos condiciones de fondo sobre el sistema completo y continuamos la cadena para su análisis por subsistemas.
-
-        Args:
-        ----
-            completo (System): Sistema completo a condicionar.
-            condiciones (NDArray[np.int8]): Condiciones de fondo aplicadas sobre el sistema completo.
-        """
+        """Aplica condiciones de fondo al sistema y sigue con subsistemas."""
         candidato = completo.condicionar(condiciones)
         nombre = literales(np.setdiff1d(candidato.dims_ncubos, condiciones))
         self.__procesar_subsistema(candidato, nombre)
@@ -192,14 +186,7 @@ Estado incial: {initial_state}.
     def __procesar_subsistema(
         self, mecanismo_removido: System, nombre_candidato: str
     ) -> None:
-        """
-        Genera todos los subsistemas para un sistema candidato.
-
-        Args:
-        ----
-            mecanismo_removido (System): Mecanismo obtenido de algún condicionamiento realizado con anterioridad.
-            nombre_candidato (str): El noombre del sistema candidato de forma amigable, este determinará el nombre del fichero donde se guardará la solución de su análisis, esto en el directorio `review/`.
-        """
+        """Genera subsistemas del candidato y escribe un Excel por candidato."""
         results_file = (
             self.sia_gestor.output_dir / f"{nombre_candidato}.{EXCEL_EXTENSION}"
         )
@@ -221,18 +208,7 @@ Estado incial: {initial_state}.
     def __deberia_omitir_subsistema(
         self, alcance_removido: tuple[int, ...], candidate: System
     ) -> bool:
-        """
-        Revisa si el alcance o futuro que se va a condicionar genera un subsistema sin futuro y por ende, no útil en el análisis sistémico, no hay un non-trivial effect cual dar revisión.
-
-        Args:
-        ----
-            alcance_removido (tuple[int, ...]): tupla con índices asociados a las dimensiones que serán removidas.
-            candidate (System): Sistema cual se removeran los alcances.
-
-        Returns:
-        -------
-            bool: Determina si tienen el mismo tamaño, de serlo su diferencia será 0 y por ende no habrá futuro.
-        """
+        """True si el subsistema quedaria sin nodos futuros (no sirve para analisis)."""
         return len(alcance_removido) == candidate.indices_ncubos.size
 
     def __analizar_subsistema(
@@ -242,17 +218,7 @@ Estado incial: {initial_state}.
         mecanismo_removido: NDArray[np.int8],
         writer: pd.ExcelWriter,
     ) -> None:
-        """Analiza un sistema candidato y genera un condicionamiento para analizar sus subsistemas restantes.
-
-        Args:
-        ----
-            candidato (System): Subsistema candidato a ser substraído de sus elementos con el fin de obtener un subsistema.
-            alcance_removido (NDArray[np.int8]): El alcance o elementos futuros que serán marginalizados.
-            mecanismo_removido (NDArray[np.int8]): El mecanismo o elementos presentes que serán marginalizados.
-            writer (pd.ExcelWriter): escritor en la hoja de cálculo para un documento excel ya asociado.
-
-        Se almacena el resultado del análisis de este subsistema en una hoja de excel con la representación literal del mismo.
-        """
+        """Analiza un subsistema y guarda una hoja Excel con todas las biparticiones."""
         subsistema = candidato.substraer(alcance_removido, mecanismo_removido)
         dist_marginal = subsistema.distribucion_marginal()
 
@@ -265,19 +231,11 @@ Estado incial: {initial_state}.
     def __analizar_particiones(
         self, distribucion: NDArray[np.float32], subsistema: System
     ) -> pd.DataFrame:
-        """Para cada subsistema se realiza su análisis por cada partición. Como tenemos entendido la primera partición es tirivial de forma que es ignorada (esto es representado luego con i=1 para la selección de etiquetas).
-        Primeramente se obtienen las dimensiones totales del subsistema, tanto para mecanismos/filas (n) como alcances/columnas (m), sabemos que la cantidad de particiones con `k=2` (biparticiones) `P_k(S_{n, m}) = 2^(m+n-1)-1 = [(2^m-1)*(2^{n})]-1`, con esto podemos generar una matriz de `2^m` filas por `2^(m-1)` columnas y sustraemos la partición trivial.
-        Precomputamos las llaves y así mismo las posibles particiones, donde indexamos el resultado de la emd claramente en el iterando módulo m o n para asociar correctamente la clave e incrementamos ambos, pero sólo j cuando i haga una rotación.
-        Como se aprecia en el fichero `resolver/<red específica>/<estado inicial>/` la partición que interseca las claves (0,0) siempre debe estar vacía puesto es la partición trivial (donde de hecho no es una partición pues toda variable pertenece al mismo lado).
+        """
+        Calcula la EMD de cada biparticion y arma una matriz (filas=presente, cols=futuro).
 
-        Args:
-        ----
-            distribucion (NDArray[np.float32]): Distribución marginal que se comparará con la distribución marginal de la partición
-            subsistema (System): Subsistema que será particionado y su partición analizada con este mismo mediante la EMD Efecto
-
-        Returns:
-        -------
-            pd.DataFrame: Matriz que asociará en las filas los elementos presente o mecanismos de la partición y en las columnas los elementos futuros o alcances de la partición, esto de forma que los elementos que pertenezcan al mismo bit (0|1), pertenecen a la misma partición.
+        Recibe: distribucion marginal del subsistema, subsistema
+        Devuelve: DataFrame pandas con la EMD de cada biparticion
         """
         m, n = subsistema.indices_ncubos.size, subsistema.dims_ncubos.size
 
@@ -317,17 +275,7 @@ Estado incial: {initial_state}.
         sub_alcance: NDArray[np.int8],
         sub_mecanismo: NDArray[np.int8],
     ) -> str:
-        """
-        Muestra de forma amigable el subsistema analizado, utilizando literales asociados con la dimensión respectiva.
-
-        Args:
-            candidato (System): Sistema candidato del que se obtendrán las dimensiones a ser representadas de tanto el mecanismo presente, como el alcance futuro.
-            sub_alcance (NDArray[np.int8]): Alcance que será eliminado en el proceso.
-            sub_mecanismo (NDArray[np.int8]): Mecanismo que será eliminado en el proceso.
-
-        Returns:
-            str: Literal con la representación del subsistema
-        """
+        """Nombre legible del subsistema para la hoja Excel (letras A, B, C...)."""
         futuro_removido = np.setdiff1d(candidato.dims_ncubos, sub_alcance)
         presente_removido = np.setdiff1d(candidato.dims_ncubos, sub_mecanismo)
         return f"{literales(futuro_removido)}|{literales(presente_removido)}"
